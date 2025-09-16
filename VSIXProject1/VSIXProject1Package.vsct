@@ -52,7 +52,15 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidVSIXProject1PackageCmdSet" id="Command1Id" priority="0x0100" type="Button">
+
+		<Button guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentRefsId" priority="0x0120" type="Button">
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Icon guid="guidImages" id="bmpPicSearch" />
+			<Strings>
+				<ButtonText>Зафиксировать версию рефов</ButtonText>
+			</Strings>
+		</Button>
+		<Button guid="guidVSIXProject1PackageCmdSet" id="Command1Id" priority="0x0100" type="Button">
         <Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
@@ -88,7 +96,8 @@
     <GuidSymbol name="guidVSIXProject1PackageCmdSet" value="{c19eaee0-a475-4f4d-821f-194a1447a90d}">
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="Command1Id" value="0x0100" />
-		<IDSymbol name="GetChangedRefsId" value="0x0110"/>
+	    <IDSymbol name="GetChangedRefsId" value="0x0110"/>
+		<IDSymbol name="CommitCurrentRefsId" value="0x0120"/>
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{dceed754-0469-4e89-968e-668b81728f33}" >

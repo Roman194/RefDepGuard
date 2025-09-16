@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Globalization;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -25,6 +27,7 @@ namespace VSIXProject1
         /// </summary>
         public const int CommandId = 0x0100;
         public const int GetChangedRefsId = 0x0110;
+        public const int CommitCurrentRefsId = 0x0120;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -38,11 +41,15 @@ namespace VSIXProject1
 
         private static ReferencesEvents _refEvents;
         private static Events2 _dteEvents;
-        private static EnvDTE.DTE dte;
+        private static DTE dte;
 
-        static List<Reference> addedRefs = new List<Reference>();
-        static List<Reference> changedRefs = new List<Reference>();
-        static List<Reference> removedRefs = new List<Reference>();
+        static List<string> addedRefs = new List<string>();
+        static List<string> changedRefs = new List<string>();
+        static List<string> removedRefs = new List<string>();
+
+        static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
+
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Command1"/> class.
@@ -57,12 +64,15 @@ namespace VSIXProject1
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
+            var commitCurrentRefsMenuCommandID = new CommandID(CommandSet, CommitCurrentRefsId);
 
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteChanges, getChangedRefsMenuCommandID);
+            var commitCurrentRefsMenuItem = new MenuCommand(this.CommitCurrentReferences, commitCurrentRefsMenuCommandID);
 
             commandService.AddCommand(menuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
+
         }
 
         /// <summary>
@@ -99,37 +109,41 @@ namespace VSIXProject1
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             Instance = new Command1(package, commandService);
 
-            
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
 
-            _dteEvents = dte.Events as Events2;
-            //VSProject vSProject = (VSProject) dte.Solution.Projects.Item(1).Object;
-            //_refEvents = vSProject.Events.ReferencesEvents;
-            _refEvents = (ReferencesEvents)_dteEvents.GetObject("CSharpReferencesEvents");
-            _refEvents.ReferenceAdded += new _dispReferencesEvents_ReferenceAddedEventHandler(ReferenceAdded);
-            _refEvents.ReferenceChanged += new _dispReferencesEvents_ReferenceChangedEventHandler(ReferenceChanged);
-            _refEvents.ReferenceRemoved += new _dispReferencesEvents_ReferenceRemovedEventHandler(ReferenceRemoved);
+            //subscribeRefEvents();
         }
 
-        public void subscribeRefEvents()
+        public static void subscribeRefEvents()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            EnvDTE.DTE dte_two = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+
+            //_dteEvents = dte_two.Events as Events2;
+            
+            //_refEvents = (ReferencesEvents)dte_two.Events.GetObject("CSharpReferencesEvents");
+            
+            //_refEvents.ReferenceAdded += new _dispReferencesEvents_ReferenceAddedEventHandler(ReferenceAdded);
+            //_refEvents.ReferenceChanged += new _dispReferencesEvents_ReferenceChangedEventHandler(ReferenceChanged);
+            //_refEvents.ReferenceRemoved += new _dispReferencesEvents_ReferenceRemovedEventHandler(ReferenceRemoved);
             
         }
 
-        private static void ReferenceAdded(Reference pReference)
-        {
-            addedRefs.Add(pReference);
-        }
+        //private static void ReferenceAdded(Reference pReference)
+        //{
+        //    addedRefs.Add(pReference);
+        //}
 
-        private static void ReferenceChanged(Reference pReference)
-        {
-            changedRefs.Add(pReference);
-        }
+        //private static void ReferenceChanged(Reference pReference)
+        //{
+        //    changedRefs.Add(pReference);
+        //}
 
-        private static void ReferenceRemoved(Reference pReference)
-        {
-            removedRefs.Add(pReference);
-        }
+        //private static void ReferenceRemoved(Reference pReference)
+        //{
+        //    removedRefs.Add(pReference);
+        //}
 
         /// <summary>
         /// This function is the callback used to execute the command when the menu item is clicked.
@@ -146,13 +160,16 @@ namespace VSIXProject1
 
             
             EnvDTE.Solution solution = dte.Solution;
-            List<string> referencesList = new List<string>();
+            //List<string> referencesList = new List<string>();
+
+            commitedProjState.Clear();
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
                 message += ("Рефы в проекте:" + project.Name + "\r\n");
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 if (vSProject != null) {
+                    
                     //vSProject.References.ContainingProject.name;
                     //vSProject.References.ContainingProject.ProjectItems
 
@@ -161,14 +178,22 @@ namespace VSIXProject1
                     //    referencesList.Add(projectItem.Name);
                     //}
 
+                    var refsList = new List<string>();
+
                     foreach (VSLangProj.Reference vRef in vSProject.References) 
                     {
+                        
+
                         //referencesList.Add(vRef.DTE.Name);
                         if (vRef.SourceProject != null)
                         {
+
+                            refsList.Add(vRef.Name);
                             message += (vRef.Name + "\r\n");
                         }
                     }
+
+                    commitedProjState.Add(vSProject.Project.Name, refsList);
                 }
             }
 
@@ -192,40 +217,77 @@ namespace VSIXProject1
 
             string title = "Изменения в рефах";
 
-            if (addedRefs.Count > 0) 
+            EnvDTE.Solution solution = dte.Solution;
+
+            foreach (EnvDTE.Project project in solution.Projects)
+            {
+                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+                if (vSProject != null)
+                {
+                    var vsCommitedProjList = commitedProjState[vSProject.Project.Name];
+
+                    var vsProjectList = new List<string>();
+                    
+                    foreach (Reference currRef in vSProject.References)
+                    {
+                        if (currRef.SourceProject != null)
+                        {
+                            vsProjectList.Add(currRef.Name);
+                        }
+                    }
+
+                    //var vsCommitedProjRef = vsCommitedProjList;
+
+                    if (!(vsProjectList.Equals(vsCommitedProjList))) //Не работает!
+                    {
+                        
+                        var commonRefsList = vsProjectList.Intersect(vsCommitedProjList);
+                        vsProjectList.RemoveAll(commonRefsList.Contains);
+                        vsCommitedProjList.RemoveAll(commonRefsList.Contains);
+
+
+                        foreach (string currRef in vsCommitedProjList)
+                            addedRefs.Add(currRef);
+
+                        foreach (string currRef in vsProjectList)
+                            removedRefs.Add(currRef);
+
+                    }
+                }
+            }
+
+            if (addedRefs.Count > 0)
             {
                 message += "Добавлены рефы:";
-                foreach (Reference addedRef in addedRefs)
+                foreach (string addedRef in addedRefs)
                 {
-                    message += ("В проекте " + addedRef.SourceProject.Name + ": \r\n");
-                    message += addedRef.Name + "\r\n";
+                    message += ("В проекте ???: \r\n");
+                    message += addedRef + "\r\n";
 
                 }
             }
 
-            if (changedRefs.Count > 0)
-            {
-                message += "Обновлены рефы:";
-                foreach (Reference changedRef in changedRefs)
-                {
-                    message += ("В проекте " + changedRef.SourceProject.Name + ": \r\n");
-                    message += changedRef.Name + "\r\n";
+            //if (changedRefs.Count > 0)
+            //{
+            //    message += "Обновлены рефы:";
+            //    foreach (Reference changedRef in changedRefs)
+            //    {
+            //        message += ("В проекте " + changedRef.SourceProject.Name + ": \r\n");
+            //        message += changedRef.Name + "\r\n";
 
-                }
-            }
+            //    }
+            //}
 
             if (removedRefs.Count > 0)
             {
                 message += "Удалены рефы:";
-                foreach (Reference removedRef in removedRefs)
+                foreach (string removedRef in removedRefs)
                 {
-                    message += ("В проекте " + removedRef.SourceProject.Name + ": \r\n");
-                    message += removedRef.Name + "\r\n";
+                    message += ("В проекте ???: \r\n");
+                    message += removedRef + "\r\n";
 
                 }
             }
-
-
 
             VsShellUtilities.ShowMessageBox(
                 this.package,
@@ -236,8 +298,46 @@ namespace VSIXProject1
                 OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
 
             addedRefs.Clear();
-            changedRefs.Clear();
+            //changedRefs.Clear();
             removedRefs.Clear();
+        }
+
+        private void CommitCurrentReferences(object sender, EventArgs e) //Не работает!
+        {
+            var title = "Фиксация текущих референсов";
+            var message = "Текущие референсы успешно зафиксированы";
+
+            EnvDTE.Solution solution = dte.Solution;
+            //List<string> referencesList = new List<string>();
+
+            foreach (EnvDTE.Project project in solution.Projects)
+            {
+                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+                if (vSProject != null)
+                {
+                    var refsList = new List<string>();
+
+                    foreach (VSLangProj.Reference vRef in vSProject.References)
+                    {
+                        //referencesList.Add(vRef.DTE.Name);
+                        if (vRef.SourceProject != null)
+                        {
+                            refsList.Add(vRef.Name);
+                        }
+                    }
+
+                    commitedProjState.Add(vSProject.Project.Name, refsList);
+
+                }
+            }
+
+            VsShellUtilities.ShowMessageBox(
+                this.package,
+                message,
+                title,
+                OLEMSGICON.OLEMSGICON_INFO,
+                OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
     }
 }
