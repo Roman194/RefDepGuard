@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using Microsoft.Build.Framework;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
@@ -113,6 +114,10 @@ namespace VSIXProject1
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
 
             //subscribeRefEvents();
+
+            //ErrorListProvider pr = new ErrorListProvider(package);
+            dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
+            
         }
 
         public static void subscribeRefEvents()
@@ -145,6 +150,13 @@ namespace VSIXProject1
         //{
         //    removedRefs.Add(pReference);
         //}
+
+        private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            dte.ExecuteCommand("Build.Cancel");
+        }
 
         /// <summary>
         /// This function is the callback used to execute the command when the menu item is clicked.

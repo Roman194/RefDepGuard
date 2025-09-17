@@ -31,17 +31,27 @@
     group; your package should define its own command set in order to avoid collisions
     with command ids defined by other packages. -->
 
+	  <Menus>
+		  <Menu guid="guidVSIXProject1PackageCmdSet" id="ExtentionMenu" priority="0x700" type="Menu">
+			  <Parent guid="guidSHLMainMenu"
+					  id="IDG_VS_MM_TOOLSADDINS" />
+			  <Strings>
+				  <ButtonText>Test Menu</ButtonText>
+			  </Strings>
+		  </Menu>
+	  </Menus>
+
     <!-- In this section you can define new menu groups. A menu group is a container for
          other menus or buttons (commands); from a visual point of view you can see the
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
     <Groups>
       <Group guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+        <Parent guid="guidVSIXProject1PackageCmdSet" id="ExtentionMenu"/>
       </Group>
     </Groups>
 
-    <!--Buttons section. -->
+    <!--Buttons section. IDM_VS_MENU_TOOLS-->
     <!--This section defines the elements the user can interact with, like a menu command or a button
         or combo box in a toolbar. -->
     <Buttons>
@@ -96,6 +106,7 @@
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidVSIXProject1PackageCmdSet" value="{c19eaee0-a475-4f4d-821f-194a1447a90d}">
+		<IDSymbol name="ExtentionMenu" value="0x1021"/>
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="Command1Id" value="0x0100" />
 	    <IDSymbol name="GetChangedRefsId" value="0x0110"/>
