@@ -1,6 +1,7 @@
 ﻿using EnvDTE;
 using EnvDTE80;
 using Microsoft.Build.Framework;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
@@ -43,6 +44,7 @@ namespace VSIXProject1
         private static ReferencesEvents _refEvents;
         private static Events2 _dteEvents;
         private static DTE dte;
+        private static DTE2 dte2;
 
         static Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
         static List<string> changedRefs = new List<string>();
@@ -50,6 +52,11 @@ namespace VSIXProject1
 
         static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
 
+        static ErrorListProvider errorListProvider;
+        static IVsOutputWindowPane generalPane;
+        static Guid generalPaneGuid;
+        static IVsOutputWindow outWindow;
+        static OutputWindowPanes panes;
 
 
         /// <summary>
@@ -112,48 +119,42 @@ namespace VSIXProject1
             Instance = new Command1(package, commandService);
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            dte2 = (DTE2)Package.GetGlobalService(typeof(EnvDTE.DTE));
 
-            //subscribeRefEvents();
-
-            //ErrorListProvider pr = new ErrorListProvider(package);
+            
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
-            
+
+            errorListProvider = new ErrorListProvider(package);
+
+            outWindow = (IVsOutputWindow) Package.GetGlobalService(typeof(SVsOutputWindow)); //Создание собственного окна (м.б. полезно для вывода варнингов)
+            generalPaneGuid = VSConstants.GUID_OutWindowGeneralPane;
+            outWindow.CreatePane(ref generalPaneGuid, "Warning pane", 1, 0);
+            outWindow.GetPane(ref generalPaneGuid, out generalPane);
+            generalPane.OutputString("Nope!");
+
+
         }
-
-        public static void subscribeRefEvents()
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            //EnvDTE.DTE dte_two = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
-
-            //_dteEvents = dte_two.Events as Events2;
-            
-            //_refEvents = (ReferencesEvents)dte_two.Events.GetObject("CSharpReferencesEvents");
-            
-            //_refEvents.ReferenceAdded += new _dispReferencesEvents_ReferenceAddedEventHandler(ReferenceAdded);
-            //_refEvents.ReferenceChanged += new _dispReferencesEvents_ReferenceChangedEventHandler(ReferenceChanged);
-            //_refEvents.ReferenceRemoved += new _dispReferencesEvents_ReferenceRemovedEventHandler(ReferenceRemoved);
-            
-        }
-
-        //private static void ReferenceAdded(Reference pReference)
-        //{
-        //    addedRefs.Add(pReference);
-        //}
-
-        //private static void ReferenceChanged(Reference pReference)
-        //{
-        //    changedRefs.Add(pReference);
-        //}
-
-        //private static void ReferenceRemoved(Reference pReference)
-        //{
-        //    removedRefs.Add(pReference);
-        //}
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+
+            //Здесь прописать отслеживание соответствия референсов правилам
+
+            ErrorTask errorTask = new ErrorTask
+            {
+                Category = TaskCategory.User,
+                ErrorCategory = TaskErrorCategory.Error,
+                Text = "Вам запрещено",
+                Column = 0
+
+            };
+
+            errorListProvider.Tasks.Add(errorTask);
+            errorListProvider.Show();
+
+            
+            generalPane.Activate();
 
             dte.ExecuteCommand("Build.Cancel");
         }
@@ -173,7 +174,6 @@ namespace VSIXProject1
 
             
             EnvDTE.Solution solution = dte.Solution;
-            //List<string> referencesList = new List<string>();
 
             commitedProjState.Clear();
 
@@ -182,22 +182,11 @@ namespace VSIXProject1
                 message += ("Рефы в проекте:" + project.Name + "\r\n");
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 if (vSProject != null) {
-                    
-                    //vSProject.References.ContainingProject.name;
-                    //vSProject.References.ContainingProject.ProjectItems
-
-                    //foreach( EnvDTE.ProjectItem projectItem in vSProject.References.ContainingProject.ProjectItems)
-                    //{
-                    //    referencesList.Add(projectItem.Name);
-                    //}
 
                     var refsList = new List<string>();
 
                     foreach (VSLangProj.Reference vRef in vSProject.References) 
                     {
-                        
-
-                        //referencesList.Add(vRef.DTE.Name);
                         if (vRef.SourceProject != null)
                         {
 
@@ -336,13 +325,14 @@ namespace VSIXProject1
             removedRefs.Clear();
         }
 
-        private void CommitCurrentReferences(object sender, EventArgs e) //Не работает!
+        private void CommitCurrentReferences(object sender, EventArgs e)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             var title = "Фиксация текущих референсов";
             var message = "Текущие референсы успешно зафиксированы";
 
             EnvDTE.Solution solution = dte.Solution;
-            //List<string> referencesList = new List<string>();
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
@@ -353,7 +343,6 @@ namespace VSIXProject1
 
                     foreach (VSLangProj.Reference vRef in vSProject.References)
                     {
-                        //referencesList.Add(vRef.DTE.Name);
                         if (vRef.SourceProject != null)
                         {
                             refsList.Add(vRef.Name);

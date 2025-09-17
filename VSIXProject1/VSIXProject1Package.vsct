@@ -36,7 +36,7 @@
 			  <Parent guid="guidSHLMainMenu"
 					  id="IDG_VS_MM_TOOLSADDINS" />
 			  <Strings>
-				  <ButtonText>Test Menu</ButtonText>
+				  <ButtonText>RefDepGuardian</ButtonText>
 			  </Strings>
 		  </Menu>
 	  </Menus>
