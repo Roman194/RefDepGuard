@@ -43,9 +43,9 @@ namespace VSIXProject1
         private static Events2 _dteEvents;
         private static DTE dte;
 
-        static List<string> addedRefs = new List<string>();
+        static Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
         static List<string> changedRefs = new List<string>();
-        static List<string> removedRefs = new List<string>();
+        static Dictionary<string, List<string>> removedRefs = new Dictionary<string, List<string>>();
 
         static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
 
@@ -72,6 +72,7 @@ namespace VSIXProject1
 
             commandService.AddCommand(menuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
+            commandService.AddCommand(commitCurrentRefsMenuItem);
 
         }
 
@@ -118,7 +119,7 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            EnvDTE.DTE dte_two = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            //EnvDTE.DTE dte_two = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
 
             //_dteEvents = dte_two.Events as Events2;
             
@@ -224,34 +225,47 @@ namespace VSIXProject1
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 if (vSProject != null)
                 {
-                    var vsCommitedProjList = commitedProjState[vSProject.Project.Name];
+                    var vsCommitedProjRefsHashSet = new HashSet<string> (commitedProjState[vSProject.Project.Name]);
 
-                    var vsProjectList = new List<string>();
+                    var vsCurrentProjHashSet = new HashSet<string>();
                     
                     foreach (Reference currRef in vSProject.References)
                     {
                         if (currRef.SourceProject != null)
                         {
-                            vsProjectList.Add(currRef.Name);
+                            vsCurrentProjHashSet.Add(currRef.Name);
                         }
                     }
 
-                    //var vsCommitedProjRef = vsCommitedProjList;
-
-                    if (!(vsProjectList.Equals(vsCommitedProjList))) //Не работает!
+                    if (!(vsCurrentProjHashSet.SetEquals(vsCommitedProjRefsHashSet)))
                     {
-                        
-                        var commonRefsList = vsProjectList.Intersect(vsCommitedProjList);
-                        vsProjectList.RemoveAll(commonRefsList.Contains);
-                        vsCommitedProjList.RemoveAll(commonRefsList.Contains);
+                        commitedProjState[vSProject.Project.Name] = vsCurrentProjHashSet.ToList();
 
+                        var commonRefsHashSet = vsCurrentProjHashSet.Intersect(vsCommitedProjRefsHashSet).ToHashSet();
 
-                        foreach (string currRef in vsCommitedProjList)
-                            addedRefs.Add(currRef);
+                        vsCurrentProjHashSet.RemoveWhere(commonRefsHashSet.Contains);
+                        vsCommitedProjRefsHashSet.RemoveWhere(commonRefsHashSet.Contains);
 
-                        foreach (string currRef in vsProjectList)
-                            removedRefs.Add(currRef);
+                        if (vsCurrentProjHashSet.Count > 0)
+                        {
+                            var addedRefsList = new List<string>();
 
+                            foreach (string currRef in vsCurrentProjHashSet)
+                                addedRefsList.Add(currRef);
+
+                            addedRefs.Add(vSProject.Project.Name, addedRefsList);
+
+                        }
+
+                        if(vsCommitedProjRefsHashSet.Count > 0)
+                        {
+                            var removedRefsList = new List<string>();
+
+                            foreach (string currRef in vsCommitedProjRefsHashSet)
+                                removedRefsList.Add(currRef);
+
+                            removedRefs.Add(vSProject.Project.Name, removedRefsList);
+                        }
                     }
                 }
             }
@@ -259,11 +273,15 @@ namespace VSIXProject1
             if (addedRefs.Count > 0)
             {
                 message += "Добавлены рефы:";
-                foreach (string addedRef in addedRefs)
+                foreach(var addedRefDict in addedRefs)
                 {
-                    message += ("В проекте ???: \r\n");
-                    message += addedRef + "\r\n";
+                    message += ("В проекте "+ addedRefDict.Key + ": \r\n");
 
+                    foreach (string addedRef in addedRefDict.Value)
+                    {
+                        message += addedRef + "\r\n";
+
+                    }
                 }
             }
 
@@ -281,11 +299,15 @@ namespace VSIXProject1
             if (removedRefs.Count > 0)
             {
                 message += "Удалены рефы:";
-                foreach (string removedRef in removedRefs)
+                foreach(var removedRefDict in removedRefs)
                 {
-                    message += ("В проекте ???: \r\n");
-                    message += removedRef + "\r\n";
+                    message += ("В проекте "+ removedRefDict.Key + ": \r\n");
 
+                    foreach (string removedRef in removedRefDict.Value)
+                    { 
+                        message += removedRef + "\r\n";
+
+                    }
                 }
             }
 
