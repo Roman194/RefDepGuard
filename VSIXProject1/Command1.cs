@@ -11,6 +11,7 @@ using System.ComponentModel.Design;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -41,10 +42,8 @@ namespace VSIXProject1
         /// </summary>
         private readonly AsyncPackage package;
 
-        private static ReferencesEvents _refEvents;
-        private static Events2 _dteEvents;
         private static DTE dte;
-        private static DTE2 dte2;
+        //private static DTE2 dte2;
 
         static Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
         static List<string> changedRefs = new List<string>();
@@ -56,7 +55,6 @@ namespace VSIXProject1
         static IVsOutputWindowPane generalPane;
         static Guid generalPaneGuid;
         static IVsOutputWindow outWindow;
-        static OutputWindowPanes panes;
 
 
         /// <summary>
@@ -81,6 +79,8 @@ namespace VSIXProject1
             commandService.AddCommand(menuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentRefsMenuItem);
+
+            CommitCurrentReferences();
 
         }
 
@@ -116,10 +116,11 @@ namespace VSIXProject1
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-            Instance = new Command1(package, commandService);
+
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
-            dte2 = (DTE2)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            Instance = new Command1(package, commandService);
+            //dte2 = (DTE2)Package.GetGlobalService(typeof(EnvDTE.DTE));
 
             
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
@@ -132,6 +133,7 @@ namespace VSIXProject1
             outWindow.GetPane(ref generalPaneGuid, out generalPane);
             generalPane.OutputString("Nope!");
 
+           
 
         }
 
@@ -329,8 +331,8 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var title = "Фиксация текущих референсов";
-            var message = "Текущие референсы успешно зафиксированы";
+            //var title = "Фиксация текущих референсов";
+            //var message = "Текущие референсы успешно зафиксированы";
 
             EnvDTE.Solution solution = dte.Solution;
 
@@ -354,13 +356,40 @@ namespace VSIXProject1
                 }
             }
 
-            VsShellUtilities.ShowMessageBox(
-                this.package,
-                message,
-                title,
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            //VsShellUtilities.ShowMessageBox(
+            //    this.package,
+            //    message,
+            //    title,
+            //    OLEMSGICON.OLEMSGICON_INFO,
+            //    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+            //    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+        }
+
+        private void CommitCurrentReferences()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            EnvDTE.Solution solution = dte.Solution;
+
+            foreach (EnvDTE.Project project in solution.Projects)
+            {
+                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+                if (vSProject != null)
+                {
+                    var refsList = new List<string>();
+
+                    foreach (VSLangProj.Reference vRef in vSProject.References)
+                    {
+                        if (vRef.SourceProject != null)
+                        {
+                            refsList.Add(vRef.Name);
+                        }
+                    }
+
+                    commitedProjState.Add(vSProject.Project.Name, refsList);
+
+                }
+            }
         }
     }
 }
