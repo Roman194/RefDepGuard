@@ -5,10 +5,12 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
+using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -51,6 +53,8 @@ namespace VSIXProject1
 
         static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
 
+        static ConfigFileSolution configFileSolution;
+
         static ErrorListProvider errorListProvider;
         static IVsOutputWindowPane generalPane;
         static Guid generalPaneGuid;
@@ -81,6 +85,9 @@ namespace VSIXProject1
             commandService.AddCommand(commitCurrentRefsMenuItem);
 
             CommitCurrentReferences();
+            GetConfigFileInfo();
+
+
 
         }
 
@@ -142,6 +149,8 @@ namespace VSIXProject1
             ThreadHelper.ThrowIfNotOnUIThread();
 
             //Здесь прописать отслеживание соответствия референсов правилам
+
+
 
             ErrorTask errorTask = new ErrorTask
             {
@@ -390,6 +399,84 @@ namespace VSIXProject1
 
                 }
             }
+        }
+
+        private async void GetConfigFileInfo() //Не вызывается
+        {
+            string [] solutionNameArray = dte.Solution.FullName.Split('.');
+            string solutionName = "";
+
+            for (int i = 0; i < solutionNameArray.Length - 1; i++)
+            {
+                solutionName += solutionNameArray[i];
+            }
+
+            try
+            {
+                using (FileStream fileStream = File.OpenRead(solutionName + ".json"))
+                {
+
+                    configFileSolution = await JsonSerializer.DeserializeAsync<ConfigFileSolution>(fileStream);
+
+                    //Надо актуализировать файл конфигурации по количеству проектов?
+
+                    int iterationsCount = 0;
+                    if (configFileSolution.projects.Count < commitedProjState.Count)
+                    {
+                        iterationsCount = configFileSolution.projects.Count;
+                    }
+                    else
+                    {
+                        iterationsCount = commitedProjState.Count;
+                    }
+
+
+                    //for (int i = 0; i < iterationsCount; i++)
+                    //{
+
+
+
+
+                    //}
+                }
+            }
+            catch (Exception ex)
+            {
+
+                VsShellUtilities.ShowMessageBox(
+                    this.package,
+                    "Не получилось загрузить файл конфигурации",
+                    "Ошибка загрузки файла конфигурации",
+                    OLEMSGICON.OLEMSGICON_INFO,
+                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+                configFileSolution.name = solutionName;
+                configFileSolution.framework_max_version = "-";
+                configFileSolution.global_required_references = new List<ConfigFileReference>();
+                configFileSolution.global_unnacceptable_references = new List<ConfigFileReference>();
+
+                
+                foreach (var projectName in commitedProjState.Keys)
+                {
+                    ConfigFileProject fileProject = new ConfigFileProject();
+                    fileProject.framework_max_version = "-";
+                    fileProject.name = projectName;
+                    fileProject.required_references = new List<ConfigFileReference>();
+                    fileProject.unnacceptable_references = new List<ConfigFileReference>();
+
+                    configFileSolution.projects.Add(fileProject);
+                }
+
+                using (FileStream fileStream = File.Create(solutionName + ".json"))
+                {
+
+                    //configFileSolution = new ConfigFileSolution()
+
+                    string json = JsonSerializer.Serialize(configFileSolution);
+                }
+            }
+
         }
     }
 }
