@@ -5,7 +5,6 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
-using System.Text.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -19,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using VSLangProj;
 using Task = System.Threading.Tasks.Task;
+using Newtonsoft.Json;
 
 namespace VSIXProject1
 {
@@ -85,11 +85,15 @@ namespace VSIXProject1
             commandService.AddCommand(commitCurrentRefsMenuItem);
 
             CommitCurrentReferences();
+
             GetConfigFileInfo();
 
-
-
         }
+
+        //private async Task InitializeCommand1Async()
+        //{
+        //    await GetConfigFileInfo(package);
+        //}
 
         /// <summary>
         /// Gets the instance of the command.
@@ -127,9 +131,11 @@ namespace VSIXProject1
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             Instance = new Command1(package, commandService);
+            //await Instance.InitializeCommand1Async();
+
             //dte2 = (DTE2)Package.GetGlobalService(typeof(EnvDTE.DTE));
 
-            
+
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
 
             errorListProvider = new ErrorListProvider(package);
@@ -401,34 +407,55 @@ namespace VSIXProject1
             }
         }
 
-        private async void GetConfigFileInfo() //Не вызывается
+        private void GetConfigFileInfo() //Не вызывается
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             string [] solutionNameArray = dte.Solution.FullName.Split('.');
-            string solutionName = "";
+            string solutionExtendedName = "";
 
             for (int i = 0; i < solutionNameArray.Length - 1; i++)
             {
-                solutionName += solutionNameArray[i];
+                solutionExtendedName += solutionNameArray[i];
             }
 
             try
             {
-                using (FileStream fileStream = File.OpenRead(solutionName + ".json"))
+                using (FileStream fileStream = new FileStream(solutionExtendedName + ".json", FileMode.Open))
                 {
 
-                    configFileSolution = await JsonSerializer.DeserializeAsync<ConfigFileSolution>(fileStream);
+                    //var reference = new ConfigFileReference { reference = "System.Win.Forms" };
+
+                    //configFileSolution = new ConfigFileSolution { name = solutionName, framework_max_version = "-", global_required_references = new List<ConfigFileReference>(), global_unnacceptable_references = new List<ConfigFileReference>()};
+
+                    //string json = JsonSerializer.Serialize(configFileSolution);
+
+                    //string json = JsonSerializer.Serialize(reference);
+
+                    StreamReader sr = new StreamReader(fileStream);
+
+
+                    ConfigFileSolution configFile = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
+
+                    //string json = JsonConvert.SerializeObject(configFileSolution);
+
+
+                    //configFileSolution = JsonSerializer.Deserialize<ConfigFileSolution>(fileStream);
+
+
+
 
                     //Надо актуализировать файл конфигурации по количеству проектов?
 
-                    int iterationsCount = 0;
-                    if (configFileSolution.projects.Count < commitedProjState.Count)
-                    {
-                        iterationsCount = configFileSolution.projects.Count;
-                    }
-                    else
-                    {
-                        iterationsCount = commitedProjState.Count;
-                    }
+                    //int iterationsCount = 0;
+                    //if (configFileSolution.projects.Count < commitedProjState.Count)
+                    //{
+                    //    iterationsCount = configFileSolution.projects.Count;
+                    //}
+                    //else
+                    //{
+                    //    iterationsCount = commitedProjState.Count;
+                    //}
 
 
                     //for (int i = 0; i < iterationsCount; i++)
@@ -451,12 +478,17 @@ namespace VSIXProject1
                     OLEMSGBUTTON.OLEMSGBUTTON_OK,
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
 
-                configFileSolution.name = solutionName;
+                var solutionName = solutionExtendedName.Split('\\');
+
+                
+                configFileSolution = new ConfigFileSolution();
+                configFileSolution.name = solutionName[solutionName.Length - 1];
                 configFileSolution.framework_max_version = "-";
                 configFileSolution.global_required_references = new List<ConfigFileReference>();
                 configFileSolution.global_unnacceptable_references = new List<ConfigFileReference>();
+                configFileSolution.projects = new List<ConfigFileProject>();
 
-                
+
                 foreach (var projectName in commitedProjState.Keys)
                 {
                     ConfigFileProject fileProject = new ConfigFileProject();
@@ -468,12 +500,22 @@ namespace VSIXProject1
                     configFileSolution.projects.Add(fileProject);
                 }
 
-                using (FileStream fileStream = File.Create(solutionName + ".json"))
+                using (FileStream fileStream = File.Create(solutionExtendedName + ".json"))
                 {
+                    StreamWriter streamWriter = new StreamWriter(fileStream);
 
                     //configFileSolution = new ConfigFileSolution()
 
-                    string json = JsonSerializer.Serialize(configFileSolution);
+                    string json = JsonConvert.SerializeObject(configFileSolution);
+                    streamWriter.Write(json);
+
+                    streamWriter.Flush();
+                    fileStream.Flush();
+
+
+                    streamWriter.Close();
+
+                    
                 }
             }
 
