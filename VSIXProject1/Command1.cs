@@ -60,6 +60,8 @@ namespace VSIXProject1
         static Guid generalPaneGuid;
         static IVsOutputWindow outWindow;
 
+        static bool isConfigFileExsistedBeforeInit = true;
+
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Command1"/> class.
@@ -84,9 +86,10 @@ namespace VSIXProject1
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentRefsMenuItem);
 
-            CommitCurrentReferences();
-
             GetConfigFileInfo();
+
+            if(isConfigFileExsistedBeforeInit) 
+                CommitCurrentReferencesWithCheckingRules();
 
         }
 
@@ -128,6 +131,7 @@ namespace VSIXProject1
 
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
 
+            errorListProvider = new ErrorListProvider(package);
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             Instance = new Command1(package, commandService);
@@ -138,15 +142,11 @@ namespace VSIXProject1
 
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
 
-            errorListProvider = new ErrorListProvider(package);
-
             outWindow = (IVsOutputWindow) Package.GetGlobalService(typeof(SVsOutputWindow)); //Создание собственного окна (м.б. полезно для вывода варнингов)
             generalPaneGuid = VSConstants.GUID_OutWindowGeneralPane;
             outWindow.CreatePane(ref generalPaneGuid, "Warning pane", 1, 0);
             outWindow.GetPane(ref generalPaneGuid, out generalPane);
             generalPane.OutputString("Nope!");
-
-           
 
         }
 
@@ -156,24 +156,31 @@ namespace VSIXProject1
 
             //Здесь прописать отслеживание соответствия референсов правилам
 
+            //Взять configFileSolution и проверить его обязательные и запрещённые связи
 
+            //Если не соответствует конфигу, то не даём зафикисровать изменения рефов и сделать билд
 
-            ErrorTask errorTask = new ErrorTask
+            CommitCurrentReferencesWithCheckingRules();
+
+            if (errorListProvider.Tasks.Count > 0) //Коммит завершился с ошибками?
             {
-                Category = TaskCategory.User,
-                ErrorCategory = TaskErrorCategory.Error,
-                Text = "Вам запрещено",
-                Column = 0
+                generalPane.Activate();
 
-            };
+                dte.ExecuteCommand("Build.Cancel");
 
-            errorListProvider.Tasks.Add(errorTask);
-            errorListProvider.Show();
+            }
 
-            
-            generalPane.Activate();
+            //ErrorTask errorTask = new ErrorTask
+            //{
+            //    Category = TaskCategory.User,
+            //    ErrorCategory = TaskErrorCategory.Error,
+            //    Text = "Вам запрещено",
+            //    Column = 0
 
-            dte.ExecuteCommand("Build.Cancel");
+            //};
+
+            //errorListProvider.Tasks.Add(errorTask);
+            //errorListProvider.Show();
         }
 
         /// <summary>
@@ -380,10 +387,97 @@ namespace VSIXProject1
             //    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
 
-        private void CommitCurrentReferences()
+        private static void CommitCurrentReferencesWithCheckingRules()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
+            commitedProjState.Clear();
+            
+            if(errorListProvider != null)
+                errorListProvider.Tasks.Clear();
+
+            EnvDTE.Solution solution = dte.Solution;
+
+            foreach (EnvDTE.Project project in solution.Projects)
+            {
+                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+
+                if (vSProject != null)
+                {
+                    var refsList = new List<string>();
+                    var currentProjectName = vSProject.Project.Name;
+
+                    foreach (VSLangProj.Reference vRef in vSProject.References)
+                    {
+                        if (vRef.SourceProject != null)
+                        {
+                            refsList.Add(vRef.Name);
+                        }
+                    }
+
+                    if (configFileSolution.projects.ContainsKey(currentProjectName))
+                    {
+                        ConfigFileProject currentProjectConfigFileSettings = configFileSolution.projects[currentProjectName];
+
+                        foreach(ConfigFileReference requiredReference in currentProjectConfigFileSettings.required_references)
+                        {
+                            if (!refsList.Contains(requiredReference.reference))
+                            {
+                                //Ошибка отсутствия обязательного референса
+
+                                ErrorTask errorTask = new ErrorTask
+                                {
+                                    Category = TaskCategory.User,
+                                    ErrorCategory = TaskErrorCategory.Error,
+                                    Document = currentProjectName + ".csproj",
+                                    Text = "RefDepGuard error: Отсутсвует обязательный референс '" + requiredReference.reference + "' для проекта '" + currentProjectName + "'. Добавьте его через обозреватель решений"
+
+                                };
+
+                                errorListProvider.Tasks.Add(errorTask);
+
+                            }
+
+                        }
+
+                        foreach(ConfigFileReference unacceptableReference in currentProjectConfigFileSettings.unnacceptable_references)
+                        {
+                            if (refsList.Contains(unacceptableReference.reference))
+                            {
+                                //Ошибка присутствия недопутсимого референса
+                                ErrorTask errorTask = new ErrorTask
+                                {
+                                    Category = TaskCategory.User,
+                                    ErrorCategory = TaskErrorCategory.Error,
+                                    Document = currentProjectName + ".csproj",
+                                    Text = "RefDepGuard error: Присутствует недопустимый референс '" + unacceptableReference.reference + "' для проекта '" + currentProjectName + "'. Удалите его через обозреватель решений"
+
+                                };
+
+                                errorListProvider.Tasks.Add(errorTask);
+
+                            }
+
+                        }
+                    }
+                    else
+                    {
+
+                        //Проект есть в solution но его нет в config
+                    }
+
+                    //А что делать если проекта нет в solution, но он есть в config?
+                    commitedProjState.Add(currentProjectName, refsList);
+
+                }
+            }
+
+            if(errorListProvider != null) 
+                errorListProvider.Show();
+        }
+
+        private void CommitCurrentReferences()
+        {
             EnvDTE.Solution solution = dte.Solution;
 
             foreach (EnvDTE.Project project in solution.Projects)
@@ -407,17 +501,19 @@ namespace VSIXProject1
             }
         }
 
-        private void GetConfigFileInfo() //Не вызывается
+        private void GetConfigFileInfo()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            string [] solutionNameArray = dte.Solution.FullName.Split('.');
-            string solutionExtendedName = "";
+            //string [] solutionNameArray = dte.Solution.FullName.Split('.');
+            string dteSolutionFullName = dte.Solution.FullName;
+            int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
+            string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
 
-            for (int i = 0; i < solutionNameArray.Length - 1; i++)
-            {
-                solutionExtendedName += solutionNameArray[i];
-            }
+            //for (int i = 0; i < solutionNameArray.Length - 1; i++)
+            //{
+            //    solutionExtendedName += solutionNameArray[i];
+            //}
 
             try
             {
@@ -435,7 +531,7 @@ namespace VSIXProject1
                     StreamReader sr = new StreamReader(fileStream);
 
 
-                    ConfigFileSolution configFile = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
+                    configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
 
                     //string json = JsonConvert.SerializeObject(configFileSolution);
 
@@ -446,6 +542,7 @@ namespace VSIXProject1
 
 
                     //Надо актуализировать файл конфигурации по количеству проектов?
+                    //Или хотя бы выводить сообщение о том, что такого-то проекта в файле конфигурации нет, добавьте его?
 
                     //int iterationsCount = 0;
                     //if (configFileSolution.projects.Count < commitedProjState.Count)
@@ -472,8 +569,8 @@ namespace VSIXProject1
 
                 VsShellUtilities.ShowMessageBox(
                     this.package,
-                    "Не получилось загрузить файл конфигурации",
-                    "Ошибка загрузки файла конфигурации",
+                    "Не получилось загрузить файл конфигурации. \r\n Шаблон файла конфигурации будет создан расширением",
+                    "RefDepGuard: Ошибка загрузки файла конфигурации",
                     OLEMSGICON.OLEMSGICON_INFO,
                     OLEMSGBUTTON.OLEMSGBUTTON_OK,
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
@@ -486,8 +583,10 @@ namespace VSIXProject1
                 configFileSolution.framework_max_version = "-";
                 configFileSolution.global_required_references = new List<ConfigFileReference>();
                 configFileSolution.global_unnacceptable_references = new List<ConfigFileReference>();
-                configFileSolution.projects = new List<ConfigFileProject>();
+                configFileSolution.projects = new Dictionary<string, ConfigFileProject>();
 
+                isConfigFileExsistedBeforeInit = false;
+                CommitCurrentReferences();
 
                 foreach (var projectName in commitedProjState.Keys)
                 {
@@ -497,14 +596,14 @@ namespace VSIXProject1
                     fileProject.required_references = new List<ConfigFileReference>();
                     fileProject.unnacceptable_references = new List<ConfigFileReference>();
 
-                    configFileSolution.projects.Add(fileProject);
+                    configFileSolution.projects.Add(projectName, fileProject);
                 }
 
                 using (FileStream fileStream = File.Create(solutionExtendedName + ".json"))
                 {
                     StreamWriter streamWriter = new StreamWriter(fileStream);
 
-                    //configFileSolution = new ConfigFileSolution()
+                    //configFileSolution = new ConfigFileSolution();
 
                     string json = JsonConvert.SerializeObject(configFileSolution);
                     streamWriter.Write(json);
@@ -515,7 +614,7 @@ namespace VSIXProject1
 
                     streamWriter.Close();
 
-                    
+
                 }
             }
 

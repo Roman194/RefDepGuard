@@ -13,6 +13,6 @@ namespace VSIXProject1
         public List<ConfigFileReference> global_required_references;
         public List<ConfigFileReference> global_unnacceptable_references;
 
-        public List<ConfigFileProject> projects;
+        public Dictionary<string, ConfigFileProject> projects;
     }
 }
