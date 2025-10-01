@@ -55,7 +55,7 @@ namespace VSIXProject1
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await Command1.InitializeAsync(this);
 
-            IVsSolution solution = GetService(typeof(SVsSolution)) as IVsSolution;
+            IVsSolution solution = GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
             if (solution != null)
             {
                 // Регистрируем подписку на события загрузки решения
@@ -66,6 +66,8 @@ namespace VSIXProject1
 
         protected override void Dispose(bool disposing)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             try
             {
                 if (_solutionLoadEventsCookie != 0)

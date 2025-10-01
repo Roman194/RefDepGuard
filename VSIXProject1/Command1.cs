@@ -54,13 +54,12 @@ namespace VSIXProject1
         static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
 
         static ConfigFileSolution configFileSolution;
+        static ConfigFileGlobal configFileGlobal;
 
         static ErrorListProvider errorListProvider;
         static IVsOutputWindowPane generalPane;
         static Guid generalPaneGuid;
         static IVsOutputWindow outWindow;
-
-        static bool isConfigFileExsistedBeforeInit = true;
 
 
         /// <summary>
@@ -88,20 +87,8 @@ namespace VSIXProject1
 
             onSolutionOpened();
 
-            //CommitCurrentReferences();
-            
-            //GetConfigFileInfo();
-
-            //if (isConfigFileExsistedBeforeInit)
-             //   CheckRulesFromConfigFile();
-
 
         }
-
-        //private async Task InitializeCommand1Async()
-        //{
-        //    await GetConfigFileInfo(package);
-        //}
 
         /// <summary>
         /// Gets the instance of the command.
@@ -141,8 +128,6 @@ namespace VSIXProject1
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
             //dte.Events.SolutionEvents.Opened += onSolutionOpened; 
-            
-            
 
             //if (dte.Solution.IsOpen)
             //{
@@ -152,11 +137,6 @@ namespace VSIXProject1
             await Task.Delay(10000);
 
             Instance = new Command1(package, commandService);
-            //await Instance.InitializeCommand1Async();
-
-            //dte2 = (DTE2)Package.GetGlobalService(typeof(EnvDTE.DTE));
-
-
 
             outWindow = (IVsOutputWindow) Package.GetGlobalService(typeof(SVsOutputWindow)); //Создание собственного окна (м.б. полезно для вывода варнингов)
             generalPaneGuid = VSConstants.GUID_OutWindowGeneralPane;
@@ -170,11 +150,7 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            //Здесь прописать отслеживание соответствия референсов правилам
-
-            //Взять configFileSolution и проверить его обязательные и запрещённые связи
-
-            //Если не соответствует конфигу, то не даём зафикисровать изменения рефов и сделать билд
+            //Здесь прописаны отслеживание соответствия референсов правилам
 
             CommitCurrentReferences();
 
@@ -327,17 +303,6 @@ namespace VSIXProject1
                 }
             }
 
-            //if (changedRefs.Count > 0)
-            //{
-            //    message += "Обновлены рефы:";
-            //    foreach (Reference changedRef in changedRefs)
-            //    {
-            //        message += ("В проекте " + changedRef.SourceProject.Name + ": \r\n");
-            //        message += changedRef.Name + "\r\n";
-
-            //    }
-            //}
-
             if (removedRefs.Count > 0)
             {
                 message += "Удалены рефы:";
@@ -362,7 +327,6 @@ namespace VSIXProject1
                 OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
 
             addedRefs.Clear();
-            //changedRefs.Clear();
             removedRefs.Clear();
         }
 
@@ -370,31 +334,6 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             commitedProjState.Clear();
-
-            //var title = "Фиксация текущих референсов";
-            //var message = "Текущие референсы успешно зафиксированы";
-
-            //EnvDTE.Solution solution = dte.Solution;
-
-            //foreach (EnvDTE.Project project in solution.Projects)
-            //{
-            //    VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
-            //    if (vSProject != null)
-            //    {
-            //        var refsList = new List<string>();
-
-            //        foreach (VSLangProj.Reference vRef in vSProject.References)
-            //        {
-            //            if (vRef.SourceProject != null)
-            //            {
-            //                refsList.Add(vRef.Name);
-            //            }
-            //        }
-
-            //        commitedProjState.Add(vSProject.Project.Name, refsList);
-
-            //    }
-            //}
 
             CommitCurrentReferences();
 
@@ -425,109 +364,116 @@ namespace VSIXProject1
             errorListProvider.Show();
         }
 
+        private static List<ReferenceAffiliation> GetReferenceAffilitaionsList(List<ConfigFileReference> configFileReferences, bool isReferenceGlobal)
+        {
+            List<ReferenceAffiliation> referenceAffiliations = new List<ReferenceAffiliation>();
+
+            foreach (ConfigFileReference currentReference in configFileReferences)
+                referenceAffiliations.Add(new ReferenceAffiliation(currentReference.reference, isReferenceGlobal));
+
+            return referenceAffiliations;
+        }
+
+        private static void CheckRulesForSolutionAndGlobalReferences(string projName, List<string> projReferences, List<ReferenceAffiliation> referenceAffiliations, bool isReferenceRequired)
+        {
+            foreach(ReferenceAffiliation referenceAffiliation in referenceAffiliations)
+            {
+                if((isReferenceRequired && !projReferences.Contains(referenceAffiliation.Reference)) || 
+                    (!isReferenceRequired && projReferences.Contains(referenceAffiliation.Reference)))
+                {
+                    string referenceTypeText = "";
+                    string referenceLevelText = "";
+
+                    if (isReferenceRequired)
+                    {
+                        referenceTypeText = "Отсутсвует обязательный";
+
+                        if (referenceAffiliation.Reference == projName)
+                            continue;
+                    }
+                        
+                    else
+                    {
+                        referenceTypeText = "Присутствует недопустимый";
+                    }
+                        
+                    if (referenceAffiliation.IsReferenceGlobal)
+                        referenceLevelText = "глобального уровня";
+                    else
+                        referenceLevelText = "уровня Solution";
+
+                    ErrorTask errorTask = new ErrorTask
+                        {
+                            Category = TaskCategory.User,
+                            ErrorCategory = TaskErrorCategory.Error,
+                            Text = "RefDepGuard error: " + referenceTypeText + " референс " + referenceLevelText + " '" + referenceAffiliation.Reference + "' для проекта '" + projName + "'. Добавьте его через обозреватель решений"
+
+                        };
+
+                    errorListProvider.Tasks.Add(errorTask);
+                }
+            }
+        }
+
+        private static void CheckRulesForProjectReferences(string projName, List<string> projReferences, List<ConfigFileReference> configFileReferences, bool isReferenceRequired)
+        {
+            foreach(ConfigFileReference fileReference in configFileReferences)
+            {
+                if((isReferenceRequired && !projReferences.Contains(fileReference.reference)) ||
+                    (!isReferenceRequired && projReferences.Contains(fileReference.reference)))
+                {
+                    string referenceTypeText = "";
+
+                    if (isReferenceRequired)
+                        referenceTypeText = "Отсутсвует обязательный";
+                    else
+                        referenceTypeText = "Присутствует недопустимый";
+
+                    ErrorTask errorTask = new ErrorTask
+                    {
+                        Category = TaskCategory.User,
+                        ErrorCategory = TaskErrorCategory.Error,
+                        Document = projName + ".csproj",
+                        Text = "RefDepGuard error: " + referenceTypeText + " референс '" + fileReference.reference + "' для проекта '" + projName + "'. Добавьте его через обозреватель решений"
+
+                    };
+
+                    errorListProvider.Tasks.Add(errorTask);
+                }
+            }
+        }
+
         private static void CheckRulesFromConfigFile()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            //commitedProjState.Clear();
-
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
-            List<string> solutionRequiredReferences = new List<string>();
-            List<string> solutionUnacceptableReferences = new List<string>();
+            List<ReferenceAffiliation> solutionRequiredReferences = GetReferenceAffilitaionsList(configFileSolution.solution_required_references, false);
+            List<ReferenceAffiliation> solutionUnacceptableReferences = GetReferenceAffilitaionsList(configFileSolution.solution_unnacceptable_references, false);
 
-            foreach (ConfigFileReference requiredReference in configFileSolution.solution_required_references)
-                solutionRequiredReferences.Add(requiredReference.reference);
+            List<ReferenceAffiliation> globalRequiredReferences = GetReferenceAffilitaionsList(configFileGlobal.global_required_references, true);
+            List<ReferenceAffiliation> globalUnacceptableReferences = GetReferenceAffilitaionsList(configFileGlobal.global_unnacceptable_references, true);
 
-            foreach (ConfigFileReference unnacceptedReference in configFileSolution.solution_unnacceptable_references)
-                solutionUnacceptableReferences.Add(unnacceptedReference.reference);
+            List<ReferenceAffiliation> unionRequiredReferences = globalRequiredReferences.Union(solutionRequiredReferences, new ReferenceAffiliationComparer()).ToList();
+            List<ReferenceAffiliation> unionUnacceptableRefrences = globalUnacceptableReferences.Union(solutionUnacceptableReferences, new ReferenceAffiliationComparer()).ToList();
+
 
             foreach(KeyValuePair<string, List<string>> currentProjState in commitedProjState)
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value;
 
-                foreach (string solutionRequiredReference in solutionRequiredReferences)
-                {
-                    if (!projReferences.Contains(solutionRequiredReference))
-                    {
-                        //Ошибка отсутствия обязательного референса уровня решения
-
-                        ErrorTask errorTask = new ErrorTask
-                        {
-                            Category = TaskCategory.User,
-                            ErrorCategory = TaskErrorCategory.Error,
-                            Text = "RefDepGuard error: Отсутсвует обязательный референс уровня Solution '" + solutionRequiredReference + "' для проекта '" + projName + "'. Добавьте его через обозреватель решений"
-
-                        };
-
-                        errorListProvider.Tasks.Add(errorTask);
-                    }
-                }
-
-                foreach (string solutionUnacceptableReference in solutionUnacceptableReferences)
-                {
-                    if (projReferences.Contains(solutionUnacceptableReference))
-                    {
-                        //Ошибка присутствия недопутсимого референса уровня решения
-                        ErrorTask errorTask = new ErrorTask
-                        {
-                            Category = TaskCategory.User,
-                            ErrorCategory = TaskErrorCategory.Error,
-                            Text = "RefDepGuard error: Присутствует недопустимый референс уровня Solution '" + solutionUnacceptableReference + "' для проекта '" + projName + "'. Удалите его через обозреватель решений"
-
-                        };
-
-                        errorListProvider.Tasks.Add(errorTask);
-                    }
-                }
-
+                CheckRulesForSolutionAndGlobalReferences(projName, projReferences, unionRequiredReferences, true); //Сделать так, чтобы более "глобальные" референсы перекрывали менее при равных ошибках?
+                CheckRulesForSolutionAndGlobalReferences(projName, projReferences, unionUnacceptableRefrences, false);
 
                 if (configFileSolution.projects.ContainsKey(projName))
                 {
                     ConfigFileProject currentProjectConfigFileSettings = configFileSolution.projects[projName];
 
-                    foreach (ConfigFileReference requiredReference in currentProjectConfigFileSettings.required_references)
-                    {
-                        if (!projReferences.Contains(requiredReference.reference))
-                        {
-                            //Ошибка отсутствия обязательного референса
-
-                            ErrorTask errorTask = new ErrorTask
-                            {
-                                Category = TaskCategory.User,
-                                ErrorCategory = TaskErrorCategory.Error,
-                                Document = projName + ".csproj",
-                                Text = "RefDepGuard error: Отсутсвует обязательный референс '" + requiredReference.reference + "' для проекта '" + projName + "'. Добавьте его через обозреватель решений"
-
-                            };
-
-                            errorListProvider.Tasks.Add(errorTask);
-
-                        }
-
-                    }
-
-                    foreach (ConfigFileReference unacceptableReference in currentProjectConfigFileSettings.unnacceptable_references)
-                    {
-                        if (projReferences.Contains(unacceptableReference.reference))
-                        {
-                            //Ошибка присутствия недопутсимого референса
-                            ErrorTask errorTask = new ErrorTask
-                            {
-                                Category = TaskCategory.User,
-                                ErrorCategory = TaskErrorCategory.Error,
-                                Document = projName + ".csproj",
-                                Text = "RefDepGuard error: Присутствует недопустимый референс '" + unacceptableReference.reference + "' для проекта '" + projName + "'. Удалите его через обозреватель решений"
-
-                            };
-
-                            errorListProvider.Tasks.Add(errorTask);
-
-                        }
-
-                    }
+                    CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.required_references, true);
+                    CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.unnacceptable_references, false);
                 }
                 else
                 {
@@ -545,6 +491,8 @@ namespace VSIXProject1
 
         private static void CommitCurrentReferences()
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             commitedProjState.Clear();
 
             EnvDTE.Solution solution = dte.Solution;
@@ -568,8 +516,6 @@ namespace VSIXProject1
 
                 }
             }
-
-
         }
 
         private static bool IsReferencesAddedCorrectly()
@@ -591,7 +537,9 @@ namespace VSIXProject1
 
             string dteSolutionFullName = dte.Solution.FullName;
             int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
+            int lastSlashIndex = dteSolutionFullName.LastIndexOf('\\');
             string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
+            string packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
 
             try
             {
@@ -608,16 +556,11 @@ namespace VSIXProject1
 
                     StreamReader sr = new StreamReader(fileStream);
 
-
                     configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
 
                     //string json = JsonConvert.SerializeObject(configFileSolution);
 
-
                     //configFileSolution = JsonSerializer.Deserialize<ConfigFileSolution>(fileStream);
-
-
-
 
                     //Надо актуализировать файл конфигурации по количеству проектов?
                     //Или хотя бы выводить сообщение о том, что такого-то проекта в файле конфигурации нет, добавьте его?
@@ -640,20 +583,19 @@ namespace VSIXProject1
                     //}
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
+
+                var solutionName = solutionExtendedName.Split('\\');
 
                 VsShellUtilities.ShowMessageBox(
                     this.package,
-                    "Не получилось загрузить файл конфигурации. \r\n Шаблон файла конфигурации будет создан расширением",
+                    "Не получилось загрузить файл конфигурации для solution '"+ solutionName + "'. \r\n Шаблон файла конфигурации будет создан расширением",
                     "RefDepGuard: Ошибка загрузки файла конфигурации",
                     OLEMSGICON.OLEMSGICON_INFO,
                     OLEMSGBUTTON.OLEMSGBUTTON_OK,
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
 
-                var solutionName = solutionExtendedName.Split('\\');
-
-                
                 configFileSolution = new ConfigFileSolution();
                 configFileSolution.name = solutionName[solutionName.Length - 1];
                 configFileSolution.framework_max_version = "-";
@@ -677,6 +619,49 @@ namespace VSIXProject1
                     StreamWriter streamWriter = new StreamWriter(fileStream);
 
                     string json = JsonConvert.SerializeObject(configFileSolution);
+                    streamWriter.Write(json);
+
+                    streamWriter.Flush();
+                    fileStream.Flush();
+
+                    streamWriter.Close();
+
+                }
+            }
+
+            try
+            {
+                using (FileStream fileStream = new FileStream(packageExtendedName + "\\global_config_guard.rdg", FileMode.Open))
+                {
+                    StreamReader sr = new StreamReader(fileStream);
+
+
+                    configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(sr.ReadToEnd());
+                }
+
+            }
+            catch (Exception)
+            {
+                VsShellUtilities.ShowMessageBox(
+                    this.package,
+                    "Не получилось загрузить глобальный файл конфигурации. \r\n Шаблон файла конфигурации будет создан расширением",
+                    "RefDepGuard: Ошибка загрузки файла конфигурации",
+                    OLEMSGICON.OLEMSGICON_INFO,
+                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+                configFileGlobal = new ConfigFileGlobal();
+                configFileGlobal.name = "Global";
+                configFileGlobal.framework_max_version = "-";
+                configFileGlobal.global_required_references = new List<ConfigFileReference>();
+                configFileGlobal.global_unnacceptable_references = new List<ConfigFileReference>();
+
+
+                using (FileStream fileStream = File.Create(packageExtendedName + "\\global_config_guard.rdg"))
+                {
+                    StreamWriter streamWriter = new StreamWriter(fileStream);
+
+                    string json = JsonConvert.SerializeObject(configFileGlobal);
                     streamWriter.Write(json);
 
                     streamWriter.Flush();
