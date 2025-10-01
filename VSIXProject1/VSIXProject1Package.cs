@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Runtime.InteropServices;
@@ -28,7 +29,7 @@ namespace VSIXProject1
     [ProvideAutoLoad(UIContextGuids80.SolutionExists, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid(VSIXProject1Package.PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    public sealed class VSIXProject1Package : AsyncPackage
+    public sealed class VSIXProject1Package : AsyncPackage, IVsSolutionEvents, IVsSolutionLoadEvents
     {
         /// <summary>
         /// VSIXProject1Package GUID string.
@@ -44,6 +45,9 @@ namespace VSIXProject1
         /// <param name="cancellationToken">A cancellation token to monitor for initialization cancellation, which can occur when VS is shutting down.</param>
         /// <param name="progress">A provider for progress updates.</param>
         /// <returns>A task representing the async work of package initialization, or an already completed task if there is none. Do not return null from this method.</returns>
+        /// 
+        /// 
+        private uint _solutionLoadEventsCookie;
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             // When initialized asynchronously, the current thread may be a background thread at this point.
@@ -51,6 +55,120 @@ namespace VSIXProject1
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await Command1.InitializeAsync(this);
 
+            IVsSolution solution = GetService(typeof(SVsSolution)) as IVsSolution;
+            if (solution != null)
+            {
+                // Регистрируем подписку на события загрузки решения
+                solution.AdviseSolutionEvents(this, out _solutionLoadEventsCookie);//Большая часть ивентов не отрабатывают => не удалось подписаться должным образом
+            }
+
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            try
+            {
+                if (_solutionLoadEventsCookie != 0)
+                {
+                    IVsSolution solution = GetService(typeof(SVsSolution)) as IVsSolution;
+                    if (solution != null)
+                    {
+                        solution.UnadviseSolutionEvents(_solutionLoadEventsCookie);
+                        _solutionLoadEventsCookie = 0;
+                    }
+                }
+            }
+            finally
+            {
+                base.Dispose(disposing);
+            }
+        }
+
+        public int OnBeforeLoadProjectBatch(bool isBackgroundIdleBatch)
+        {
+            // Код до начала пакетной загрузки проектов
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterLoadProjectBatch(bool isBackgroundIdleBatch)
+        {
+            // Код после завершения пакетной загрузки проектов
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeBackgroundSolutionLoadBegins()
+        {
+            // Код перед началом фоновой загрузки решения
+            return VSConstants.S_OK;
+        }
+
+        
+
+        public int OnAfterBackgroundSolutionLoadComplete()
+        {
+            // Код после завершения фоновой загрузки решения
+            // Здесь можно безопасно работать с загруженным деревом проектов
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeOpenSolution(string pszSolutionFilename)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryBackgroundLoadProjectBatch(out bool pfShouldDelayLoadToNextIdle)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryCloseProject(IVsHierarchy pHierarchy, int fRemoving, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseProject(IVsHierarchy pHierarchy, int fRemoved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterLoadProject(IVsHierarchy pStubHierarchy, IVsHierarchy pRealHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryUnloadProject(IVsHierarchy pRealHierarchy, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeUnloadProject(IVsHierarchy pRealHierarchy, IVsHierarchy pStubHierarchy)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnQueryCloseSolution(object pUnkReserved, ref int pfCancel)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnBeforeCloseSolution(object pUnkReserved)
+        {
+            return VSConstants.S_OK;
+        }
+
+        public int OnAfterCloseSolution(object pUnkReserved)
+        {
+            return VSConstants.S_OK;
         }
 
         #endregion
