@@ -10,8 +10,9 @@ namespace VSIXProject1
     {
         public string name;
         public string framework_max_version;
+        public ConfigFileProjectRefsConsidering consider_global_and_solution_references;
 
         public List<ConfigFileReference> required_references;
-        public List<ConfigFileReference> unnacceptable_references;
+        public List<ConfigFileReference> unacceptable_references;
     }
 }

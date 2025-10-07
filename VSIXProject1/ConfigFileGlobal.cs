@@ -11,6 +11,6 @@ namespace VSIXProject1
         public string name;
         public string framework_max_version;
         public List<ConfigFileReference> global_required_references;
-        public List<ConfigFileReference> global_unnacceptable_references;
+        public List<ConfigFileReference> global_unacceptable_references;
     }
 }
