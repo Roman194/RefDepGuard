@@ -395,37 +395,6 @@ namespace VSIXProject1
                         currentReferenceType = ReferenceType.Solution;
 
                     refsErrorList.Add(new ReferenceError(referenceAffiliation.Reference, projName, isReferenceRequired, currentReferenceType));
-
-                    //string referenceTypeText = "";
-                    //string referenceLevelText = "";
-
-                    //if (isReferenceRequired)
-                    //{
-                    //    referenceTypeText = "Отсутсвует обязательный";
-
-                    //    if (referenceAffiliation.Reference == projName)
-                    //        continue;
-                    //}
-                        
-                    //else
-                    //{
-                    //    referenceTypeText = "Присутствует недопустимый";
-                    //}
-                        
-                    //if (referenceAffiliation.IsReferenceGlobal)
-                    //    referenceLevelText = "глобального уровня";
-                    //else
-                    //    referenceLevelText = "уровня Solution";
-
-                    //ErrorTask errorTask = new ErrorTask
-                    //    {
-                    //        Category = TaskCategory.User,
-                    //        ErrorCategory = TaskErrorCategory.Error,
-                    //        Text = "RefDepGuard error: " + referenceTypeText + " референс " + referenceLevelText + " '" + referenceAffiliation.Reference + "' для проекта '" + projName + "'. Добавьте его через обозреватель решений"
-
-                    //    };
-
-                    //errorListProvider.Tasks.Add(errorTask);
                 }
             }
         }
@@ -437,28 +406,16 @@ namespace VSIXProject1
                 if((isReferenceRequired && !projReferences.Contains(fileReference.reference)) ||
                     (!isReferenceRequired && projReferences.Contains(fileReference.reference)))
                 {
+                    ReferenceError projectRefError = new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceType.Project);
+                    
+                    var referenceErrorContainsComparer = new ReferenceErrorContainsComparer();
 
+                    if (refsErrorList.Contains(projectRefError, referenceErrorContainsComparer)) //Проверка на "дублирование" текущей ошибки рефа глобальными и solution правилами
+                    {
+                        refsErrorList.RemoveAll(refError => refError.ReferenceName == projectRefError.ReferenceName && refError.ErrorRelevantProjectName == projectRefError.ErrorRelevantProjectName);
+                    }
 
-
-                    refsErrorList.Add(new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceType.Project));
-
-                    //string referenceTypeText = "";
-
-                    //if (isReferenceRequired)
-                    //    referenceTypeText = "Отсутсвует обязательный";
-                    //else
-                    //    referenceTypeText = "Присутствует недопустимый";
-
-                    //ErrorTask errorTask = new ErrorTask
-                    //{
-                    //    Category = TaskCategory.User,
-                    //    ErrorCategory = TaskErrorCategory.Error,
-                    //    Document = projName + ".csproj",
-                    //    Text = "RefDepGuard error: " + referenceTypeText + " референс '" + fileReference.reference + "' для проекта '" + projName + "'. Добавьте его через обозреватель решений"
-
-                    //};
-
-                    //errorListProvider.Tasks.Add(errorTask);
+                    refsErrorList.Add(projectRefError);
                 }
             }
         }
@@ -532,7 +489,7 @@ namespace VSIXProject1
                     if (isConsiderUnacceptableReferences)
                         CheckRulesForSolutionAndGlobalReferences(projName, projReferences, unionUnacceptableRefrences, false);
 
-                    CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.required_references, true); //обеспечить иерархию: рефы проекта > Solution > Global
+                    CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.required_references, true); 
                     CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.unacceptable_references, false);
                 }
                 else
@@ -544,6 +501,8 @@ namespace VSIXProject1
                 //А что делать если проекта нет в solution, но он есть в config?
 
             }
+
+            
 
             refsErrorList.Sort(new ReferenceErrorComparer());
 

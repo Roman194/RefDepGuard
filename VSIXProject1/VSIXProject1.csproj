@@ -59,6 +59,7 @@
     <Compile Include="ReferenceAffiliation.cs" />
     <Compile Include="ReferenceAffiliationComparer.cs" />
     <Compile Include="ReferenceErrorComparer.cs" />
+    <Compile Include="ReferenceErrorContainsComparer.cs" />
     <Compile Include="ReferenceType.cs" />
     <Compile Include="ReferenceError.cs" />
     <Compile Include="VSIXProject1Package.cs" />
