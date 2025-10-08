@@ -193,6 +193,8 @@ namespace VSIXProject1
 
             
             EnvDTE.Solution solution = dte.Solution;
+            //dte.Solution.Parent.Solution
+            //Пример проекта с несколькими Solution?
 
             commitedProjState.Clear();
 
@@ -366,56 +368,41 @@ namespace VSIXProject1
             errorListProvider.Show();
         }
 
-        private static List<ReferenceAffiliation> GetReferenceAffilitaionsList(List<ConfigFileReference> configFileReferences, bool isReferenceGlobal)
+        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<ConfigFileReference> currentReferences,  ReferenceType referenceType, bool isReferenceRequired, List<List<ConfigFileReference>> generalReferences)
         {
-            List<ReferenceAffiliation> referenceAffiliations = new List<ReferenceAffiliation>();
+            if (currentReferences != null) {
 
-            foreach (ConfigFileReference currentReference in configFileReferences)
-                referenceAffiliations.Add(new ReferenceAffiliation(currentReference.reference, isReferenceGlobal));
-
-            return referenceAffiliations;
-        }
-
-        private static void CheckRulesForSolutionAndGlobalReferences(string projName, List<string> projReferences, List<ReferenceAffiliation> referenceAffiliations, bool isReferenceRequired)
-        {
-            foreach(ReferenceAffiliation referenceAffiliation in referenceAffiliations)
-            {
-                if((isReferenceRequired && !projReferences.Contains(referenceAffiliation.Reference)) || 
-                    (!isReferenceRequired && projReferences.Contains(referenceAffiliation.Reference)))
+                foreach (ConfigFileReference currentReference in currentReferences)
                 {
 
-                    if (isReferenceRequired && referenceAffiliation.Reference == projName)
-                        continue;
+                    if ((isReferenceRequired && !projReferences.Contains(currentReference.reference)) ||
+                        (!isReferenceRequired && projReferences.Contains(currentReference.reference)))
+                    {
+                        if (IsRuleConflict(currentReference, referenceType, generalReferences))
+                            continue;
 
-                    ReferenceType currentReferenceType;
+                        if (isReferenceRequired && currentReference.reference == projName)
+                            continue;
 
-                    if (referenceAffiliation.IsReferenceGlobal)
-                        currentReferenceType = ReferenceType.Global;
-                    else
-                        currentReferenceType = ReferenceType.Solution;
-
-                    refsErrorList.Add(new ReferenceError(referenceAffiliation.Reference, projName, isReferenceRequired, currentReferenceType));
+                        refsErrorList.Add(new ReferenceError(currentReference.reference, projName, isReferenceRequired, referenceType));
+                    }
                 }
             }
         }
 
         private static void CheckRulesForProjectReferences(string projName, List<string> projReferences, List<ConfigFileReference> configFileReferences, bool isReferenceRequired)
         {
-            foreach(ConfigFileReference fileReference in configFileReferences)
+            if (configFileReferences != null)
             {
-                if((isReferenceRequired && !projReferences.Contains(fileReference.reference)) ||
-                    (!isReferenceRequired && projReferences.Contains(fileReference.reference)))
+                foreach (ConfigFileReference fileReference in configFileReferences)
                 {
-                    ReferenceError projectRefError = new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceType.Project);
-                    
-                    var referenceErrorContainsComparer = new ReferenceErrorContainsComparer();
-
-                    if (refsErrorList.Contains(projectRefError, referenceErrorContainsComparer)) //Проверка на "дублирование" текущей ошибки рефа глобальными и solution правилами
+                    if ((isReferenceRequired && !projReferences.Contains(fileReference.reference)) ||
+                        (!isReferenceRequired && projReferences.Contains(fileReference.reference)))
                     {
-                        refsErrorList.RemoveAll(refError => refError.ReferenceName == projectRefError.ReferenceName && refError.ErrorRelevantProjectName == projectRefError.ErrorRelevantProjectName);
+                        refsErrorList.Add(
+                            new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceType.Project)
+                            );
                     }
-
-                    refsErrorList.Add(projectRefError);
                 }
             }
         }
@@ -454,6 +441,23 @@ namespace VSIXProject1
 
         }
 
+        //реализовать в проге работу с несколькими Solution
+
+
+        private static bool IsRuleConflict(ConfigFileReference currentReference, ReferenceType referenceType, List<List<ConfigFileReference>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
+        {
+            for(int i = 0; i < generalReferences.Count; i++)
+            {
+                if (referenceType != ReferenceType.Global && i > 1)
+                    break;
+
+                if(generalReferences[i].Contains(currentReference, new ConfigFileReferenceComparer())) 
+                    return true;
+            }
+
+            return false;
+        }
+
         private static void CheckRulesFromConfigFile()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -461,17 +465,19 @@ namespace VSIXProject1
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
-            List<ReferenceAffiliation> solutionRequiredReferences = GetReferenceAffilitaionsList(configFileSolution.solution_required_references, false);//Нет обработки нескольких solution!
-            List<ReferenceAffiliation> solutionUnacceptableReferences = GetReferenceAffilitaionsList(configFileSolution.solution_unacceptable_references, false);
+            List<ConfigFileReference> solutionRequiredReferences = configFileSolution.solution_required_references;
+            List<ConfigFileReference> solutionUnacceptableReferences = configFileSolution.solution_unacceptable_references;
 
-            List<ReferenceAffiliation> globalRequiredReferences = GetReferenceAffilitaionsList(configFileGlobal.global_required_references, true);
-            List<ReferenceAffiliation> globalUnacceptableReferences = GetReferenceAffilitaionsList(configFileGlobal.global_unacceptable_references, true);
+            List<ConfigFileReference> globalRequiredReferences = configFileGlobal.global_required_references;
+            List<ConfigFileReference> globalUnacceptableReferences = configFileGlobal.global_unacceptable_references;
 
-            List<ReferenceAffiliation> unionRequiredReferences = globalRequiredReferences.Union(solutionRequiredReferences, new ReferenceAffiliationComparer()).ToList();
-            List<ReferenceAffiliation> unionUnacceptableRefrences = globalUnacceptableReferences.Union(solutionUnacceptableReferences, new ReferenceAffiliationComparer()).ToList();
+            List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
+            {
+                new ReferenceAffiliation(ReferenceType.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
+                new ReferenceAffiliation(ReferenceType.Global, globalRequiredReferences, globalUnacceptableReferences)
+            };
 
-
-            foreach(KeyValuePair<string, List<string>> currentProjState in commitedProjState)//для каждого project
+            foreach (KeyValuePair<string, List<string>> currentProjState in commitedProjState)//для каждого project
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value;
@@ -483,14 +489,27 @@ namespace VSIXProject1
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references.required; //Проверка на отключение глобальных  и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references.unacceptable;
 
-                    if (isConsiderRequiredReferences) //если заявлено
-                        CheckRulesForSolutionAndGlobalReferences(projName, projReferences, unionRequiredReferences, true); //применяем глобальные референсы
-                    
-                    if (isConsiderUnacceptableReferences)
-                        CheckRulesForSolutionAndGlobalReferences(projName, projReferences, unionUnacceptableRefrences, false);
+                    List<ConfigFileReference> requiredReferences = currentProjectConfigFileSettings.required_references;
+                    List<ConfigFileReference> unacceptableReferences = currentProjectConfigFileSettings.unacceptable_references;
 
-                    CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.required_references, true); 
-                    CheckRulesForProjectReferences(projName, projReferences, currentProjectConfigFileSettings.unacceptable_references, false);
+                    List<List<ConfigFileReference>> configFileProjectAndSolutionReferences = new List<List<ConfigFileReference>>
+                    {
+                        requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
+                    };
+
+                    CheckRulesForProjectReferences(projName, projReferences, requiredReferences, true); 
+                    CheckRulesForProjectReferences(projName, projReferences, unacceptableReferences, false);
+
+                    foreach (ReferenceAffiliation referenceAffiliation in unionSolutionAndGlobalReferencesByType)
+                    {
+                        if (isConsiderRequiredReferences)//если заявлено
+                            //применяем глобальные референсы
+                            CheckRulesForSolutionOrGlobalReferences(projName, projReferences, referenceAffiliation.RequiredReferences, referenceAffiliation.ReferenceTypeValue, true, configFileProjectAndSolutionReferences);
+
+                        if (isConsiderUnacceptableReferences)
+                            CheckRulesForSolutionOrGlobalReferences(projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.ReferenceTypeValue, false, configFileProjectAndSolutionReferences);
+                    }
+                        
                 }
                 else
                 {

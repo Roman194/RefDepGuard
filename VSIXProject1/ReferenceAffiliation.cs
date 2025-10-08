@@ -8,13 +8,15 @@ namespace VSIXProject1
 {
     public class ReferenceAffiliation
     {
-        public string Reference;
-        public bool IsReferenceGlobal;
+        public ReferenceType ReferenceTypeValue;
+        public List<ConfigFileReference> RequiredReferences;
+        public List<ConfigFileReference> UnacceptableReferences;
 
-        public ReferenceAffiliation(string reference, bool isReferenceGlobal)
+        public ReferenceAffiliation(ReferenceType referenceType, List<ConfigFileReference> requiredReferences, List<ConfigFileReference> unacceptableReferences)
         {
-            Reference = reference;
-            IsReferenceGlobal = isReferenceGlobal;
+            ReferenceTypeValue = referenceType;
+            RequiredReferences = requiredReferences;
+            UnacceptableReferences = unacceptableReferences;
             
         }
 

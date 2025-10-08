@@ -53,11 +53,11 @@
     <Compile Include="ConfigFileGlobal.cs" />
     <Compile Include="ConfigFileProject.cs" />
     <Compile Include="ConfigFileProjectRefsConsidering.cs" />
+    <Compile Include="ConfigFileReferenceComparer.cs" />
     <Compile Include="ConfigFileSolution.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ConfigFileReference.cs" />
     <Compile Include="ReferenceAffiliation.cs" />
-    <Compile Include="ReferenceAffiliationComparer.cs" />
     <Compile Include="ReferenceErrorComparer.cs" />
     <Compile Include="ReferenceErrorContainsComparer.cs" />
     <Compile Include="ReferenceType.cs" />
