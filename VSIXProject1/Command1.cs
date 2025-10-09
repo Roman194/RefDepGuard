@@ -340,9 +340,11 @@ namespace VSIXProject1
         private void CommitCurrentReferences(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            commitedProjState.Clear();
+            //commitedProjState.Clear();
 
             CommitCurrentReferences();
+
+            CheckRulesFromConfigFile();
 
             //VsShellUtilities.ShowMessageBox(
             //    this.package,
@@ -528,6 +530,12 @@ namespace VSIXProject1
 
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
+
+            if (refsErrorList!= null)
+                refsErrorList.Clear();
+
+            if(refsMatchErrorList != null)
+                refsMatchErrorList.Clear();
 
             List<ConfigFileReference> solutionRequiredReferences = configFileSolution.solution_required_references;
             List<ConfigFileReference> solutionUnacceptableReferences = configFileSolution.solution_unacceptable_references;
