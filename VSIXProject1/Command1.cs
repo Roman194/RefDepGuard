@@ -371,7 +371,7 @@ namespace VSIXProject1
             errorListProvider.Show();
         }
 
-        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<ConfigFileReference> currentReferences,  ReferenceType referenceType, bool isReferenceRequired, List<List<ConfigFileReference>> generalReferences)
+        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<ConfigFileReference> currentReferences,  ReferenceLevel referenceLevel, bool isReferenceRequired, List<List<ConfigFileReference>> generalReferences)
         {
             if (currentReferences != null) {
 
@@ -381,16 +381,16 @@ namespace VSIXProject1
                     if ((isReferenceRequired && !projReferences.Contains(currentReference.reference)) ||
                         (!isReferenceRequired && projReferences.Contains(currentReference.reference)))
                     {
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceType, currentReference.reference, "", false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceLevel, currentReference.reference, "", false), new ReferenceMatchErrorComparer()))
                             continue;
 
-                        if (IsRuleConflict(currentReference, referenceType, generalReferences))
+                        if (IsRuleConflict(currentReference, referenceLevel, generalReferences))
                             continue;
 
                         if (isReferenceRequired && currentReference.reference == projName)
                             continue;
 
-                        refsErrorList.Add(new ReferenceError(currentReference.reference, projName, isReferenceRequired, referenceType));
+                        refsErrorList.Add(new ReferenceError(currentReference.reference, projName, isReferenceRequired, referenceLevel));
                     }
                 }
             }
@@ -408,17 +408,17 @@ namespace VSIXProject1
                         if(fileReference.reference == projName)
                         {
                             refsMatchErrorList.Add(
-                                new ReferenceMatchError(ReferenceType.Project, fileReference.reference, projName, true)
+                                new ReferenceMatchError(ReferenceLevel.Project, fileReference.reference, projName, true)
                                 );
 
                             continue;
                         }
                             
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ReferenceType.Project, fileReference.reference, projName, false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ReferenceLevel.Project, fileReference.reference, projName, false), new ReferenceMatchErrorComparer()))
                             continue;
 
                         refsErrorList.Add(
-                            new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceType.Project)
+                            new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceLevel.Project)
                             );
                     }
                 }
@@ -444,11 +444,11 @@ namespace VSIXProject1
                     projectName = "' проекта '" + referenceMatchError.ProjectName;
                 }
 
-                switch (referenceMatchError.ReferenceTypeValue)
+                switch (referenceMatchError.ReferenceLevelValue)
                 {
-                    case ReferenceType.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ReferenceType.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ReferenceType.Project: break;
+                    case ReferenceLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ReferenceLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ReferenceLevel.Project: break;
                 }
 
                 ErrorTask errorTask = new ErrorTask
@@ -468,7 +468,7 @@ namespace VSIXProject1
             {
                 string referenceTypeText = "";
                 string referenceLevelText = "";
-                string documentName = "";
+                string documentName = error.ErrorRelevantProjectName + ".csproj";
                 string actionForUser = "";
 
                 if (error.IsReferenceRequired)
@@ -484,9 +484,9 @@ namespace VSIXProject1
                     
                 switch (error.CurrentReferenceType)
                 {
-                    case ReferenceType.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ReferenceType.Global: referenceLevelText = "глобального уровня"; break;
-                    case ReferenceType.Project: documentName = error.ErrorRelevantProjectName + ".csproj"; break;
+                    case ReferenceLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ReferenceLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ReferenceLevel.Project: break;
                 }
 
                 ErrorTask errorTask = new ErrorTask
@@ -508,11 +508,11 @@ namespace VSIXProject1
         //реализовать в проге работу с несколькими Solution
 
 
-        private static bool IsRuleConflict(ConfigFileReference currentReference, ReferenceType referenceType, List<List<ConfigFileReference>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
+        private static bool IsRuleConflict(ConfigFileReference currentReference, ReferenceLevel referenceType, List<List<ConfigFileReference>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
         {
             for(int i = 0; i < generalReferences.Count; i++)
             {
-                if (referenceType != ReferenceType.Global && i > 1)
+                if (referenceType != ReferenceLevel.Global && i > 1)
                     break;
 
                 if(generalReferences[i].Contains(currentReference, new ConfigFileReferenceComparer())) 
@@ -539,22 +539,22 @@ namespace VSIXProject1
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
             {
-                new ReferenceAffiliation(ReferenceType.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
-                new ReferenceAffiliation(ReferenceType.Global, globalRequiredReferences, globalUnacceptableReferences)
+                new ReferenceAffiliation(ReferenceLevel.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
+                new ReferenceAffiliation(ReferenceLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
             };
 
 
             foreach (ConfigFileReference currentReference in solutionReferencesIntersect)
             {
                 refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceType.Solution, currentReference.reference, "", false)
+                    new ReferenceMatchError(ReferenceLevel.Solution, currentReference.reference, "", false)
                     );
             }
 
             foreach (ConfigFileReference currentReference in globalReferencesIntersect)
             {
                 refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceType.Global, currentReference.reference, "", false)
+                    new ReferenceMatchError(ReferenceLevel.Global, currentReference.reference, "", false)
                     );
             }
 
@@ -583,7 +583,7 @@ namespace VSIXProject1
                     foreach(ConfigFileReference currentReference in projectReferencesIntersect)
                     {
                         refsMatchErrorList.Add(
-                            new ReferenceMatchError(ReferenceType.Project, currentReference.reference, projName, false)
+                            new ReferenceMatchError(ReferenceLevel.Project, currentReference.reference, projName, false)
                             );
                     }
                     

@@ -62,7 +62,7 @@
     <Compile Include="Comparators\ReferenceErrorContainsComparer.cs" />
     <Compile Include="Data\Reference\ReferenceMatchError.cs" />
     <Compile Include="Comparators\ReferenceMatchErrorComparer.cs" />
-    <Compile Include="Data\Reference\ReferenceType.cs" />
+    <Compile Include="Data\Reference\ReferenceLevel.cs" />
     <Compile Include="Data\Reference\ReferenceError.cs" />
     <Compile Include="VSIXProject1Package.cs" />
   </ItemGroup>

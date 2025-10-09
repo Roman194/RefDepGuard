@@ -8,11 +8,11 @@ namespace VSIXProject1
 {
     public class ReferenceAffiliation
     {
-        public ReferenceType ReferenceTypeValue;
+        public ReferenceLevel ReferenceTypeValue;
         public List<ConfigFileReference> RequiredReferences;
         public List<ConfigFileReference> UnacceptableReferences;
 
-        public ReferenceAffiliation(ReferenceType referenceType, List<ConfigFileReference> requiredReferences, List<ConfigFileReference> unacceptableReferences)
+        public ReferenceAffiliation(ReferenceLevel referenceType, List<ConfigFileReference> requiredReferences, List<ConfigFileReference> unacceptableReferences)
         {
             ReferenceTypeValue = referenceType;
             RequiredReferences = requiredReferences;

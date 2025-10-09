@@ -8,14 +8,14 @@ namespace VSIXProject1
 {
     public class ReferenceMatchError
     {
-        public ReferenceType ReferenceTypeValue;
+        public ReferenceLevel ReferenceLevelValue;
         public string ReferenceName;
         public string ProjectName;
         public bool IsProjNameMatchError;
 
-        public ReferenceMatchError(ReferenceType referenceType, string referenceName, string projectName, bool isProjNameMatchError)
+        public ReferenceMatchError(ReferenceLevel referenceLevel, string referenceName, string projectName, bool isProjNameMatchError)
         {
-            ReferenceTypeValue = referenceType;
+            ReferenceLevelValue = referenceLevel;
             ReferenceName = referenceName;
             ProjectName = projectName;
             IsProjNameMatchError = isProjNameMatchError;
