@@ -5,6 +5,8 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Services;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
@@ -16,10 +18,10 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VSIXProject1.Data;
+using VSIXProject1.Data.Reference;
 using VSLangProj;
 using Task = System.Threading.Tasks.Task;
-using Newtonsoft.Json;
-using VSIXProject1.Data;
 
 namespace VSIXProject1
 {
@@ -54,6 +56,7 @@ namespace VSIXProject1
 
         static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
 
+        static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
         static List<ReferenceError> refsErrorList = new List<ReferenceError>();
         static List<ReferenceMatchError> refsMatchErrorList = new List<ReferenceMatchError>();
 
@@ -428,8 +431,30 @@ namespace VSIXProject1
             }
         }
 
-        private static void StoreErrorListProviderByValues()
+        private static void StoreErrorListProviderByValues() //Оптимизировать
         {
+            foreach(ConfigFilePropertyNullError configFilePropertyNullError in configPropertyNullErrorList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string relevantProjectName = "";
+
+                if (configFilePropertyNullError.IsGlobal)
+                    documentName = "global_config_guard.rdg";
+
+                if (configFilePropertyNullError.ErrorRelevantProjectName != "")
+                    relevantProjectName = " для проекта '" + configFilePropertyNullError.ErrorRelevantProjectName + "'";
+
+                ErrorTask errorTask = new ErrorTask
+                {
+                    Category = TaskCategory.User,
+                    ErrorCategory = TaskErrorCategory.Error,
+                    Document = documentName,
+                    Text = "RefDepGuard Null property error: Config-файл не содержит свойство '" + configFilePropertyNullError.PropertyName + "'" + relevantProjectName + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации"
+                };
+
+                errorListProvider.Tasks.Add(errorTask);
+            }
+
             foreach (ReferenceMatchError referenceMatchError in refsMatchErrorList)
             {
                 string projectName = "";
@@ -503,10 +528,83 @@ namespace VSIXProject1
 
                 errorListProvider.Tasks.Add(errorTask);
             }
-
-
-
         }
+
+        private static void CheckConfigFileSolutionProperties() //How to make it better? Reflection doesn't work
+        {
+            if (configFileSolution.name is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("name", false, ""));
+
+            if (configFileSolution.framework_max_version is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", false, ""));
+
+            if (configFileSolution.solution_required_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_required_references", false, ""));
+
+            if (configFileSolution.solution_unacceptable_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_unacceptable_references", false, ""));
+        }
+
+        private static void CheckConfigFileProjectProperties(string projectKey, ConfigFileProject currentProject)
+        {
+            if (currentProject.framework_max_version is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", false, projectKey));
+
+            if (currentProject.consider_global_and_solution_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("consider_global_and_solution_references", false, projectKey));
+
+            if (currentProject.required_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("required_references", false, projectKey));
+
+            if (currentProject.unacceptable_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("unacceptable_references", false, projectKey));
+        }
+
+        private static void CheckConfigFileGlobalProperties()
+        {
+            if (configFileGlobal.name is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("name", true, ""));
+
+            if (configFileGlobal.framework_max_version is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", true, ""));
+
+            if (configFileGlobal.global_required_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("global_required_references", true, ""));
+
+            if (configFileGlobal.global_unacceptable_references is null)
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("global_unacceptable_references", true, ""));
+        }
+
+        private static void CheckConfigPropertiesOnNotNull()
+        {
+            if (configFileSolution != null)
+            {
+                CheckConfigFileSolutionProperties();
+
+                if (configFileSolution.projects != null)
+                {
+                    foreach (var project in configFileSolution.projects)
+                    {
+                        if (project.Value != null)
+                            CheckConfigFileProjectProperties(project.Key, project.Value);
+                     
+                        else
+                            configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("project_value", false, project.Key));
+                    }
+                }
+                else
+                    configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("projects", false, ""));
+            }
+            else
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError(solutionName, false, ""));
+
+
+            if (configFileGlobal != null)
+                CheckConfigFileGlobalProperties();
+            else
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("Global", true, ""));
+        }
+
 
         //реализовать в проге работу с несколькими Solution
 
@@ -518,7 +616,7 @@ namespace VSIXProject1
                 if (referenceType != ReferenceLevel.Global && i > 1)
                     break;
 
-                if(generalReferences[i].Contains(currentReference)) //, new ConfigFileReferenceComparer()
+                if(generalReferences[i].Contains(currentReference))
                     return true;
             }
 
@@ -532,18 +630,23 @@ namespace VSIXProject1
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
+            if(configPropertyNullErrorList !=  null)
+                configPropertyNullErrorList.Clear();
+
             if (refsErrorList!= null)
                 refsErrorList.Clear();
 
             if(refsMatchErrorList != null)
                 refsMatchErrorList.Clear();
 
-            List<string> solutionRequiredReferences = configFileSolution.solution_required_references;
-            List<string> solutionUnacceptableReferences = configFileSolution.solution_unacceptable_references;
-            List<string> solutionReferencesIntersect = solutionRequiredReferences.Intersect(solutionUnacceptableReferences).ToList(); //, new ConfigFileReferenceComparer()
+            CheckConfigPropertiesOnNotNull();
 
-            List<string> globalRequiredReferences = configFileGlobal.global_required_references;
-            List<string> globalUnacceptableReferences = configFileGlobal.global_unacceptable_references;
+            List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
+            List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
+            List<string> solutionReferencesIntersect = solutionRequiredReferences.Intersect(solutionUnacceptableReferences).ToList();
+
+            List<string> globalRequiredReferences = configFileGlobal?.global_required_references ?? new List<string>();
+            List<string> globalUnacceptableReferences = configFileGlobal?.global_unacceptable_references ?? new List<string>();
             List<string> globalReferencesIntersect = globalRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
@@ -572,22 +675,22 @@ namespace VSIXProject1
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value;
 
-                if (configFileSolution.projects.ContainsKey(projName))
+                if (configFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {
                     ConfigFileProject currentProjectConfigFileSettings = configFileSolution.projects[projName];
 
-                    bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references.required; //Проверка на отключение глобальных и solution рефов для проекта
-                    bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references.unacceptable;
+                    bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
+                    bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
-                    List<string> requiredReferences = currentProjectConfigFileSettings.required_references;
-                    List<string> unacceptableReferences = currentProjectConfigFileSettings.unacceptable_references;
+                    List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
+                    List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
 
                     List<List<string>> configFileProjectAndSolutionReferences = new List<List<string>>
                     {
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
 
-                    List<string> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences).ToList(); //, new ConfigFileReferenceComparer()
+                    List<string> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences).ToList();
 
                     foreach (string currentReference in projectReferencesIntersect)
                     {
@@ -617,12 +720,13 @@ namespace VSIXProject1
                 }
 
                 //А что делать если проекта нет в solution, но он есть в config?
+                //Рассмотреть в т.ч. случаи когда свойство projects пустое
 
             }
 
             
 
-            refsErrorList.Sort(new ReferenceErrorComparer());
+            refsErrorList.Sort(new ReferenceErrorComparer()); //Глобально отсортировать все типы ошибок?
 
             StoreErrorListProviderByValues();
 
@@ -779,7 +883,7 @@ namespace VSIXProject1
             string solutionNameInfo = "";
 
             if (isFileExists)
-                rollbackAction = "Информация, содержащаяся в файле конфигурации будет перезаписана в rollback-файл.\r\nПроверьте её на предмет отсутствия синтаксических ошибок и несоответствия шаблону файла конфигурации!";
+                rollbackAction = "Информация, содержащаяся в файле конфигурации будет перезаписана в rollback-файл.\r\nПроверьте её на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации!";
               
             if (!isErrorGlobal)
                 solutionNameInfo = " для solution '" + solutionName + "'";
@@ -831,7 +935,7 @@ namespace VSIXProject1
             }
         }
 
-        private void GetConfigFileInfo() //Сделать проверку на null (не обнаружены некоторые свойства в конфиг файле)! Иначе возможные nullpointerexceptions при проверке правил
+        private void GetConfigFileInfo()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -841,7 +945,7 @@ namespace VSIXProject1
             string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
             string packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
 
-            solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1);
+            solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1); //Проблемно при нескольких Solution
 
             string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
             string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";

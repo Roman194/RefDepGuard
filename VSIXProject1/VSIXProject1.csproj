@@ -56,6 +56,7 @@
     <Compile Include="Data\ConfigFile\ConfigFileProjectRefsConsidering.cs" />
     <Compile Include="Data\ConfigFile\ConfigFileSolution.cs" />
     <Compile Include="Data\FileErrorMessage.cs" />
+    <Compile Include="Data\Reference\ConfigFilePropertyNullError.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\Reference\ReferenceAffiliation.cs" />
     <Compile Include="Comparators\ReferenceErrorComparer.cs" />
