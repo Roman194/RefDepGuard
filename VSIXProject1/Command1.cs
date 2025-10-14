@@ -19,6 +19,7 @@ using System.Windows.Forms;
 using VSLangProj;
 using Task = System.Threading.Tasks.Task;
 using Newtonsoft.Json;
+using VSIXProject1.Data;
 
 namespace VSIXProject1
 {
@@ -373,54 +374,54 @@ namespace VSIXProject1
             errorListProvider.Show();
         }
 
-        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<ConfigFileReference> currentReferences,  ReferenceLevel referenceLevel, bool isReferenceRequired, List<List<ConfigFileReference>> generalReferences)
+        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<string> currentReferences,  ReferenceLevel referenceLevel, bool isReferenceRequired, List<List<string>> generalReferences)
         {
             if (currentReferences != null) {
 
-                foreach (ConfigFileReference currentReference in currentReferences)
+                foreach (string currentReference in currentReferences)
                 {
 
-                    if ((isReferenceRequired && !projReferences.Contains(currentReference.reference)) ||
-                        (!isReferenceRequired && projReferences.Contains(currentReference.reference)))
+                    if ((isReferenceRequired && !projReferences.Contains(currentReference)) ||
+                        (!isReferenceRequired && projReferences.Contains(currentReference)))
                     {
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceLevel, currentReference.reference, "", false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceLevel, currentReference, "", false), new ReferenceMatchErrorComparer()))
                             continue;
 
                         if (IsRuleConflict(currentReference, referenceLevel, generalReferences))
                             continue;
 
-                        if (isReferenceRequired && currentReference.reference == projName)
+                        if (isReferenceRequired && currentReference == projName)
                             continue;
 
-                        refsErrorList.Add(new ReferenceError(currentReference.reference, projName, isReferenceRequired, referenceLevel));
+                        refsErrorList.Add(new ReferenceError(currentReference, projName, isReferenceRequired, referenceLevel));
                     }
                 }
             }
         }
 
-        private static void CheckRulesForProjectReferences(string projName, List<string> projReferences, List<ConfigFileReference> configFileReferences, bool isReferenceRequired)
+        private static void CheckRulesForProjectReferences(string projName, List<string> projReferences, List<string> configFileReferences, bool isReferenceRequired)
         {
             if (configFileReferences != null)
             {
-                foreach (ConfigFileReference fileReference in configFileReferences)
+                foreach (string fileReference in configFileReferences)
                 {
-                    if ((isReferenceRequired && !projReferences.Contains(fileReference.reference)) ||
-                        (!isReferenceRequired && projReferences.Contains(fileReference.reference)))
+                    if ((isReferenceRequired && !projReferences.Contains(fileReference)) ||
+                        (!isReferenceRequired && projReferences.Contains(fileReference)))
                     {
-                        if(fileReference.reference == projName)
+                        if(fileReference == projName)
                         {
                             refsMatchErrorList.Add(
-                                new ReferenceMatchError(ReferenceLevel.Project, fileReference.reference, projName, true)
+                                new ReferenceMatchError(ReferenceLevel.Project, fileReference, projName, true)
                                 );
 
                             continue;
                         }
                             
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ReferenceLevel.Project, fileReference.reference, projName, false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ReferenceLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
                             continue;
 
                         refsErrorList.Add(
-                            new ReferenceError(fileReference.reference, projName, isReferenceRequired, ReferenceLevel.Project)
+                            new ReferenceError(fileReference, projName, isReferenceRequired, ReferenceLevel.Project)
                             );
                     }
                 }
@@ -510,14 +511,14 @@ namespace VSIXProject1
         //реализовать в проге работу с несколькими Solution
 
 
-        private static bool IsRuleConflict(ConfigFileReference currentReference, ReferenceLevel referenceType, List<List<ConfigFileReference>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
+        private static bool IsRuleConflict(string currentReference, ReferenceLevel referenceType, List<List<string>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
         {
             for(int i = 0; i < generalReferences.Count; i++)
             {
                 if (referenceType != ReferenceLevel.Global && i > 1)
                     break;
 
-                if(generalReferences[i].Contains(currentReference, new ConfigFileReferenceComparer())) 
+                if(generalReferences[i].Contains(currentReference)) //, new ConfigFileReferenceComparer()
                     return true;
             }
 
@@ -537,13 +538,13 @@ namespace VSIXProject1
             if(refsMatchErrorList != null)
                 refsMatchErrorList.Clear();
 
-            List<ConfigFileReference> solutionRequiredReferences = configFileSolution.solution_required_references;
-            List<ConfigFileReference> solutionUnacceptableReferences = configFileSolution.solution_unacceptable_references;
-            List<ConfigFileReference> solutionReferencesIntersect = solutionRequiredReferences.Intersect(solutionUnacceptableReferences, new ConfigFileReferenceComparer()).ToList();
+            List<string> solutionRequiredReferences = configFileSolution.solution_required_references;
+            List<string> solutionUnacceptableReferences = configFileSolution.solution_unacceptable_references;
+            List<string> solutionReferencesIntersect = solutionRequiredReferences.Intersect(solutionUnacceptableReferences).ToList(); //, new ConfigFileReferenceComparer()
 
-            List<ConfigFileReference> globalRequiredReferences = configFileGlobal.global_required_references;
-            List<ConfigFileReference> globalUnacceptableReferences = configFileGlobal.global_unacceptable_references;
-            List<ConfigFileReference> globalReferencesIntersect = globalRequiredReferences.Intersect(globalUnacceptableReferences, new ConfigFileReferenceComparer()).ToList();
+            List<string> globalRequiredReferences = configFileGlobal.global_required_references;
+            List<string> globalUnacceptableReferences = configFileGlobal.global_unacceptable_references;
+            List<string> globalReferencesIntersect = globalRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
             {
@@ -552,17 +553,17 @@ namespace VSIXProject1
             };
 
 
-            foreach (ConfigFileReference currentReference in solutionReferencesIntersect)
+            foreach (string currentReference in solutionReferencesIntersect)
             {
                 refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Solution, currentReference.reference, "", false)
+                    new ReferenceMatchError(ReferenceLevel.Solution, currentReference, "", false)
                     );
             }
 
-            foreach (ConfigFileReference currentReference in globalReferencesIntersect)
+            foreach (string currentReference in globalReferencesIntersect)
             {
                 refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Global, currentReference.reference, "", false)
+                    new ReferenceMatchError(ReferenceLevel.Global, currentReference, "", false)
                     );
             }
 
@@ -578,20 +579,20 @@ namespace VSIXProject1
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references.required; //Проверка на отключение глобальных и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references.unacceptable;
 
-                    List<ConfigFileReference> requiredReferences = currentProjectConfigFileSettings.required_references;
-                    List<ConfigFileReference> unacceptableReferences = currentProjectConfigFileSettings.unacceptable_references;
+                    List<string> requiredReferences = currentProjectConfigFileSettings.required_references;
+                    List<string> unacceptableReferences = currentProjectConfigFileSettings.unacceptable_references;
 
-                    List<List<ConfigFileReference>> configFileProjectAndSolutionReferences = new List<List<ConfigFileReference>>
+                    List<List<string>> configFileProjectAndSolutionReferences = new List<List<string>>
                     {
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
 
-                    List<ConfigFileReference> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences, new ConfigFileReferenceComparer()).ToList();
+                    List<string> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences).ToList(); //, new ConfigFileReferenceComparer()
 
-                    foreach(ConfigFileReference currentReference in projectReferencesIntersect)
+                    foreach (string currentReference in projectReferencesIntersect)
                     {
                         refsMatchErrorList.Add(
-                            new ReferenceMatchError(ReferenceLevel.Project, currentReference.reference, projName, false)
+                            new ReferenceMatchError(ReferenceLevel.Project, currentReference, projName, false)
                             );
                     }
                     
@@ -671,7 +672,166 @@ namespace VSIXProject1
             return false;
         }
 
-        private void GetConfigFileInfo()
+        private void RestoreInfoToRollbackFile(string currentConfigGuardFile, string currentConfigGuardRollbackFile)
+        {
+            try
+            {
+                string fileInfo;
+
+                using (FileStream fileStream = new FileStream(currentConfigGuardFile, FileMode.Open))
+                {
+                    StreamReader sr = new StreamReader(fileStream);
+
+                    fileInfo = sr.ReadToEnd();
+                }
+
+                using (FileStream fileStream = File.Create(currentConfigGuardRollbackFile))
+                {
+                    StreamWriter streamWriter = new StreamWriter(fileStream);
+
+                    streamWriter.Write(fileInfo);
+
+                    streamWriter.Flush();
+                    fileStream.Flush();
+
+                    streamWriter.Close();
+
+                }
+            }
+            catch (Exception ex)
+            {
+
+                VsShellUtilities.ShowMessageBox( 
+                        this.package,
+                        "Проверьте, что глобальный и локальные .rdg файлы не имеют запретов на чтение, а в корневой папке solution нет запрета на создание файлов",
+                        "RefDepGuard: Ошибка генерации Rollback файла",
+                        OLEMSGICON.OLEMSGICON_INFO,
+                        OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                        OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST
+                     );
+
+            }
+        }
+
+        private void CreateNewConfigFile(string currentConfigGuardFile, bool isGlobal)
+        {
+
+            using (FileStream fileStream = File.Create(currentConfigGuardFile))
+            {
+                StreamWriter streamWriter = new StreamWriter(fileStream);
+                string json;
+
+                if(isGlobal)
+                    json = JsonConvert.SerializeObject(generateDefaultConfigFileGlobal());
+                else
+                    json = JsonConvert.SerializeObject(generateDefaultConfigFileSolution());
+
+                streamWriter.Write(json);
+
+                streamWriter.Flush();
+                fileStream.Flush();
+
+                streamWriter.Close();
+            }
+        }
+
+        private ConfigFileSolution generateDefaultConfigFileSolution()
+        {
+            configFileSolution = new ConfigFileSolution();
+            configFileSolution.name = solutionName;
+            configFileSolution.framework_max_version = "-";
+            configFileSolution.solution_required_references = new List<string>();
+            configFileSolution.solution_unacceptable_references = new List<string>();
+            configFileSolution.projects = new Dictionary<string, ConfigFileProject>();
+
+            foreach (var projectName in commitedProjState.Keys)
+            {
+                ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
+                configFileProjectRefsConsidering.required = true;
+                configFileProjectRefsConsidering.unacceptable = true;
+
+                ConfigFileProject fileProject = new ConfigFileProject();
+                fileProject.framework_max_version = "-";
+                fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
+                fileProject.required_references = new List<string>();
+                fileProject.unacceptable_references = new List<string>();
+
+                configFileSolution.projects.Add(projectName, fileProject);
+            }
+
+            return configFileSolution;
+        }
+
+        private ConfigFileGlobal generateDefaultConfigFileGlobal()
+        {
+            configFileGlobal = new ConfigFileGlobal();
+            configFileGlobal.name = "Global";
+            configFileGlobal.framework_max_version = "-";
+            configFileGlobal.global_required_references = new List<string>();
+            configFileGlobal.global_unacceptable_references = new List<string>();
+
+            return configFileGlobal;
+        }
+
+        private void showConfigFileParseErrorMessage(string errorReason, bool isErrorGlobal, bool isFileExists) 
+        {
+            string rollbackAction = "";
+            string solutionNameInfo = "";
+
+            if (isFileExists)
+                rollbackAction = "Информация, содержащаяся в файле конфигурации будет перезаписана в rollback-файл.\r\nПроверьте её на предмет отсутствия синтаксических ошибок и несоответствия шаблону файла конфигурации!";
+              
+            if (!isErrorGlobal)
+                solutionNameInfo = " для solution '" + solutionName + "'";
+            
+                VsShellUtilities.ShowMessageBox(
+                            this.package,
+                            errorReason + solutionNameInfo + ".\r\n Шаблон файла конфигурации будет сгенерирован расширением" + ". \r\n" + rollbackAction,
+                            "RefDepGuard Error: Ошибка загрузки файла конфигурации",
+                            OLEMSGICON.OLEMSGICON_INFO,
+                            OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                            OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST
+                         );
+        }
+
+        private void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
+        {
+            if (File.Exists(configFileServiceInfo.SolutionConfigGuardFile))
+            {
+                try
+                {
+                    using (FileStream fileStream = new FileStream(configFileServiceInfo.SolutionConfigGuardFile, FileMode.Open))
+                    {
+                        StreamReader sr = new StreamReader(fileStream);
+
+                        if(configFileServiceInfo.IsGlobal)
+                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(sr.ReadToEnd());
+                        else
+                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
+
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.BadDataErrorMessage, false, true); //"Не получилось загрузить файл конфигурации"
+
+                    RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
+
+                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+
+                }
+
+            }
+            else
+            {
+                showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.FileNotFoundErrorMessage, false, false); //"Файл конфигурации не найден"
+
+                CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+            }
+        }
+
+        private void GetConfigFileInfo() //Сделать проверку на null (не обнаружены некоторые свойства в конфиг файле)! Иначе возможные nullpointerexceptions при проверке правил
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -683,104 +843,21 @@ namespace VSIXProject1
 
             solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1);
 
-            try
-            {
-                using (FileStream fileStream = new FileStream(solutionExtendedName + "_config_guard.rdg", FileMode.Open))
-                {
+            string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
+            string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";
 
-                    StreamReader sr = new StreamReader(fileStream);
+            string solutionConfigGuardRollbackFile = solutionExtendedName + "_config_guard_rollback.rdg";
+            string globalConfigGuardRollbackFile = packageExtendedName + "\\global_config_guard_rollback.rdg";
 
-                    configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
-                }
-            }
-            catch (Exception)
-            {
+            FileErrorMessage currentSolutionFileErrorMessages = new FileErrorMessage("Не получилось загрузить файл конфигурации", "Файл конфигурации не найден");
+            FileErrorMessage globalFileErrorMessages = new FileErrorMessage("Не получилось загрузить глобальный файл конфигурации", "Глобальный файл конфигурации не найден");
 
-                var solutionName = solutionExtendedName.Split('\\');
+            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(false, solutionConfigGuardFile, solutionConfigGuardRollbackFile, currentSolutionFileErrorMessages);
+            ConfigFileServiceInfo globalSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(true, globalConfigGuardFile, globalConfigGuardRollbackFile, globalFileErrorMessages);
 
-                VsShellUtilities.ShowMessageBox(
-                    this.package,
-                    "Не получилось загрузить файл конфигурации для solution '"+ solutionName[solutionName.Length - 1] + "'. \r\n Шаблон файла конфигурации будет создан расширением",
-                    "RefDepGuard: Ошибка загрузки файла конфигурации",
-                    OLEMSGICON.OLEMSGICON_INFO,
-                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
 
-                configFileSolution = new ConfigFileSolution();
-                configFileSolution.name = solutionName[solutionName.Length - 1];
-                configFileSolution.framework_max_version = "-";
-                configFileSolution.solution_required_references = new List<ConfigFileReference>();
-                configFileSolution.solution_unacceptable_references = new List<ConfigFileReference>();
-                configFileSolution.projects = new Dictionary<string, ConfigFileProject>();
-
-                foreach (var projectName in commitedProjState.Keys)
-                {
-                    ConfigFileProject fileProject = new ConfigFileProject();
-                    fileProject.framework_max_version = "-";
-                    fileProject.name = projectName;
-                    fileProject.required_references = new List<ConfigFileReference>();
-                    fileProject.unacceptable_references = new List<ConfigFileReference>();
-
-                    configFileSolution.projects.Add(projectName, fileProject);
-                }
-
-                using (FileStream fileStream = File.Create(solutionExtendedName + "_config_guard.rdg"))
-                {
-                    StreamWriter streamWriter = new StreamWriter(fileStream);
-
-                    string json = JsonConvert.SerializeObject(configFileSolution);
-                    streamWriter.Write(json);
-
-                    streamWriter.Flush();
-                    fileStream.Flush();
-
-                    streamWriter.Close();
-
-                }
-            }
-
-            try
-            {
-                using (FileStream fileStream = new FileStream(packageExtendedName + "\\global_config_guard.rdg", FileMode.Open))
-                {
-                    StreamReader sr = new StreamReader(fileStream);
-
-
-                    configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(sr.ReadToEnd());
-                }
-
-            }
-            catch (Exception)
-            {
-                VsShellUtilities.ShowMessageBox(
-                    this.package,
-                    "Не получилось загрузить глобальный файл конфигурации. \r\n Шаблон файла конфигурации будет создан расширением",
-                    "RefDepGuard: Ошибка загрузки файла конфигурации",
-                    OLEMSGICON.OLEMSGICON_INFO,
-                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-
-                configFileGlobal = new ConfigFileGlobal();
-                configFileGlobal.name = "Global";
-                configFileGlobal.framework_max_version = "-";
-                configFileGlobal.global_required_references = new List<ConfigFileReference>();
-                configFileGlobal.global_unacceptable_references = new List<ConfigFileReference>();
-
-
-                using (FileStream fileStream = File.Create(packageExtendedName + "\\global_config_guard.rdg"))
-                {
-                    StreamWriter streamWriter = new StreamWriter(fileStream);
-
-                    string json = JsonConvert.SerializeObject(configFileGlobal);
-                    streamWriter.Write(json);
-
-                    streamWriter.Flush();
-                    fileStream.Flush();
-
-                    streamWriter.Close();
-
-                }
-            }
+            GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
 
         }
     }
