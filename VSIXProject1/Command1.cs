@@ -201,8 +201,6 @@ namespace VSIXProject1
 
             
             EnvDTE.Solution solution = dte.Solution;
-            //dte.Solution.Parent.Solution
-            //Пример проекта с несколькими Solution?
 
             commitedProjState.Clear();
 
@@ -369,8 +367,7 @@ namespace VSIXProject1
             {
                 Category = TaskCategory.User,
                 ErrorCategory = TaskErrorCategory.Warning,
-                Text = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution. Произведите проверку вручную или начните сборку для запуска проверки"
-
+                Text = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой"
             };
 
             errorListProvider.Tasks.Add(errorTask);
@@ -641,7 +638,8 @@ namespace VSIXProject1
         }
 
 
-        //реализовать в проге работу с несколькими Solution
+        //реализовать в проге работу с несколькими Solution - не требуется так как VS 22 поддерживает только работу с одним solution в одном окне.
+        //однако это не означает, что 2 и более solution с одним и тем же root не могут иметь общий файл глобальных правил
 
 
         private static bool IsRuleConflict(string currentReference, ReferenceLevel referenceType, List<List<string>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
@@ -838,6 +836,7 @@ namespace VSIXProject1
             commitedProjState.Clear();
 
             EnvDTE.Solution solution = dte.Solution;
+            string smth = dte.Solution.Parent.Solution.FullName;
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
@@ -860,7 +859,7 @@ namespace VSIXProject1
             }
         }
 
-        private static bool IsReferencesAddedCorrectly()
+        private static bool IsReferencesAddedCorrectly() //Срабатывает не только в случаях, когда не успели прогрузиться рефы, но и когда рефов попросту нет (что на самом деле странно и тоже заслуживает предупреждения)
         {
             foreach (KeyValuePair<string, List<string>> keyValuePair in commitedProjState)
             {
@@ -1009,8 +1008,6 @@ namespace VSIXProject1
                             configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(sr.ReadToEnd());
                         else
                             configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
-
-
                     }
                 }
                 catch (Exception ex)
