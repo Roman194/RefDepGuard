@@ -1,27 +1,18 @@
 ﻿using EnvDTE;
-using EnvDTE80;
-using Microsoft.Build.Framework;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.Services;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using VSIXProject1.Data;
 using VSIXProject1.Data.Reference;
 using VSLangProj;
 using Task = System.Threading.Tasks.Task;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace VSIXProject1
 {
@@ -36,6 +27,7 @@ namespace VSIXProject1
         public const int CommandId = 0x0100;
         public const int GetChangedRefsId = 0x0110;
         public const int CommitCurrentRefsId = 0x0120;
+        public const int ExportRefsToXSLXId = 0x0130;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -65,11 +57,14 @@ namespace VSIXProject1
         static ConfigFileGlobal configFileGlobal;
 
         static string solutionName;
+        static string packageExtendedName;
 
         static ErrorListProvider errorListProvider;
         static IVsOutputWindowPane generalPane;
         static Guid generalPaneGuid;
         static IVsOutputWindow outWindow;
+
+        Excel.Application excel = new Excel.Application();
 
 
         /// <summary>
@@ -86,18 +81,19 @@ namespace VSIXProject1
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
             var commitCurrentRefsMenuCommandID = new CommandID(CommandSet, CommitCurrentRefsId);
+            var exportCurrentRefsToXSLXMenuCommandID = new CommandID(CommandSet, ExportRefsToXSLXId);
 
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteChanges, getChangedRefsMenuCommandID);
             var commitCurrentRefsMenuItem = new MenuCommand(this.CommitCurrentReferences, commitCurrentRefsMenuCommandID);
+            var exportCurrentRefsToXSLXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXSLXMenuCommandID);
 
             commandService.AddCommand(menuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentRefsMenuItem);
+            commandService.AddCommand(exportCurrentRefsToXSLXMenuItem);
 
             onSolutionOpened();
-
-
         }
 
         /// <summary>
@@ -348,11 +344,18 @@ namespace VSIXProject1
             CommitCurrentReferences();
 
             CheckRulesFromConfigFile();
+        }
+
+        private void ExportRefsToXSLX(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refsErrorList);
 
             //VsShellUtilities.ShowMessageBox(
             //    this.package,
-            //    message,
-            //    title,
+            //    "",
+            //    "Export to XSLX",
             //    OLEMSGICON.OLEMSGICON_INFO,
             //    OLEMSGBUTTON.OLEMSGBUTTON_OK,
             //    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
@@ -836,7 +839,7 @@ namespace VSIXProject1
             commitedProjState.Clear();
 
             EnvDTE.Solution solution = dte.Solution;
-            string smth = dte.Solution.Parent.Solution.FullName;
+            //string smth = dte.Solution.Parent.Solution.FullName;
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
@@ -1037,7 +1040,7 @@ namespace VSIXProject1
             int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
             int lastSlashIndex = dteSolutionFullName.LastIndexOf('\\');
             string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
-            string packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
+            packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
 
             solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1); //Проблемно при нескольких Solution
 
