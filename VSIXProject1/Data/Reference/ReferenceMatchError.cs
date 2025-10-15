@@ -13,7 +13,7 @@ namespace VSIXProject1
         public string ProjectName;
         public bool IsProjNameMatchError;
 
-        public ReferenceMatchError(ReferenceLevel referenceLevel, string referenceName, string projectName, bool isProjNameMatchError)
+        public ReferenceMatchError(ReferenceLevel referenceLevel, string referenceName, string projectName, bool isProjNameMatchError) 
         {
             ReferenceLevelValue = referenceLevel;
             ReferenceName = referenceName;

@@ -59,6 +59,7 @@ namespace VSIXProject1
         static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
         static List<ReferenceError> refsErrorList = new List<ReferenceError>();
         static List<ReferenceMatchError> refsMatchErrorList = new List<ReferenceMatchError>();
+        static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
 
         static ConfigFileSolution configFileSolution;
         static ConfigFileGlobal configFileGlobal;
@@ -411,7 +412,7 @@ namespace VSIXProject1
                     if ((isReferenceRequired && !projReferences.Contains(fileReference)) ||
                         (!isReferenceRequired && projReferences.Contains(fileReference)))
                     {
-                        if(fileReference == projName)
+                        if(fileReference == projName) //Для Project рефов не допускается совпадение рефа и его проекта. Это "замыкание на себя"
                         {
                             refsMatchErrorList.Add(
                                 new ReferenceMatchError(ReferenceLevel.Project, fileReference, projName, true)
@@ -420,6 +421,7 @@ namespace VSIXProject1
                             continue;
                         }
                             
+                        //Если реф с таким же названием содежится в MatchError, то пофиг уже на Level: важнеее устранить конфликт рефов, чем вывести по уровню
                         if (refsMatchErrorList.Contains(new ReferenceMatchError(ReferenceLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
                             continue;
 
@@ -431,11 +433,30 @@ namespace VSIXProject1
             }
         }
 
-        private static void StoreErrorListProviderByValues() //Оптимизировать
+        private static void StoreErrorTask(string currentText, string currentDocument, bool isWarning)
         {
+            TaskErrorCategory currentTask = TaskErrorCategory.Error;
+
+            if(isWarning)
+                currentTask = TaskErrorCategory.Warning;
+
+            ErrorTask errorTask = new ErrorTask
+            {
+                Category = TaskCategory.User,
+                ErrorCategory = currentTask,
+                Document = currentDocument,
+                Text = currentText
+            };
+
+            errorListProvider.Tasks.Add(errorTask);
+        }
+
+        private static void StoreErrorListProviderByValues()
+        {
+
             foreach(ConfigFilePropertyNullError configFilePropertyNullError in configPropertyNullErrorList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = solutionName + "_config_guard.rdg"; //GetCurrentText()
                 string relevantProjectName = "";
 
                 if (configFilePropertyNullError.IsGlobal)
@@ -444,15 +465,44 @@ namespace VSIXProject1
                 if (configFilePropertyNullError.ErrorRelevantProjectName != "")
                     relevantProjectName = " для проекта '" + configFilePropertyNullError.ErrorRelevantProjectName + "'";
 
-                ErrorTask errorTask = new ErrorTask
-                {
-                    Category = TaskCategory.User,
-                    ErrorCategory = TaskErrorCategory.Error,
-                    Document = documentName,
-                    Text = "RefDepGuard Null property error: Config-файл не содержит свойство '" + configFilePropertyNullError.PropertyName + "'" + relevantProjectName + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации"
-                };
+                string errorText = "RefDepGuard Null property error: Config-файл не содержит свойство '" + configFilePropertyNullError.PropertyName + "'" + relevantProjectName + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
 
-                errorListProvider.Tasks.Add(errorTask);
+                StoreErrorTask(errorText, documentName, false);
+            }
+
+            foreach (ReferenceMatchWarning referenceMatchWarning in refsMatchWarningList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string projectName = "";
+                string highReferenceLevelText = "";
+                string lowReferenceLevelText = "";
+
+                string referenceTypeText = " является обязательным и";
+
+                if (referenceMatchWarning.IsHighLevelReq)
+                    referenceTypeText = " является недопустимым и";
+
+
+                if (referenceMatchWarning.ProjectName != "")
+                {
+                    projectName = "' проекта '" + referenceMatchWarning.ProjectName;
+                }
+
+                if(referenceMatchWarning.LowReferenceLevel == ReferenceLevel.Solution)
+                {
+                    lowReferenceLevelText = "уровня Solution";
+                }
+
+                switch (referenceMatchWarning.HighReferenceLevel)
+                {
+                    case ReferenceLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
+                    case ReferenceLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ReferenceLevel.Project: break;
+                }
+
+                string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + " противоречит правилу с одноимённым референсом " + highReferenceLevelText + ". Устраните противоречие в правиле";
+
+                StoreErrorTask(errorText, documentName, true);
             }
 
             foreach (ReferenceMatchError referenceMatchError in refsMatchErrorList)
@@ -468,9 +518,8 @@ namespace VSIXProject1
                     matchErrorDescription = " одновременно заявлен как обязательный и недопустимый";
 
                 if (referenceMatchError.ProjectName != "")
-                {
                     projectName = "' проекта '" + referenceMatchError.ProjectName;
-                }
+                
 
                 switch (referenceMatchError.ReferenceLevelValue)
                 {
@@ -479,16 +528,9 @@ namespace VSIXProject1
                     case ReferenceLevel.Project: break;
                 }
 
-                ErrorTask errorTask = new ErrorTask
-                {
-                    Category = TaskCategory.User,
-                    ErrorCategory = TaskErrorCategory.Error,
-                    Document = documentName,
-                    Text = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' "+ referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле"
+                string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
 
-                };
-
-                errorListProvider.Tasks.Add(errorTask);
+                StoreErrorTask(errorText, documentName, false);
             }
 
 
@@ -517,16 +559,9 @@ namespace VSIXProject1
                     case ReferenceLevel.Project: break;
                 }
 
-                ErrorTask errorTask = new ErrorTask
-                {
-                    Category = TaskCategory.User,
-                    ErrorCategory = TaskErrorCategory.Error,
-                    Document = documentName,
-                    Text = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений"
+                string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
 
-                };
-
-                errorListProvider.Tasks.Add(errorTask);
+                StoreErrorTask(errorText, documentName, false);
             }
         }
 
@@ -613,7 +648,7 @@ namespace VSIXProject1
         {
             for(int i = 0; i < generalReferences.Count; i++)
             {
-                if (referenceType != ReferenceLevel.Global && i > 1)
+                if (referenceType != ReferenceLevel.Global && i > 1) //generalReferences содержит все Project и Solution рефы, которые могут конфликтовать с текущим рефом (i 0 и 1 - project рефы, 2 и 3 - solution рефы)
                     break;
 
                 if(generalReferences[i].Contains(currentReference))
@@ -621,6 +656,89 @@ namespace VSIXProject1
             }
 
             return false;
+        }
+
+        private static void CheckRulesOnMatchConflicts(List<string> solutionRequiredReferences, List<string> solutionUnacceptableReferences, List<string> globalRequiredReferences, List<string> globalUnacceptableReferences)
+        {
+            List<string> solutionReferencesIntersect = solutionRequiredReferences.Intersect(solutionUnacceptableReferences).ToList();
+            List<string> globalReferencesIntersect = globalRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
+
+            List<string> solutionReqAndGlobalUnacceptIntersect = solutionRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
+            List<string> solutionUnacceptAndGlobalReqIntersect = solutionUnacceptableReferences.Intersect(globalRequiredReferences).ToList();
+            List<List<string>> solutionCrossLevelIntersects = new List<List<string>> { solutionReqAndGlobalUnacceptIntersect, solutionUnacceptAndGlobalReqIntersect };
+
+            bool isHighLevelReq = false;
+
+            foreach (string currentReference in solutionReferencesIntersect)
+            {
+                refsMatchErrorList.Add(
+                    new ReferenceMatchError(ReferenceLevel.Solution, currentReference, "", false)
+                    );
+            }
+
+            foreach (string currentReference in globalReferencesIntersect)
+            {
+                refsMatchErrorList.Add(
+                    new ReferenceMatchError(ReferenceLevel.Global, currentReference, "", false)
+                    );
+            }
+
+            foreach(List<string> currentCrossLevelIntersect in solutionCrossLevelIntersects)
+            {
+                foreach (string currentReference in currentCrossLevelIntersect)
+                {
+                    refsMatchWarningList.Add(
+                        new ReferenceMatchWarning(ReferenceLevel.Global, ReferenceLevel.Solution, currentReference, "", isHighLevelReq)
+                    );
+                }
+
+                isHighLevelReq = !isHighLevelReq;
+            }
+        }
+
+        private static void CheckProjectRulesOnMatchConflicts(List<string> solutionRequiredReferences, List<string> solutionUnacceptableReferences, List<string> globalRequiredReferences, List<string> globalUnacceptableReferences, List<string> requiredReferences, List<string> unacceptableReferences, string projName)
+        {
+            List<string> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences).ToList();
+
+            List<string> projectReqAndGlobalUnacceptIntersect = requiredReferences.Intersect(globalUnacceptableReferences).ToList();
+            List<string> projectReqAndSolutionUnacceptIntersect = requiredReferences.Intersect(solutionUnacceptableReferences).ToList();
+            List<string> projectUnacceptAndGlobalReqIntersect = unacceptableReferences.Intersect(globalRequiredReferences).ToList();
+            List<string> projectUnacceptAndSolutionReqIntersect = unacceptableReferences.Intersect(solutionRequiredReferences).ToList();
+            List<List<string>> projectGlobalCrossLevelIntersects = new List<List<string>>() { projectReqAndGlobalUnacceptIntersect, projectUnacceptAndGlobalReqIntersect };
+            List<List<string>> projectSoluionCrossLevelIntesects = new List<List<string>>() { projectReqAndSolutionUnacceptIntersect, projectUnacceptAndSolutionReqIntersect };
+
+            bool isHighLevelReq = false;
+
+            foreach (string currentReference in projectReferencesIntersect)
+            {
+                refsMatchErrorList.Add(
+                    new ReferenceMatchError(ReferenceLevel.Project, currentReference, projName, false)
+                    );
+            }
+
+            foreach(List<string> currentCrossLevelIntersect in projectGlobalCrossLevelIntersects)
+            {
+                foreach(string currentReference in currentCrossLevelIntersect)
+                {
+                    refsMatchWarningList.Add(
+                        new ReferenceMatchWarning(ReferenceLevel.Global, ReferenceLevel.Project, currentReference, projName, isHighLevelReq)
+                    );
+                }
+
+                isHighLevelReq = !isHighLevelReq;
+            }
+
+            foreach (List<string> currentCrossLevelIntersect in projectSoluionCrossLevelIntesects)
+            {
+                foreach (string currentReference in currentCrossLevelIntersect)
+                {
+                    refsMatchWarningList.Add(
+                        new ReferenceMatchWarning(ReferenceLevel.Solution, ReferenceLevel.Project, currentReference, projName, isHighLevelReq)
+                    );
+                }
+
+                isHighLevelReq = !isHighLevelReq;
+            }
         }
 
         private static void CheckRulesFromConfigFile()
@@ -643,11 +761,9 @@ namespace VSIXProject1
 
             List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
             List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
-            List<string> solutionReferencesIntersect = solutionRequiredReferences.Intersect(solutionUnacceptableReferences).ToList();
 
             List<string> globalRequiredReferences = configFileGlobal?.global_required_references ?? new List<string>();
             List<string> globalUnacceptableReferences = configFileGlobal?.global_unacceptable_references ?? new List<string>();
-            List<string> globalReferencesIntersect = globalRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
             {
@@ -655,20 +771,7 @@ namespace VSIXProject1
                 new ReferenceAffiliation(ReferenceLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
             };
 
-
-            foreach (string currentReference in solutionReferencesIntersect)
-            {
-                refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Solution, currentReference, "", false)
-                    );
-            }
-
-            foreach (string currentReference in globalReferencesIntersect)
-            {
-                refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Global, currentReference, "", false)
-                    );
-            }
+            CheckRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences);
 
             foreach (KeyValuePair<string, List<string>> currentProjState in commitedProjState)//для каждого project
             {
@@ -690,14 +793,8 @@ namespace VSIXProject1
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
 
-                    List<string> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences).ToList();
-
-                    foreach (string currentReference in projectReferencesIntersect)
-                    {
-                        refsMatchErrorList.Add(
-                            new ReferenceMatchError(ReferenceLevel.Project, currentReference, projName, false)
-                            );
-                    }
+                    CheckProjectRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, 
+                        globalUnacceptableReferences, requiredReferences, unacceptableReferences, projName);
                     
                     CheckRulesForProjectReferences(projName, projReferences, requiredReferences, true); 
                     CheckRulesForProjectReferences(projName, projReferences, unacceptableReferences, false);
@@ -918,7 +1015,7 @@ namespace VSIXProject1
                 }
                 catch (Exception ex)
                 {
-                    showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.BadDataErrorMessage, false, true); //"Не получилось загрузить файл конфигурации"
+                    showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.BadDataErrorMessage, false, true);
 
                     RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
 
@@ -929,7 +1026,7 @@ namespace VSIXProject1
             }
             else
             {
-                showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.FileNotFoundErrorMessage, false, false); //"Файл конфигурации не найден"
+                showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.FileNotFoundErrorMessage, false, false);
 
                 CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
