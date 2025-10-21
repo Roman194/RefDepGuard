@@ -350,17 +350,24 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refsErrorList);
+            if(XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refsErrorList))
+                ShowMessageBox("Экспорт в эксель завершён", "Экспорт в XSLX");
+            
+            else
+                ShowMessageBox("Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл '" + solutionName + "_references_report.xlsx' не открыт в Excel", "Экспорт в XSLX");
+                
+                excel.Quit(); // Не забыть убрать это в закрытие приложения!
+        }
 
+        private void ShowMessageBox(string message, string title)
+        {
             VsShellUtilities.ShowMessageBox(
-                this.package,
-                "Экспорт в XSLX",
-                "Экспорт в эксель завершён",
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-
-            excel.Quit(); // Не забыть убрать это в закрытие приложения!
+                    this.package,
+                    message,
+                    title,
+                    OLEMSGICON.OLEMSGICON_INFO,
+                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
 
         private static void ShowUnsuccessfulCheckingRulesWarning()
@@ -762,7 +769,7 @@ namespace VSIXProject1
 
             CheckConfigPropertiesOnNotNull();
 
-            List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
+            List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>(); //Взять все required правила рефов, собрать в RequiredReferences ии передать на XLSX!
             List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
 
             List<string> globalRequiredReferences = configFileGlobal?.global_required_references ?? new List<string>();
