@@ -352,13 +352,15 @@ namespace VSIXProject1
 
             XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refsErrorList);
 
-            //VsShellUtilities.ShowMessageBox(
-            //    this.package,
-            //    "",
-            //    "Export to XSLX",
-            //    OLEMSGICON.OLEMSGICON_INFO,
-            //    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-            //    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            VsShellUtilities.ShowMessageBox(
+                this.package,
+                "Экспорт в XSLX",
+                "Экспорт в эксель завершён",
+                OLEMSGICON.OLEMSGICON_INFO,
+                OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+            excel.Quit(); // Не забыть убрать это в закрытие приложения!
         }
 
         private static void ShowUnsuccessfulCheckingRulesWarning()
@@ -552,7 +554,7 @@ namespace VSIXProject1
                     actionForUser = "Удалите";
                 }
                     
-                switch (error.CurrentReferenceType)
+                switch (error.CurrentReferenceLevel)
                 {
                     case ReferenceLevel.Solution: referenceLevelText = "уровня Solution"; break;
                     case ReferenceLevel.Global: referenceLevelText = "глобального уровня"; break;
@@ -1042,7 +1044,7 @@ namespace VSIXProject1
             string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
             packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
 
-            solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1); //Проблемно при нескольких Solution
+            solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1);
 
             string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
             string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";
