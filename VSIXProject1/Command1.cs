@@ -8,11 +8,12 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using VSIXProject1.Comparators;
 using VSIXProject1.Data;
 using VSIXProject1.Data.Reference;
 using VSLangProj;
-using Task = System.Threading.Tasks.Task;
 using Excel = Microsoft.Office.Interop.Excel;
+using Task = System.Threading.Tasks.Task;
 
 namespace VSIXProject1
 {
@@ -51,7 +52,11 @@ namespace VSIXProject1
         static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
         static List<ReferenceError> refsErrorList = new List<ReferenceError>();
         static List<ReferenceMatchError> refsMatchErrorList = new List<ReferenceMatchError>();
+
+        static RefDepGuardErrors refDepGuardErrors; //Реализовать работу с этой структурой вместо верхних трёх?
         static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
+
+        static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
 
         static ConfigFileSolution configFileSolution;
         static ConfigFileGlobal configFileGlobal;
@@ -350,7 +355,9 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if(XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refsErrorList))
+            refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList);
+
+            if(XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredReferencesList))
                 ShowMessageBox("Экспорт в эксель завершён", "Экспорт в XSLX");
             
             else
@@ -465,7 +472,7 @@ namespace VSIXProject1
 
             foreach(ConfigFilePropertyNullError configFilePropertyNullError in configPropertyNullErrorList)
             {
-                string documentName = solutionName + "_config_guard.rdg"; //GetCurrentText()
+                string documentName = solutionName + "_config_guard.rdg";
                 string relevantProjectName = "";
 
                 if (configFilePropertyNullError.IsGlobal)
@@ -726,7 +733,7 @@ namespace VSIXProject1
                     );
             }
 
-            foreach(List<string> currentCrossLevelIntersect in projectGlobalCrossLevelIntersects)
+            foreach(List<string> currentCrossLevelIntersect in projectGlobalCrossLevelIntersects) // А если выводить предупреждение ещё и про то, что есть излишнее дублирование правил?
             {
                 foreach(string currentReference in currentCrossLevelIntersect)
                 {
@@ -781,6 +788,16 @@ namespace VSIXProject1
                 new ReferenceAffiliation(ReferenceLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
             };
 
+            //foreach(string reference in globalRequiredReferences)
+            //{
+            //    requiredReferencesList.Add(new RequiredReference(reference, ""));
+            //}
+            requiredReferencesList.AddRange(globalRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
+            requiredReferencesList.AddRange(solutionRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
+
+
+            
+
             CheckRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences);
 
             foreach (KeyValuePair<string, List<string>> currentProjState in commitedProjState)//для каждого project
@@ -802,6 +819,8 @@ namespace VSIXProject1
                     {
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
+
+                    requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
 
                     CheckProjectRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, 
                         globalUnacceptableReferences, requiredReferences, unacceptableReferences, projName);
@@ -833,7 +852,9 @@ namespace VSIXProject1
 
             
 
-            refsErrorList.Sort(new ReferenceErrorComparer()); //Глобально отсортировать все типы ошибок?
+            refsErrorList.Sort(new ReferenceErrorComparer());
+            refsMatchErrorList.Sort(new ReferenceMatchErrorSortComparer());
+            configPropertyNullErrorList.Sort(new ConfigFilePropertyNullErrorSortComparer());
 
             StoreErrorListProviderByValues();
 
