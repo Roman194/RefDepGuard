@@ -1,7 +1,9 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio.Debugger.Interop;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.VCProjectEngine;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,28 +12,33 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.VisualStyles;
 using Excel = Microsoft.Office.Interop.Excel;
+using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1
 {
     public class XLSXManager
     {
 
-        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList)
+        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, List<string>> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, List<RequiredReference> requiredReferences)
         {
             bool isLoadSuccessful = true;
             string currentDateTime = GetCurrentDateTimeInRightFormat();
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
-            loadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refsErrorList);
-            loadInfoToReferencesBook(excel, solutionName, currentDateTime, commitedProjectsState, refsErrorList);
+            LoadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList);
+            LoadInfoToReferencesBook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList, requiredReferences);
+            LoadInfoToRefRepGuardErrors(excel, solutionName, currentDateTime, refDepGuardErrors);
 
             try
             {
-                excel.Application.ActiveWorkbook.SaveAs(solutionAddress + "\\" + solutionName + "_references_report_1.xlsx", Type.Missing,
+                string currentReportDirectory = solutionAddress + "\\reports\\table_type\\" + currentDateTime;
+                Directory.CreateDirectory(currentReportDirectory);
+
+                excel.Application.ActiveWorkbook.SaveAs(currentReportDirectory + "\\" + solutionName + "_references_report.xlsx", Type.Missing,
                 Type.Missing, Type.Missing, Type.Missing, Type.Missing, XlSaveAsAccessMode.xlNoChange,
                 Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
             }
-            catch (COMException)
+            catch (COMException ex)
             {
                 isLoadSuccessful = false;
             }
@@ -41,7 +48,7 @@ namespace VSIXProject1
             return isLoadSuccessful;
         }
 
-        private static void loadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList)
+        private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList)
         {
             Worksheet projectsTable = (Worksheet)excel.Worksheets[1];
             projectsTable.Name = "Выборка по проектам";
@@ -183,7 +190,7 @@ namespace VSIXProject1
             //unionRangeUnacceptableRefsErrors.HorizontalAlignment = XlHAlign.xlHAlignFill;
         }
 
-        private static void loadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList)
+        private static void LoadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList, List<RequiredReference> requiredReferences)
         {
             Worksheet projectsTable = (Worksheet)excel.Worksheets[2];
             projectsTable.Name = "Выборка по референсам";
@@ -222,26 +229,30 @@ namespace VSIXProject1
                     projectsTable.Cells[5 + i, 3] = projectReference;
                     projectsTable.Cells[5 + i, 4] = projectName;
 
+                    projectsTable.Cells[5 + i, 5] = "-";
+
                     ReferenceError referenceError = refsErrorList
-                        .Where(value => value.ErrorRelevantProjectName == projectName && value.ReferenceName == projectReference)
+                        .Where(value => value.ErrorRelevantProjectName == projectName && value.ReferenceName == projectReference && value.IsReferenceRequired == false)
                         .FirstOrDefault(); //Должно найтись не более одного такого значения
                     
-                    if(referenceError != null)
+                    if(referenceError!= null)
                     {
-                        if (referenceError.IsReferenceRequired)
-                        {
-                            projectsTable.Cells[5 + i, 5] = "Обязательный";
-                            projectsTable.Cells[5 + i, 5].Interior.Color = 0xCEEFC6;
-                            projectsTable.Cells[5 + i, 5].Font.Color = 0x006100;
-                        }
-                        else
-                        {
-                            projectsTable.Cells[5 + i, 5] = "Недопустимый";
-                            projectsTable.Cells[5 + i, 5].Interior.Color = 0xCEC7FF;
-                            projectsTable.Cells[5 + i, 5].Font.Color = 0x062CCE;
-                        }  
-                    }else
-                        projectsTable.Cells[5 + i, 5] = "-";
+                        projectsTable.Cells[5 + i, 5] = "Недопустимый";
+                        projectsTable.Cells[5 + i, 5].Interior.Color = 0xCEC7FF;
+                        projectsTable.Cells[5 + i, 5].Font.Color = 0x062CCE;
+                         
+                    }
+
+                    RequiredReference requiredReference = requiredReferences
+                        .Where(value => value.ReferenceName == projectReference && (value.RelevantProject == projectName || value.RelevantProject == ""))
+                        .FirstOrDefault();
+
+                    if(requiredReference != null)
+                    {
+                        projectsTable.Cells[5 + i, 5] = "Обязательный";
+                        projectsTable.Cells[5 + i, 5].Interior.Color = 0xCEEFC6;
+                        projectsTable.Cells[5 + i, 5].Font.Color = 0x006100;
+                    }
 
                     i++;
                 }
@@ -286,8 +297,171 @@ namespace VSIXProject1
         private static string GetCurrentDateTimeInRightFormat()
         {
             DateTime currentDateTime = DateTime.Now;
-            return currentDateTime.Day + "." + currentDateTime.Month + "." + currentDateTime.Year + "-" + currentDateTime.Hour + "." + currentDateTime.Minute + "." 
-                + currentDateTime.Second;
+
+            return 
+                GetNumberWithFirstZeroIfNeeded(currentDateTime.Day) + "." +
+                GetNumberWithFirstZeroIfNeeded(currentDateTime.Month) + "." + 
+                currentDateTime.Year + "-" + 
+                GetNumberWithFirstZeroIfNeeded(currentDateTime.Hour) + "." + 
+                GetNumberWithFirstZeroIfNeeded(currentDateTime.Minute) + "." + 
+                GetNumberWithFirstZeroIfNeeded(currentDateTime.Second);
+        }
+
+        private static string GetNumberWithFirstZeroIfNeeded(int currentNumber)
+        {
+            if(currentNumber < 10)
+                return "0" + currentNumber;
+            else
+                return currentNumber.ToString();
+        }
+
+        private static void LoadInfoToRefRepGuardErrors(Application excel, string solutionName, string currentDateTime, RefDepGuardErrors refDepGuardErrors)
+        {
+            Worksheet projectsTable = (Worksheet)excel.Worksheets[3];
+            projectsTable.Name = "RefDepGuard errors";
+
+            projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
+            projectsTable.Cells[3, 2] = currentDateTime;
+            projectsTable.Cells[2, 2].Font.Bold = projectsTable.Cells[3, 2].Font.Bold = true;
+
+            projectsTable.Cells[4, 2] = "№";
+            projectsTable.Cells[4, 3] = "Проект";
+            projectsTable.Cells[4, 4] = "Референс";
+            projectsTable.Cells[4, 5] = "Тип ошибки";
+            projectsTable.Cells[4, 6] = "Уровень ошибки";
+            projectsTable.Cells[4, 7] = "Описание";
+            projectsTable.Cells[4, 8] = "Необходимое действие";
+            projectsTable.Cells[4, 9] = "Файл действия";
+
+            Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 9]];
+            Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 9]];
+            Range unionRangeSolutionWithTime = projectsTable.Range[unionRangeSolutionName, unionRangeGenerateTime];
+
+            Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[4, 9]];
+
+            unionRangeSolutionName.Merge();
+            unionRangeGenerateTime.Merge();
+
+            unionRangeTableTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
+
+            int i = 0;
+
+            foreach (ConfigFilePropertyNullError currentNullError in refDepGuardErrors.ConfigPropertyNullErrorList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                string errorRelevantProjectName = currentNullError.ErrorRelevantProjectName;
+                if (errorRelevantProjectName == "")
+                    errorRelevantProjectName = "-";
+
+                projectsTable.Cells[5 + i, 3] = errorRelevantProjectName;
+                projectsTable.Cells[5 + i, 4] = "-";
+
+                projectsTable.Cells[5 + i, 5] = "Null property";
+
+                string currentErrorLevel = "Global";
+                if (!currentNullError.IsGlobal)
+                {
+                    if (errorRelevantProjectName != "-")
+                        currentErrorLevel = "Project";
+                    else
+                        currentErrorLevel = "Solution";
+                }
+
+                projectsTable.Cells[5 + i, 6] = currentErrorLevel;
+
+                projectsTable.Cells[5 + i, 7] = "Config-файл не содержит свойство \r\n'" + currentNullError.PropertyName + "'";
+                projectsTable.Cells[5 + i, 8] = "Проверьте его на предмет отсутствия \r\nсинтаксических ошибок и соответствия \r\nшаблону файла конфигурации";
+                
+                if(currentErrorLevel == "Global")
+                    projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
+                else
+                    projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
+
+                i++;
+
+            }
+
+            foreach(ReferenceMatchError currentMatchError in refDepGuardErrors.RefsMatchErrorList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                string errorRelevantProjectName = currentMatchError.ProjectName;
+                if (errorRelevantProjectName == "")
+                    errorRelevantProjectName = "-";
+
+                projectsTable.Cells[5 + i, 3] = errorRelevantProjectName;
+                projectsTable.Cells[5 + i, 4] = currentMatchError.ReferenceName;
+
+                projectsTable.Cells[5 + i, 5] = "Match";
+
+                projectsTable.Cells[5 + i, 6] = currentMatchError.ReferenceLevelValue.ToString();
+
+                if (!currentMatchError.IsProjNameMatchError)
+                    projectsTable.Cells[5 + i, 7] = "Референс одновременно заявлен как \r\nобязательный и недопустимый";
+                else
+                    projectsTable.Cells[5 + i, 7] = "Референс совпадает с именем проекта";
+                    
+                projectsTable.Cells[5 + i, 8] = "Устраните противоречие в правиле";
+
+                if (currentMatchError.ReferenceLevelValue == ReferenceLevel.Global)
+                    projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
+                else
+                    projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
+
+                i++;
+            }
+
+            foreach (ReferenceError currentError in refDepGuardErrors.RefsErrorList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = currentError.ErrorRelevantProjectName;
+                projectsTable.Cells[5 + i, 4] = currentError.ReferenceName;
+
+                projectsTable.Cells[5 + i, 5] = "Reference";
+
+                projectsTable.Cells[5 + i, 6] = currentError.CurrentReferenceLevel.ToString();
+
+                if (!currentError.IsReferenceRequired)
+                {
+                    projectsTable.Cells[5 + i, 7] = "Присутствует недопустимый референс";
+                    projectsTable.Cells[5 + i, 8] = "Удалить через обозреватель решений";
+                }
+                else
+                {
+                    projectsTable.Cells[5 + i, 7] = "Отсутствует обязательный референс";
+                    projectsTable.Cells[5 + i, 8] = "Добавить через обозреватель решений";
+                }
+
+                projectsTable.Cells[5 + i, 9] = currentError.ErrorRelevantProjectName + ".csproj";
+
+                i++;
+            }
+
+            
+
+            Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];
+            Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
+
+            unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
+            unionRangeAllTable.EntireColumn.AutoFit();
+            unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
+            unionRangeNumWithTitle.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+            unionRangeNumWithTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
+            unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+            unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
         }
     }
 }
