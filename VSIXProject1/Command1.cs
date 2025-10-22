@@ -41,7 +41,6 @@ namespace VSIXProject1
         private readonly AsyncPackage package;
 
         private static DTE dte;
-        //private static DTE2 dte2;
 
         static Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
         static List<string> changedRefs = new List<string>();
@@ -69,7 +68,7 @@ namespace VSIXProject1
         static Guid generalPaneGuid;
         static IVsOutputWindow outWindow;
 
-        Excel.Application excel = new Excel.Application();
+        static Excel.Application excel = new Excel.Application();
 
 
         /// <summary>
@@ -138,6 +137,7 @@ namespace VSIXProject1
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
+            dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
             //dte.Events.SolutionEvents.Opened += onSolutionOpened; 
 
             //if (dte.Solution.IsOpen)
@@ -155,6 +155,12 @@ namespace VSIXProject1
             outWindow.GetPane(ref generalPaneGuid, out generalPane);
             generalPane.OutputString("Nope!");
 
+        }
+
+        private static void BeforeSolutionClosed()
+        {
+            excel.Quit();
+            GC.Collect();
         }
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
@@ -344,10 +350,8 @@ namespace VSIXProject1
         private void CommitCurrentReferences(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            //commitedProjState.Clear();
 
             CommitCurrentReferences();
-
             CheckRulesFromConfigFile();
         }
 
@@ -359,11 +363,9 @@ namespace VSIXProject1
 
             if(XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredReferencesList))
                 ShowMessageBox("Экспорт в эксель завершён", "Экспорт в XSLX");
-            
             else
                 ShowMessageBox("Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл '" + solutionName + "_references_report.xlsx' не открыт в Excel", "Экспорт в XSLX");
                 
-                excel.Quit(); // Не забыть убрать это в закрытие приложения!
         }
 
         private void ShowMessageBox(string message, string title)
@@ -492,11 +494,9 @@ namespace VSIXProject1
                 string projectName = "";
                 string highReferenceLevelText = "";
                 string lowReferenceLevelText = "";
-
-                string referenceTypeText = " является обязательным и";
-
-                if (referenceMatchWarning.IsHighLevelReq)
-                    referenceTypeText = " является недопустимым и";
+                string referenceTypeText = "";
+                string warningDescription = "";
+                string warningAction = "";
 
 
                 if (referenceMatchWarning.ProjectName != "")
@@ -516,7 +516,28 @@ namespace VSIXProject1
                     case ReferenceLevel.Project: break;
                 }
 
-                string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + " противоречит правилу с одноимённым референсом " + highReferenceLevelText + ". Устраните противоречие в правиле";
+                if (referenceMatchWarning.IsReferenceStraight)
+                {
+                    warningDescription = " дубирует правило с одноимённым референсом ";
+                    warningAction = ". Устраните дублирование правила";
+
+                    if (referenceMatchWarning.IsHighLevelReq)
+                        referenceTypeText = " является обязательным и";
+                    else
+                        referenceTypeText = " является недопустимым и";
+                }
+                else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" праивлу
+                {
+                    warningDescription = " противоречит правилу с одноимённым референсом ";
+                    warningAction = ". Устраните противоречие в правиле";
+
+                    if (referenceMatchWarning.IsHighLevelReq)
+                        referenceTypeText = " является недопустимым и";
+                    else
+                        referenceTypeText = " является обязательным и";
+                }
+
+                string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
 
                 StoreErrorTask(errorText, documentName, true);
             }
@@ -681,36 +702,19 @@ namespace VSIXProject1
             List<string> globalReferencesIntersect = globalRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
 
             List<string> solutionReqAndGlobalUnacceptIntersect = solutionRequiredReferences.Intersect(globalUnacceptableReferences).ToList();
+            List<string> solutionReqStraightLevelIntersect = solutionRequiredReferences.Intersect(globalRequiredReferences).ToList();
+
             List<string> solutionUnacceptAndGlobalReqIntersect = solutionUnacceptableReferences.Intersect(globalRequiredReferences).ToList();
+            List<string> solutionUnacceptStraightLevelIntersect = solutionUnacceptableReferences.Intersect(globalUnacceptableReferences).ToList();
+
             List<List<string>> solutionCrossLevelIntersects = new List<List<string>> { solutionReqAndGlobalUnacceptIntersect, solutionUnacceptAndGlobalReqIntersect };
+            List<List<string>> solutionStraightLevelIntersects = new List<List<string>> { solutionUnacceptStraightLevelIntersect, solutionReqStraightLevelIntersect };
 
-            bool isHighLevelReq = false;
+            AddReferenceMatchErrorsToList(ReferenceLevel.Solution, "", false, solutionReferencesIntersect);
+            AddReferenceMatchErrorsToList(ReferenceLevel.Global, "", false, globalReferencesIntersect);
 
-            foreach (string currentReference in solutionReferencesIntersect)
-            {
-                refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Solution, currentReference, "", false)
-                    );
-            }
-
-            foreach (string currentReference in globalReferencesIntersect)
-            {
-                refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Global, currentReference, "", false)
-                    );
-            }
-
-            foreach(List<string> currentCrossLevelIntersect in solutionCrossLevelIntersects)
-            {
-                foreach (string currentReference in currentCrossLevelIntersect)
-                {
-                    refsMatchWarningList.Add(
-                        new ReferenceMatchWarning(ReferenceLevel.Global, ReferenceLevel.Solution, currentReference, "", isHighLevelReq)
-                    );
-                }
-
-                isHighLevelReq = !isHighLevelReq;
-            }
+            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Solution, "", false, solutionCrossLevelIntersects);
+            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Solution, "", true, solutionStraightLevelIntersects);
         }
 
         private static void CheckProjectRulesOnMatchConflicts(List<string> solutionRequiredReferences, List<string> solutionUnacceptableReferences, List<string> globalRequiredReferences, List<string> globalUnacceptableReferences, List<string> requiredReferences, List<string> unacceptableReferences, string projName)
@@ -719,40 +723,48 @@ namespace VSIXProject1
 
             List<string> projectReqAndGlobalUnacceptIntersect = requiredReferences.Intersect(globalUnacceptableReferences).ToList();
             List<string> projectReqAndSolutionUnacceptIntersect = requiredReferences.Intersect(solutionUnacceptableReferences).ToList();
+            List<string> projectReqGlobalIntersect = requiredReferences.Intersect(globalRequiredReferences).ToList();
+            List<string> projectReqSolutionIntersect = requiredReferences.Intersect(solutionRequiredReferences).ToList();
+
             List<string> projectUnacceptAndGlobalReqIntersect = unacceptableReferences.Intersect(globalRequiredReferences).ToList();
             List<string> projectUnacceptAndSolutionReqIntersect = unacceptableReferences.Intersect(solutionRequiredReferences).ToList();
+            List<string> projectUnacceptGlobalIntersect = unacceptableReferences.Intersect(globalUnacceptableReferences).ToList();
+            List<string> projectUnacceptSolutionIntersect = unacceptableReferences.Intersect(solutionUnacceptableReferences).ToList();
+
             List<List<string>> projectGlobalCrossLevelIntersects = new List<List<string>>() { projectReqAndGlobalUnacceptIntersect, projectUnacceptAndGlobalReqIntersect };
             List<List<string>> projectSoluionCrossLevelIntesects = new List<List<string>>() { projectReqAndSolutionUnacceptIntersect, projectUnacceptAndSolutionReqIntersect };
+            List<List<string>> projectGlobalStraightLevelIntersects = new List<List<string>>() { projectUnacceptGlobalIntersect, projectReqGlobalIntersect };
+            List<List<string>> projectSolutionStraightLevelIntersects = new List<List<string>>() { projectUnacceptSolutionIntersect, projectReqSolutionIntersect };
 
+            AddReferenceMatchErrorsToList(ReferenceLevel.Project, projName, false, projectReferencesIntersect);
+
+            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
+            AddReferenceMatchWarningsToList(ReferenceLevel.Solution, ReferenceLevel.Project, projName, false, projectSoluionCrossLevelIntesects);
+
+            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
+            AddReferenceMatchWarningsToList(ReferenceLevel.Solution, ReferenceLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
+        }
+
+        private static void AddReferenceMatchErrorsToList(ReferenceLevel referenceLevel, string projName, bool isProjectNameMatchError, List<string> currentIntersect)
+        {
+            refsMatchErrorList.AddRange(
+                currentIntersect.ConvertAll(currentReference =>
+                    new ReferenceMatchError(referenceLevel, currentReference, projName, isProjectNameMatchError)
+                )
+            );
+        }
+
+        private static void AddReferenceMatchWarningsToList(ReferenceLevel highReferenceLevel, ReferenceLevel lowReferenceLevel, string projName, bool isReferenceStraight, List<List<string>> currentIntersect)
+        {
             bool isHighLevelReq = false;
 
-            foreach (string currentReference in projectReferencesIntersect)
+            foreach (List<string> currentCrossLevelIntersect in currentIntersect)
             {
-                refsMatchErrorList.Add(
-                    new ReferenceMatchError(ReferenceLevel.Project, currentReference, projName, false)
-                    );
-            }
-
-            foreach(List<string> currentCrossLevelIntersect in projectGlobalCrossLevelIntersects) // А если выводить предупреждение ещё и про то, что есть излишнее дублирование правил?
-            {
-                foreach(string currentReference in currentCrossLevelIntersect)
-                {
-                    refsMatchWarningList.Add(
-                        new ReferenceMatchWarning(ReferenceLevel.Global, ReferenceLevel.Project, currentReference, projName, isHighLevelReq)
-                    );
-                }
-
-                isHighLevelReq = !isHighLevelReq;
-            }
-
-            foreach (List<string> currentCrossLevelIntersect in projectSoluionCrossLevelIntesects)
-            {
-                foreach (string currentReference in currentCrossLevelIntersect)
-                {
-                    refsMatchWarningList.Add(
-                        new ReferenceMatchWarning(ReferenceLevel.Solution, ReferenceLevel.Project, currentReference, projName, isHighLevelReq)
-                    );
-                }
+                refsMatchWarningList.AddRange(
+                    currentCrossLevelIntersect.ConvertAll(currentReference =>
+                        new ReferenceMatchWarning(highReferenceLevel, lowReferenceLevel, currentReference, projName, isReferenceStraight, isHighLevelReq)
+                    )
+                );
 
                 isHighLevelReq = !isHighLevelReq;
             }
@@ -776,7 +788,7 @@ namespace VSIXProject1
 
             CheckConfigPropertiesOnNotNull();
 
-            List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>(); //Взять все required правила рефов, собрать в RequiredReferences ии передать на XLSX!
+            List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
             List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
 
             List<string> globalRequiredReferences = configFileGlobal?.global_required_references ?? new List<string>();
@@ -788,15 +800,8 @@ namespace VSIXProject1
                 new ReferenceAffiliation(ReferenceLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
             };
 
-            //foreach(string reference in globalRequiredReferences)
-            //{
-            //    requiredReferencesList.Add(new RequiredReference(reference, ""));
-            //}
             requiredReferencesList.AddRange(globalRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
             requiredReferencesList.AddRange(solutionRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
-
-
-            
 
             CheckRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences);
 
@@ -869,7 +874,6 @@ namespace VSIXProject1
             commitedProjState.Clear();
 
             EnvDTE.Solution solution = dte.Solution;
-            //string smth = dte.Solution.Parent.Solution.FullName;
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
@@ -880,6 +884,7 @@ namespace VSIXProject1
 
                     foreach (VSLangProj.Reference vRef in vSProject.References)
                     {
+
                         if (vRef.SourceProject != null)
                         {
                             refsList.Add(vRef.Name);
@@ -1089,7 +1094,6 @@ namespace VSIXProject1
             GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
 
             GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
-
         }
     }
 }

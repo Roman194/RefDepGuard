@@ -1,17 +1,10 @@
 ﻿using Microsoft.Office.Interop.Excel;
-using Microsoft.VisualStudio.Debugger.Interop;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.VCProjectEngine;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
-using Excel = Microsoft.Office.Interop.Excel;
 using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1
@@ -447,8 +440,6 @@ namespace VSIXProject1
 
                 i++;
             }
-
-            
 
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];
             Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
