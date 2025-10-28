@@ -11,9 +11,9 @@ namespace VSIXProject1
         public string ReferenceName;
         public string ErrorRelevantProjectName;
         public bool IsReferenceRequired;
-        public ReferenceLevel CurrentReferenceLevel;
+        public ErrorLevel CurrentReferenceLevel;
 
-        public ReferenceError(string referenceName, string errorRelevantProjectName, bool isReferenceRequired = true, ReferenceLevel referenceLevel = ReferenceLevel.Global)
+        public ReferenceError(string referenceName, string errorRelevantProjectName, bool isReferenceRequired = true, ErrorLevel referenceLevel = ErrorLevel.Global)
         {
             ReferenceName = referenceName;
             ErrorRelevantProjectName = errorRelevantProjectName;

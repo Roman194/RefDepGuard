@@ -50,18 +50,24 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Command1.cs" />
-    <Compile Include="Comparators\ConfigFilePropertyNullErrorSortComparer.cs" />
-    <Compile Include="Comparators\ReferenceMatchErrorSortComparer.cs" />
+    <Compile Include="Comparators\SortComparators\ConfigFilePropertyNullErrorSortComparer.cs" />
+    <Compile Include="Comparators\SortComparators\ReferenceMatchErrorSortComparer.cs" />
     <Compile Include="Data\ConfigFileServiceInfo.cs" />
     <Compile Include="Data\ConfigFile\ConfigFileGlobal.cs" />
     <Compile Include="Data\ConfigFile\ConfigFileProject.cs" />
     <Compile Include="Data\ConfigFile\ConfigFileProjectRefsConsidering.cs" />
     <Compile Include="Data\ConfigFile\ConfigFileSolution.cs" />
     <Compile Include="Data\FileErrorMessage.cs" />
+    <Compile Include="Data\FrameworkVersion\FrameworkVersionComparabilityError.cs" />
+    <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionDeviantValue.cs" />
+    <Compile Include="Data\ProjectState.cs" />
     <Compile Include="Data\Reference\ConfigFilePropertyNullError.cs" />
     <Compile Include="Data\Reference\RefDepGuardErrors.cs" />
     <Compile Include="Data\Reference\ReferenceMatchWarning.cs" />
     <Compile Include="Data\Reference\RequiredReference.cs" />
+    <Compile Include="Comparators\MaxFrameworkVersionDeviantValueContainsComparer.cs" />
+    <Compile Include="Comparators\SortComparators\FrameworkVersionComparabilityErrorSortComparer.cs" />
+    <Compile Include="Comparators\SortComparators\MaxFrameworkVersionDeviantValueSortComparer.cs" />
     <Compile Include="MSBuildManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\Reference\ReferenceAffiliation.cs" />
@@ -69,7 +75,7 @@
     <Compile Include="Comparators\ReferenceErrorContainsComparer.cs" />
     <Compile Include="Data\Reference\ReferenceMatchError.cs" />
     <Compile Include="Comparators\ReferenceMatchErrorComparer.cs" />
-    <Compile Include="Data\Reference\ReferenceLevel.cs" />
+    <Compile Include="Data\ErrorLevel.cs" />
     <Compile Include="Data\Reference\ReferenceError.cs" />
     <Compile Include="VSIXProject1Package.cs" />
     <Compile Include="XLSXManager.cs" />

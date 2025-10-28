@@ -1,10 +1,12 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using VSIXProject1.Data;
+using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1
@@ -12,7 +14,7 @@ namespace VSIXProject1
     public class XLSXManager
     {
 
-        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, List<string>> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, List<RequiredReference> requiredReferences)
+        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, List<RequiredReference> requiredReferences)
         {
             bool isLoadSuccessful = true;
             string currentDateTime = GetCurrentDateTimeInRightFormat();
@@ -41,7 +43,7 @@ namespace VSIXProject1
             return isLoadSuccessful;
         }
 
-        private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList)
+        private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, List<ReferenceError> refsErrorList)
         {
             Worksheet projectsTable = (Worksheet)excel.Worksheets[1];
             projectsTable.Name = "Выборка по проектам";
@@ -94,7 +96,7 @@ namespace VSIXProject1
             foreach (var currentProject in commitedProjectsState)
             {
                 string currentPorjectName = currentProject.Key;
-                List<string> currentPorjectRefs = currentProject.Value;
+                List<string> currentPorjectRefs = currentProject.Value.CurrentReferences;
                 List<string> requiredRefsErrors = refsErrorList
                     .Where(value => value.IsReferenceRequired && value.ErrorRelevantProjectName == currentPorjectName)
                     .Select(value => value.ReferenceName)
@@ -183,7 +185,7 @@ namespace VSIXProject1
             //unionRangeUnacceptableRefsErrors.HorizontalAlignment = XlHAlign.xlHAlignFill;
         }
 
-        private static void LoadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, List<string>> commitedProjectsState, List<ReferenceError> refsErrorList, List<RequiredReference> requiredReferences)
+        private static void LoadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, List<ReferenceError> refsErrorList, List<RequiredReference> requiredReferences)
         {
             Worksheet projectsTable = (Worksheet)excel.Worksheets[2];
             projectsTable.Name = "Выборка по референсам";
@@ -212,7 +214,7 @@ namespace VSIXProject1
             foreach (var currentProject in commitedProjectsState)
             {
                 string projectName = currentProject.Key;
-                foreach(var projectReference in currentProject.Value)
+                foreach(var projectReference in currentProject.Value.CurrentReferences)
                 {
                     if (i == 0)
                         projectsTable.Cells[5, 2] = "1";
@@ -339,6 +341,76 @@ namespace VSIXProject1
 
             int i = 0;
 
+            foreach(MaxFrameworkVersionDeviantValue maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                string errorRelevantProjectName = maxFrameworkVersionDeviantValue.ErrorRelevantProjectName;
+                if (errorRelevantProjectName == "")
+                    errorRelevantProjectName = "-";
+
+                projectsTable.Cells[5 + i, 3] = errorRelevantProjectName;
+                projectsTable.Cells[5 + i, 4] = "-";
+
+                projectsTable.Cells[5 + i, 5] = "framework_max_version deviant value";
+
+                string currentErrorLevel = "Global";
+                if (maxFrameworkVersionDeviantValue.ErrorLevel != ErrorLevel.Global)
+                {
+                    if (errorRelevantProjectName != "-")
+                        currentErrorLevel = "Project";
+                    else
+                        currentErrorLevel = "Solution";
+                }
+
+                projectsTable.Cells[5 + i, 6] = currentErrorLevel;
+
+                projectsTable.Cells[5 + i, 7] = "параметр 'framework_max_version' содержит\r\nнекорректную запись своего значения";
+                projectsTable.Cells[5 + i, 8] = "Проверьте его на предмет отсутствия \r\nсинтаксических ошибок и соответствия \r\nшаблону файла конфигурации";
+
+                if (currentErrorLevel == "Global")
+                    projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
+                else
+                    projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
+
+                i++;
+            }
+
+            foreach(FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = frameworkVersionComparabilityError.ErrorRelevantProjectName;
+                projectsTable.Cells[5 + i, 4] = "-";
+
+                projectsTable.Cells[5 + i, 5] = "Framework comparability version";
+
+                string currentErrorLevel = "Global";
+                switch(frameworkVersionComparabilityError.ErrorLevel)
+                {
+                    case ErrorLevel.Solution: currentErrorLevel = "Solution"; break;
+                    case ErrorLevel.Project: currentErrorLevel = "Project"; break;
+                }
+
+                projectsTable.Cells[5 + i, 6] = currentErrorLevel;
+
+                projectsTable.Cells[5 + i, 7] = "'TargetFrameworkVersion' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время\r\nкак максимально допустимой для него версией\r\nявляется '"+ frameworkVersionComparabilityError.MaxFrameworkVersion  +"'";
+                projectsTable.Cells[5 + i, 8] = "Измените версию проекта или модифицируйте\r\nконфигурацию Config-файла";
+
+                if (currentErrorLevel == "Global")
+                    projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
+                else
+                    projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
+
+                i++;
+            }
+
             foreach (ConfigFilePropertyNullError currentNullError in refDepGuardErrors.ConfigPropertyNullErrorList)
             {
                 if (i == 0)
@@ -403,7 +475,7 @@ namespace VSIXProject1
                     
                 projectsTable.Cells[5 + i, 8] = "Устраните противоречие в правиле";
 
-                if (currentMatchError.ReferenceLevelValue == ReferenceLevel.Global)
+                if (currentMatchError.ReferenceLevelValue == ErrorLevel.Global)
                     projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
                 else
                     projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";

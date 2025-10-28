@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSIXProject1
 {
-    public enum ReferenceLevel
+    public enum ErrorLevel
     {
         Global,
         Solution,

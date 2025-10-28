@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using VSIXProject1.Comparators;
 using VSIXProject1.Data;
+using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 using VSLangProj;
 using Excel = Microsoft.Office.Interop.Excel;
@@ -48,14 +49,17 @@ namespace VSIXProject1
         static List<string> changedRefs = new List<string>();
         static Dictionary<string, List<string>> removedRefs = new Dictionary<string, List<string>>();
 
-        static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
+        static Dictionary<string, ProjectState> commitedProjState = new Dictionary<string, ProjectState>();
         static List<string> projectFrameworkVersionsList = new List<string>();
 
         static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
         static List<ReferenceError> refsErrorList = new List<ReferenceError>();
         static List<ReferenceMatchError> refsMatchErrorList = new List<ReferenceMatchError>();
 
-        static RefDepGuardErrors refDepGuardErrors; //Реализовать работу с этой структурой вместо верхних трёх?
+        static List<MaxFrameworkVersionDeviantValue> maxFrameworkVersionDeviantValueList = new List<MaxFrameworkVersionDeviantValue>();
+        static List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparabilityError>();
+
+        static RefDepGuardErrors refDepGuardErrors; //Реализовать работу с этой структурой вместо верхних трёх-пяти?
         static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
 
         static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
@@ -215,7 +219,7 @@ namespace VSIXProject1
             
             EnvDTE.Solution solution = dte.Solution;
 
-            commitedProjState.Clear();
+            //commitedProjState.Clear();
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
@@ -235,7 +239,7 @@ namespace VSIXProject1
                         }
                     }
 
-                    commitedProjState.Add(vSProject.Project.Name, refsList);
+                    //commitedProjState.Add(vSProject.Project.Name, refsList); //???? Думаю, что здесь бессмысленно фиксировать состояние
                 }
             }
 
@@ -266,7 +270,7 @@ namespace VSIXProject1
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 if (vSProject != null)
                 {
-                    var vsCommitedProjRefsHashSet = new HashSet<string> (commitedProjState[vSProject.Project.Name]);
+                    var vsCommitedProjRefsHashSet = new HashSet<string> (commitedProjState[vSProject.Project.Name].CurrentReferences);
 
                     var vsCurrentProjHashSet = new HashSet<string>();
                     
@@ -280,7 +284,7 @@ namespace VSIXProject1
 
                     if (!(vsCurrentProjHashSet.SetEquals(vsCommitedProjRefsHashSet)))
                     {
-                        commitedProjState[vSProject.Project.Name] = vsCurrentProjHashSet.ToList();
+                        commitedProjState[vSProject.Project.Name].CurrentReferences = vsCurrentProjHashSet.ToList();
 
                         var commonRefsHashSet = vsCurrentProjHashSet.Intersect(vsCommitedProjRefsHashSet).ToHashSet();
 
@@ -365,7 +369,8 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList);
+            refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList, 
+                maxFrameworkVersionDeviantValueList, frameworkVersionComparabilityErrorList);
 
             if(XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredReferencesList))
                 ShowMessageBox("Экспорт в эксель завершён", "Экспорт в XSLX");
@@ -385,7 +390,7 @@ namespace VSIXProject1
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
 
-        private static void ShowUnsuccessfulCheckingRulesWarning()
+        private static void ShowUnsuccessfulCheckingRulesWarning() //Может ли возникнуть что-то подобное при TargetFramework проверке?
         {
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
@@ -402,7 +407,7 @@ namespace VSIXProject1
             errorListProvider.Show();
         }
 
-        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<string> currentReferences,  ReferenceLevel referenceLevel, bool isReferenceRequired, List<List<string>> generalReferences)
+        private static void CheckRulesForSolutionOrGlobalReferences(string projName, List<string> projReferences, List<string> currentReferences,  ErrorLevel referenceLevel, bool isReferenceRequired, List<List<string>> generalReferences)
         {
             if (currentReferences != null) {
 
@@ -439,18 +444,18 @@ namespace VSIXProject1
                         if(fileReference == projName) //Для Project рефов не допускается совпадение рефа и его проекта. Это "замыкание на себя"
                         {
                             refsMatchErrorList.Add(
-                                new ReferenceMatchError(ReferenceLevel.Project, fileReference, projName, true)
+                                new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, true)
                                 );
 
                             continue;
                         }
                             
                         //Если реф с таким же названием содежится в MatchError, то пофиг уже на Level: важнеее устранить конфликт рефов, чем вывести по уровню
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ReferenceLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
                             continue;
 
                         refsErrorList.Add(
-                            new ReferenceError(fileReference, projName, isReferenceRequired, ReferenceLevel.Project)
+                            new ReferenceError(fileReference, projName, isReferenceRequired, ErrorLevel.Project)
                             );
                     }
                 }
@@ -477,6 +482,41 @@ namespace VSIXProject1
 
         private static void StoreErrorListProviderByValues()
         {
+            foreach(MaxFrameworkVersionDeviantValue maxFrameworkVersionDeviantValue in maxFrameworkVersionDeviantValueList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string relevantProjectName = "";
+                string globalPrefix = "";
+
+                switch (maxFrameworkVersionDeviantValue.ErrorLevel)
+                {
+                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; globalPrefix = "глобального "; break;
+                    case ErrorLevel.Project: relevantProjectName = " проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
+                }
+
+                string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' "+ globalPrefix + "Config-файла " + relevantProjectName + " содержит некорректную запись своего значения. Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
+
+                StoreErrorTask(errorText, documentName, false);
+            }
+
+            foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in frameworkVersionComparabilityErrorList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string ruleLevel = "";
+
+
+                switch (frameworkVersionComparabilityError.ErrorLevel)
+                {
+                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; ruleLevel = "глобальный уровень"; break;
+                    case ErrorLevel.Solution: ruleLevel = "уровень решения"; break;
+                    case ErrorLevel.Project: ruleLevel = "уровень проекта"; break;
+                }
+
+                string errorText = "RefDepGuard framework comparability version error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion 
+                    + "', в то время как максимально допустимой для него версией является '"+ frameworkVersionComparabilityError.MaxFrameworkVersion  +"' (" + ruleLevel +"). Измените версию проекта или модифицируйте конфигурацию Config-файла";
+
+                StoreErrorTask(errorText, documentName, false);
+            }
 
             foreach(ConfigFilePropertyNullError configFilePropertyNullError in configPropertyNullErrorList)
             {
@@ -510,16 +550,16 @@ namespace VSIXProject1
                     projectName = "' проекта '" + referenceMatchWarning.ProjectName;
                 }
 
-                if(referenceMatchWarning.LowReferenceLevel == ReferenceLevel.Solution)
+                if(referenceMatchWarning.LowReferenceLevel == ErrorLevel.Solution)
                 {
                     lowReferenceLevelText = "уровня Solution";
                 }
 
                 switch (referenceMatchWarning.HighReferenceLevel)
                 {
-                    case ReferenceLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
-                    case ReferenceLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ReferenceLevel.Project: break;
+                    case ErrorLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ErrorLevel.Project: break;
                 }
 
                 if (referenceMatchWarning.IsReferenceStraight)
@@ -566,9 +606,9 @@ namespace VSIXProject1
 
                 switch (referenceMatchError.ReferenceLevelValue)
                 {
-                    case ReferenceLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ReferenceLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ReferenceLevel.Project: break;
+                    case ErrorLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ErrorLevel.Project: break;
                 }
 
                 string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
@@ -597,9 +637,9 @@ namespace VSIXProject1
                     
                 switch (error.CurrentReferenceLevel)
                 {
-                    case ReferenceLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ReferenceLevel.Global: referenceLevelText = "глобального уровня"; break;
-                    case ReferenceLevel.Project: break;
+                    case ErrorLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ErrorLevel.Project: break;
                 }
 
                 string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
@@ -688,11 +728,11 @@ namespace VSIXProject1
         //однако это не означает, что 2 и более solution с одним и тем же root не могут иметь общий файл глобальных правил
 
 
-        private static bool IsRuleConflict(string currentReference, ReferenceLevel referenceType, List<List<string>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
+        private static bool IsRuleConflict(string currentReference, ErrorLevel referenceType, List<List<string>> generalReferences)//Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
         {
             for(int i = 0; i < generalReferences.Count; i++)
             {
-                if (referenceType != ReferenceLevel.Global && i > 1) //generalReferences содержит все Project и Solution рефы, которые могут конфликтовать с текущим рефом (i 0 и 1 - project рефы, 2 и 3 - solution рефы)
+                if (referenceType != ErrorLevel.Global && i > 1) //generalReferences содержит все Project и Solution рефы, которые могут конфликтовать с текущим рефом (i 0 и 1 - project рефы, 2 и 3 - solution рефы)
                     break;
 
                 if(generalReferences[i].Contains(currentReference))
@@ -716,11 +756,11 @@ namespace VSIXProject1
             List<List<string>> solutionCrossLevelIntersects = new List<List<string>> { solutionReqAndGlobalUnacceptIntersect, solutionUnacceptAndGlobalReqIntersect };
             List<List<string>> solutionStraightLevelIntersects = new List<List<string>> { solutionUnacceptStraightLevelIntersect, solutionReqStraightLevelIntersect };
 
-            AddReferenceMatchErrorsToList(ReferenceLevel.Solution, "", false, solutionReferencesIntersect);
-            AddReferenceMatchErrorsToList(ReferenceLevel.Global, "", false, globalReferencesIntersect);
+            AddReferenceMatchErrorsToList(ErrorLevel.Solution, "", false, solutionReferencesIntersect);
+            AddReferenceMatchErrorsToList(ErrorLevel.Global, "", false, globalReferencesIntersect);
 
-            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Solution, "", false, solutionCrossLevelIntersects);
-            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Solution, "", true, solutionStraightLevelIntersects);
+            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", false, solutionCrossLevelIntersects);
+            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", true, solutionStraightLevelIntersects);
         }
 
         private static void CheckProjectRulesOnMatchConflicts(List<string> solutionRequiredReferences, List<string> solutionUnacceptableReferences, List<string> globalRequiredReferences, List<string> globalUnacceptableReferences, List<string> requiredReferences, List<string> unacceptableReferences, string projName)
@@ -742,16 +782,16 @@ namespace VSIXProject1
             List<List<string>> projectGlobalStraightLevelIntersects = new List<List<string>>() { projectUnacceptGlobalIntersect, projectReqGlobalIntersect };
             List<List<string>> projectSolutionStraightLevelIntersects = new List<List<string>>() { projectUnacceptSolutionIntersect, projectReqSolutionIntersect };
 
-            AddReferenceMatchErrorsToList(ReferenceLevel.Project, projName, false, projectReferencesIntersect);
+            AddReferenceMatchErrorsToList(ErrorLevel.Project, projName, false, projectReferencesIntersect);
 
-            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
-            AddReferenceMatchWarningsToList(ReferenceLevel.Solution, ReferenceLevel.Project, projName, false, projectSoluionCrossLevelIntesects);
+            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
+            AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, false, projectSoluionCrossLevelIntesects);
 
-            AddReferenceMatchWarningsToList(ReferenceLevel.Global, ReferenceLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
-            AddReferenceMatchWarningsToList(ReferenceLevel.Solution, ReferenceLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
+            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
+            AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
         }
 
-        private static void AddReferenceMatchErrorsToList(ReferenceLevel referenceLevel, string projName, bool isProjectNameMatchError, List<string> currentIntersect)
+        private static void AddReferenceMatchErrorsToList(ErrorLevel referenceLevel, string projName, bool isProjectNameMatchError, List<string> currentIntersect)
         {
             refsMatchErrorList.AddRange(
                 currentIntersect.ConvertAll(currentReference =>
@@ -760,7 +800,7 @@ namespace VSIXProject1
             );
         }
 
-        private static void AddReferenceMatchWarningsToList(ReferenceLevel highReferenceLevel, ReferenceLevel lowReferenceLevel, string projName, bool isReferenceStraight, List<List<string>> currentIntersect)
+        private static void AddReferenceMatchWarningsToList(ErrorLevel highReferenceLevel, ErrorLevel lowReferenceLevel, string projName, bool isReferenceStraight, List<List<string>> currentIntersect)
         {
             bool isHighLevelReq = false;
 
@@ -774,6 +814,110 @@ namespace VSIXProject1
 
                 isHighLevelReq = !isHighLevelReq;
             }
+        }
+
+        private static void CheckProjectTargetFrameworkVersion(string currentProjectFrameworkVersion, string maxFrameworkVersion, string projName, ErrorLevel errorLevel)
+        {
+            var currentProjFrameworkVersionArray = currentProjectFrameworkVersion.Split('.');
+            var currentProjFrWorkVerArrayLength = currentProjFrameworkVersionArray.Length;
+            var maxFrameworkVersionArray = maxFrameworkVersion.Split('.');
+            var maxFrameworkVersionArrayLength = maxFrameworkVersionArray.Length;
+            var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrWorkVerArrayLength);
+
+            //Сделать проверку на противоречие макс фреймов различных уровней? (случаи, когда вышестоящие имеют более высокую версию)
+
+            currentProjFrameworkVersionArray[0] = currentProjFrameworkVersionArray[0].Substring(currentProjFrameworkVersionArray[0].Length - 1); //Это не будет работать для "Xamarin!"
+            currentProjFrameworkVersionArray[currentProjFrWorkVerArrayLength - 1] = currentProjFrameworkVersionArray[currentProjFrWorkVerArrayLength - 1].Substring(0, 1);
+
+            for (int i = 0; i < minLengthValue; i++)
+            {
+                int currentProjCurrentNum;
+                int maxVersionCurrentNum;
+                if (! Int32.TryParse(currentProjFrameworkVersionArray[i], out currentProjCurrentNum))
+                {
+                    //предупреждение без типа о том, что не удалось спарсить название проекта и проверка версии фреймворка не получилась
+
+                    ErrorTask errorTask = new ErrorTask
+                    {
+                        Category = TaskCategory.User,
+                        ErrorCategory = TaskErrorCategory.Warning,
+                        Text = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '"+ projName  + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'"
+                    };
+
+                    errorListProvider.Tasks.Add(errorTask);
+
+                    return;
+                }
+
+                if (!Int32.TryParse(maxFrameworkVersionArray[i], out maxVersionCurrentNum))
+                {
+                    //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
+                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError;
+                    if (errorLevel == ErrorLevel.Project)
+                        potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
+                    
+                    else
+                    {
+                        potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, "");
+
+                        if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                            maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                    }
+                    return;
+                }
+
+                if (currentProjCurrentNum > maxVersionCurrentNum)
+                {
+                    //Ошибка, когда "TargetFramework" оказался больше чем максимально допустимый
+                    var currentFrameworkVersionComparabilityError = 
+                        new FrameworkVersionComparabilityError(errorLevel, GetTargetFrameworkVersionString(currentProjFrameworkVersionArray), maxFrameworkVersion, projName);
+
+                    frameworkVersionComparabilityErrorList.Add(currentFrameworkVersionComparabilityError);
+
+                    return;
+                }
+            }
+
+            if(maxFrameworkVersionArrayLength > currentProjFrWorkVerArrayLength) //Если в максимально допустимой версии есть ещё не рассмотренные цифры
+            {
+                for (int i = minLengthValue; i < maxFrameworkVersionArrayLength; i++)
+                {
+                    int maxVersionCurrentNum;
+
+                    if (!Int32.TryParse(maxFrameworkVersionArray[i], out maxVersionCurrentNum))
+                    {
+                        var potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
+                        if (errorLevel == ErrorLevel.Project ||
+                            !maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+
+                            maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                        break;
+                    }
+
+                    if(maxVersionCurrentNum > 0)
+                    {
+                        var currentFrameworkVersionComparabilityError =
+                        new FrameworkVersionComparabilityError(errorLevel, GetTargetFrameworkVersionString(currentProjFrameworkVersionArray), maxFrameworkVersion, projName);
+
+                        frameworkVersionComparabilityErrorList.Add(currentFrameworkVersionComparabilityError);
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static string GetTargetFrameworkVersionString(string[] targetFrameworkVersionArray)
+        {
+            string outputString = "";
+
+            foreach (var item in targetFrameworkVersionArray)
+            {
+                outputString += item + ".";
+            }
+
+            return outputString;
         }
 
         private static void CheckRulesFromConfigFile()
@@ -794,6 +938,9 @@ namespace VSIXProject1
 
             CheckConfigPropertiesOnNotNull();
 
+            string maxGlobalFrameworkVersion = configFileGlobal?.framework_max_version ?? "-";
+            string maxSolutionFrameworkVersion = configFileSolution?.framework_max_version ?? "-";
+
             List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
             List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
 
@@ -802,8 +949,8 @@ namespace VSIXProject1
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
             {
-                new ReferenceAffiliation(ReferenceLevel.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
-                new ReferenceAffiliation(ReferenceLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
+                new ReferenceAffiliation(ErrorLevel.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
+                new ReferenceAffiliation(ErrorLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
             };
 
             requiredReferencesList.AddRange(globalRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
@@ -811,10 +958,11 @@ namespace VSIXProject1
 
             CheckRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences);
 
-            foreach (KeyValuePair<string, List<string>> currentProjState in commitedProjState)//для каждого project
+            foreach (KeyValuePair<string, ProjectState> currentProjState in commitedProjState)//для каждого project
             {
                 var projName = currentProjState.Key;
-                var projReferences = currentProjState.Value;
+                var projReferences = currentProjState.Value.CurrentReferences;
+                var projFrameworkVersion = currentProjState.Value.CurrentFrameworkVersion;
 
                 if (configFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {
@@ -822,6 +970,7 @@ namespace VSIXProject1
 
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
+                    string maxFrameworkVersion = currentProjectConfigFileSettings?.framework_max_version ?? "-";
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -830,6 +979,17 @@ namespace VSIXProject1
                     {
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
+
+                    if (maxFrameworkVersion == "-") {
+                        if(maxSolutionFrameworkVersion != "-")
+                            CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxSolutionFrameworkVersion, projName, ErrorLevel.Solution);
+                        else
+                        {
+                            if(maxGlobalFrameworkVersion != "-")
+                                CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxGlobalFrameworkVersion, projName, ErrorLevel.Global);
+                        }
+                    }else
+                        CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxFrameworkVersion, projName, ErrorLevel.Project);
 
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
 
@@ -866,6 +1026,8 @@ namespace VSIXProject1
             refsErrorList.Sort(new ReferenceErrorComparer());
             refsMatchErrorList.Sort(new ReferenceMatchErrorSortComparer());
             configPropertyNullErrorList.Sort(new ConfigFilePropertyNullErrorSortComparer());
+            maxFrameworkVersionDeviantValueList.Sort(new MaxFrameworkVersionDeviantValueSortComparer());
+            frameworkVersionComparabilityErrorList.Sort(new FrameworkVersionComparabilityErrorSortComparer());
 
             StoreErrorListProviderByValues();
 
@@ -886,7 +1048,7 @@ namespace VSIXProject1
             foreach (EnvDTE.Project project in solution.Projects)
             {
 
-                projectFrameworkVersionsList.Add(MSBuildManager.GetTargetFrameworkForProject(project.FullName));
+                var projectFrameworkVersion = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
 
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 
@@ -903,7 +1065,7 @@ namespace VSIXProject1
                         }
                     }
 
-                    commitedProjState.Add(vSProject.Project.Name, refsList);
+                    commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkVersion, refsList));
 
                 }
             }
@@ -911,9 +1073,9 @@ namespace VSIXProject1
 
         private static bool IsReferencesAddedCorrectly() //Срабатывает не только в случаях, когда не успели прогрузиться рефы, но и когда рефов попросту нет (что на самом деле странно и тоже заслуживает предупреждения)
         {
-            foreach (KeyValuePair<string, List<string>> keyValuePair in commitedProjState)
+            foreach (KeyValuePair<string, ProjectState> keyValuePair in commitedProjState)
             {
-                if (keyValuePair.Value.Count > 0)
+                if (keyValuePair.Value.CurrentReferences.Count > 0)
                 {
                     return true;
                 }
