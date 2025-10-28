@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -41,12 +42,14 @@ namespace VSIXProject1
         private readonly AsyncPackage package;
 
         private static DTE dte;
+        private static DTE2 dte2;
 
         static Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
         static List<string> changedRefs = new List<string>();
         static Dictionary<string, List<string>> removedRefs = new Dictionary<string, List<string>>();
 
         static Dictionary<string, List<string>> commitedProjState = new Dictionary<string, List<string>>();
+        static List<string> projectFrameworkVersionsList = new List<string>();
 
         static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
         static List<ReferenceError> refsErrorList = new List<ReferenceError>();
@@ -136,6 +139,7 @@ namespace VSIXProject1
             errorListProvider = new ErrorListProvider(package);
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            dte2 = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
             dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
             //dte.Events.SolutionEvents.Opened += onSolutionOpened; 
@@ -154,6 +158,8 @@ namespace VSIXProject1
             outWindow.CreatePane(ref generalPaneGuid, "Warning pane", 1, 0);
             outWindow.GetPane(ref generalPaneGuid, out generalPane);
             generalPane.OutputString("Nope!");
+
+            //Microsoft.Build.Framework.
 
         }
 
@@ -865,6 +871,8 @@ namespace VSIXProject1
 
             if (errorListProvider != null)
                 errorListProvider.Show();
+
+            
         }
 
         private static void CommitCurrentReferences()
@@ -877,7 +885,11 @@ namespace VSIXProject1
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
+
+                projectFrameworkVersionsList.Add(MSBuildManager.GetTargetFrameworkForProject(project.FullName));
+
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+                
                 if (vSProject != null)
                 {
                     var refsList = new List<string>();
