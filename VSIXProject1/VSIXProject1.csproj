@@ -50,6 +50,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Command1.cs" />
+    <Compile Include="Comparators\MaxFrameworkVersionConflictWarningContainsComparer.cs" />
     <Compile Include="Comparators\SortComparators\ConfigFilePropertyNullErrorSortComparer.cs" />
     <Compile Include="Comparators\SortComparators\ReferenceMatchErrorSortComparer.cs" />
     <Compile Include="Data\ConfigFileServiceInfo.cs" />

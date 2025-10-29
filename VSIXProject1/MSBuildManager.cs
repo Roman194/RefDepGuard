@@ -23,6 +23,13 @@ namespace VSIXProject1
                     return targetFramework;
                 }
 
+                string [] targetFrameworks = currentProject.GetPropertyValue("TargetFrameworks").Split(';');
+
+                if (!string.IsNullOrEmpty(targetFrameworks[0])) //На текущий момент работа с несколькими таргетами для одного проекта не рассматривается!
+                {
+                    return targetFrameworks[0];
+                }
+
                 string targetFrameworkVersion = currentProject.GetPropertyValue("TargetFrameworkVersion");
 
                 if (!string.IsNullOrEmpty(targetFrameworkVersion))
