@@ -59,6 +59,7 @@
     <Compile Include="Data\ConfigFile\ConfigFileSolution.cs" />
     <Compile Include="Data\FileErrorMessage.cs" />
     <Compile Include="Data\FrameworkVersion\FrameworkVersionComparabilityError.cs" />
+    <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionConflictWarning.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionDeviantValue.cs" />
     <Compile Include="Data\ProjectState.cs" />
     <Compile Include="Data\Reference\ConfigFilePropertyNullError.cs" />

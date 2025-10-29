@@ -368,7 +368,7 @@ namespace VSIXProject1
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
 
-                projectsTable.Cells[5 + i, 7] = "параметр 'framework_max_version' содержит\r\nнекорректную запись своего значения";
+                projectsTable.Cells[5 + i, 7] = "параметр 'framework_max_version' содержит некорректную запись\r\nсвоего значения";
                 projectsTable.Cells[5 + i, 8] = "Проверьте его на предмет отсутствия \r\nсинтаксических ошибок и соответствия \r\nшаблону файла конфигурации";
 
                 if (currentErrorLevel == "Global")
@@ -400,8 +400,8 @@ namespace VSIXProject1
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
 
-                projectsTable.Cells[5 + i, 7] = "'TargetFrameworkVersion' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время\r\nкак максимально допустимой для него версией\r\nявляется '"+ frameworkVersionComparabilityError.MaxFrameworkVersion  +"'";
-                projectsTable.Cells[5 + i, 8] = "Измените версию проекта или модифицируйте\r\nконфигурацию Config-файла";
+                projectsTable.Cells[5 + i, 7] = "параметр 'TargetFrameworkVersion'\r\nимеет версию'" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как\r\nмаксимально допустимой для него\r\nверсией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion  +"'";
+                projectsTable.Cells[5 + i, 8] = "Измените версию проекта или модифицируйте конфигурацию Config-\r\nфайла";
 
                 if (currentErrorLevel == "Global")
                     projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
