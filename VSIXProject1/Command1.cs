@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using MessagePack;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
@@ -845,7 +846,7 @@ namespace VSIXProject1
             }
         }
 
-        private static void CheckProjectTargetFrameworkVersion(string currentProjectFramework, string maxFrameworkVersion, string projName, ErrorLevel errorLevel, string reserveMaxFrameworkVersion = "-")
+        private static void CheckProjectTargetFrameworkVersion(string currentProjectFramework, Dictionary<string, List<int>> maxFrameworkVersion, string projName, ErrorLevel errorLevel, Dictionary<string, List<int>> reserveMaxFrameworkVersion = null)
         {
             //Предварительный сплит на тире!!! Пример: net5.0-windows1.2
 
@@ -864,72 +865,93 @@ namespace VSIXProject1
                 currentProjFrameworkVersionArray[0] = currentProjFrameworkMatch.Groups[2].Value;
             }
 
-            //Вынести в отдельную функцию
-            if (maxFrameworkVersion.Contains(";"))//Если формат, рассматривающий несколько ограничений, то найти нужное и учитывать его
+            List<int> currentMaxFrameworkVersionNums = new List<int>();
+
+            if (maxFrameworkVersion.ContainsKey(currentProjFrameworkType))
             {
-                if(errorLevel != ErrorLevel.Project)
+                currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjFrameworkType];
+            }
+            else
+            { //Если не нашлось правила для типа из TargetFramework
+                if(maxFrameworkVersion.ContainsKey("all"))//Проверить на наличие супертипа "all"
+                    currentMaxFrameworkVersionNums = maxFrameworkVersion["all"];
+                else //Если и его нет, то попытаться найти ограничение на уровне выше
                 {
-                    var maxFrameworkTypeVersionsArray = maxFrameworkVersion.Split(';');
-                    bool isCurrentProjFrameworkContainsMaxFrameworkVersionElement = false;
+                    if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != null) //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
+                        CheckProjectTargetFrameworkVersion(currentProjectFramework, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
 
-                    foreach (string currentMaxFrameworkVersion in maxFrameworkTypeVersionsArray) //Для каждого из ограничений
-                    {
-                        var currentMaxFrameworkVersionValue = currentMaxFrameworkVersion.Replace(" ", "");
-                        if (currentMaxFrameworkVersionValue.Contains(":"))
-                        {
-                            var currentMaxFrameworkVersionElements = currentMaxFrameworkVersionValue.Split(':'); //Взять название и цифры по отдельности
-
-                            if (String.IsNullOrEmpty(currentMaxFrameworkVersionElements[0]))
-                            {
-                                //Выкинуть ошибку о некорректном формате
-
-                                MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, "");
-
-                                if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                                    maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
-
-                                return;
-                            }
-
-                            if (currentProjFrameworkType == currentMaxFrameworkVersionElements[0] && currentProjFrameworkType != "-")
-                            {
-                                maxFrameworkVersion = currentMaxFrameworkVersionElements[1];
-                                isCurrentProjFrameworkContainsMaxFrameworkVersionElement = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!isCurrentProjFrameworkContainsMaxFrameworkVersionElement)//Если не нашлось правила для типа из TargetFramework
-                    {
-                        if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != "-") //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
-                            CheckProjectTargetFrameworkVersion(currentProjectFramework, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
-
-                        return;//равносильно "-"
-                    }
+                    return;//равносильно "-"
                 }
-                else
-                {
-                    //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
-
-                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
-
-                    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
-
-                    return;
-                }
-                
             }
 
-            var maxFrameworkVersionArray = maxFrameworkVersion.Split('.');
-            var maxFrameworkVersionArrayLength = maxFrameworkVersionArray.Length;
+            //Вынести в отдельную функцию
+            //if (maxFrameworkVersion.Contains(";"))//Если формат, рассматривающий несколько ограничений, то найти нужное и учитывать его
+            //{
+            //    if(errorLevel != ErrorLevel.Project)
+            //    {
+            //        var maxFrameworkTypeVersionsArray = maxFrameworkVersion.Split(';');
+            //        bool isCurrentProjFrameworkContainsMaxFrameworkVersionElement = false;
+
+            //        foreach (string currentMaxFrameworkVersion in maxFrameworkTypeVersionsArray) //Для каждого из ограничений
+            //        {
+            //            var currentMaxFrameworkVersionValue = currentMaxFrameworkVersion.Replace(" ", "");
+            //            if (currentMaxFrameworkVersionValue.Contains(":"))
+            //            {
+            //                var currentMaxFrameworkVersionElements = currentMaxFrameworkVersionValue.Split(':'); //Взять название и цифры по отдельности
+
+            //                if (String.IsNullOrEmpty(currentMaxFrameworkVersionElements[0]))
+            //                {
+            //                    //Выкинуть ошибку о некорректном формате
+
+            //                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, "");
+
+            //                    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+            //                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+            //                    return;
+            //                }
+
+            //                if (currentProjFrameworkType == currentMaxFrameworkVersionElements[0] && currentProjFrameworkType != "-")
+            //                {
+            //                    maxFrameworkVersion = currentMaxFrameworkVersionElements[1];
+            //                    isCurrentProjFrameworkContainsMaxFrameworkVersionElement = true;
+            //                    break;
+            //                }
+            //            }
+            //        }
+
+            //        if (!isCurrentProjFrameworkContainsMaxFrameworkVersionElement)//Если не нашлось правила для типа из TargetFramework
+            //        {
+            //            if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != "-") //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
+            //                CheckProjectTargetFrameworkVersion(currentProjectFramework, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
+
+            //            return;//равносильно "-"
+            //        }
+            //    }
+            //    else
+            //    {
+            //        //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
+
+            //        MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
+
+            //        if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+            //            maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+            //        return;
+            //    }
+
+            //}
+
+
+
+            //var maxFrameworkVersionArray = maxFrameworkVersion.Split('.');
+            var maxFrameworkVersionArrayLength = currentMaxFrameworkVersionNums.Count;
             var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
 
             for (int i = 0; i < minLengthValue; i++)
             {
                 int currentProjCurrentNum;
-                int maxVersionCurrentNum;
+                int maxVersionCurrentNum = Convert.ToInt32(currentMaxFrameworkVersionNums[i]);
                 if (! Int32.TryParse(currentProjFrameworkVersionArray[i], out currentProjCurrentNum))
                 {
                     //предупреждение без типа о том, что не удалось спарсить название проекта и проверка версии фреймворка не получилась
@@ -946,19 +968,24 @@ namespace VSIXProject1
                     return;
                 }
 
-                if (!Int32.TryParse(maxFrameworkVersionArray[i], out maxVersionCurrentNum))
-                {
-                    //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
-                    //Фиксируется раньше при проверке противоречий между значениями max_framework_version различных уровней
+                //if (!Int32.TryParse(maxFrameworkVersionArray[i], out maxVersionCurrentNum))
+                //{
+                //    //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
+                //    //Фиксируется раньше при проверке противоречий между значениями max_framework_version различных уровней
 
-                    return;
-                }
+                //    return;
+                //}
+
+
 
                 if (currentProjCurrentNum > maxVersionCurrentNum)
                 {
                     //Ошибка, когда "TargetFramework" оказался больше чем максимально допустимый
+
+                    var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.ToList());
+                    var maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
                     var currentFrameworkVersionComparabilityError = 
-                        new FrameworkVersionComparabilityError(errorLevel, GetTargetFrameworkVersionString(currentProjFrameworkVersionArray), maxFrameworkVersion, projName);
+                        new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName);
                     frameworkVersionComparabilityErrorList.Add(currentFrameworkVersionComparabilityError);
 
                     return;
@@ -992,8 +1019,11 @@ namespace VSIXProject1
 
                     if(currentProjVersionCurrentNum > 0)
                     {
+                        var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.ToList());
+                        var maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
+
                         var currentFrameworkVersionComparabilityError =
-                        new FrameworkVersionComparabilityError(errorLevel, GetTargetFrameworkVersionString(currentProjFrameworkVersionArray), maxFrameworkVersion, projName);
+                            new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName);
 
                         frameworkVersionComparabilityErrorList.Add(currentFrameworkVersionComparabilityError);
 
@@ -1003,7 +1033,7 @@ namespace VSIXProject1
             }
         }
 
-        private static string GetTargetFrameworkVersionString(string[] targetFrameworkVersionArray)
+        private static string GetFrameworkVersionString(List<string> targetFrameworkVersionArray)
         {
             string outputString = "";
             bool isFirstIteration = true;
@@ -1021,57 +1051,137 @@ namespace VSIXProject1
             return outputString;
         }
 
-        private static void CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(string maxLowLevelFrameworkVersion, string maxHighLevelFrameworkVersion, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
+        private static void CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(Dictionary<string, List<int>> maxLowLevelFrameworkVersion, Dictionary<string, List<int>> maxHighLevelFrameworkVersion, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
         {
 
-            if (maxHighLevelFrameworkVersion.Contains(";") || maxLowLevelFrameworkVersion.Contains(";"))
+            //if (maxHighLevelFrameworkVersion.Contains(";") || maxLowLevelFrameworkVersion.Contains(";"))
+            //{
+
+            //    //TODO: реализовать здесь обработку формата с различными значениями для разных типов
+            //    return;
+            //}
+
+            if (maxLowLevelFrameworkVersion.ContainsKey("all")) //Проверки на противоречия в правилах макс фреймворков одного уровня
+                //!Вынести в отдельную функцию и оптимизировать!
+                //Возможно это даже ошибка, а не предупреждение
             {
-                //TODO: реализовать здесь обработку формата с различными значениями для разных типов
-                return;
+                List<int> maxAllTypeFrameworkVersionArray = maxLowLevelFrameworkVersion["all"];
+
+                foreach (var currentMaxLowLevelFrameworkVersion in maxLowLevelFrameworkVersion)
+                {
+                    if (currentMaxLowLevelFrameworkVersion.Key != "all")
+                    {
+                        List<int> maxCurrentTypeFrameworkVersionArray = currentMaxLowLevelFrameworkVersion.Value;
+
+                        CheckMaxFrameworkVersionDifferentLevelsConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, projName, lowRuleLevel, lowRuleLevel);
+                    }
+                }
+
             }
 
-            var maxLowLevelFrameworkVersionArray = maxLowLevelFrameworkVersion.Split('.');
-            var maxHighLevelFrameworkVersionArray = maxHighLevelFrameworkVersion.Split('.');
-            var maxHighLevelFrameworkVersionArrayLength = maxHighLevelFrameworkVersionArray.Length;
-            var maxLowLevelFrameworkVersionArrayLength = maxLowLevelFrameworkVersionArray.Length;
+            if (maxHighLevelFrameworkVersion.ContainsKey("all"))
+            {
+                List<int> maxAllTypeFrameworkVersionArray = maxHighLevelFrameworkVersion["all"];
+
+                foreach (var currentMaxHighLevelFrameworkVersion in maxHighLevelFrameworkVersion)
+                {
+                    if (currentMaxHighLevelFrameworkVersion.Key != "all")
+                    {
+                        List<int> maxCurrentTypeFrameworkVersionArray = currentMaxHighLevelFrameworkVersion.Value;
+
+                        CheckMaxFrameworkVersionDifferentLevelsConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, projName, highRuleLevel, highRuleLevel);
+                    }
+                }
+            }
+
+
+            foreach (var currentMaxLowLevelFrameworkVersion in maxLowLevelFrameworkVersion)
+            {
+                var currentMaxLowLevelFrameworkVersionType = currentMaxLowLevelFrameworkVersion.Key;
+
+                List<int> maxLowLevelFrameworkVersionArray = currentMaxLowLevelFrameworkVersion.Value;
+                List<int> maxHighLevelFrameworkVersionArray = new List<int>();
+
+
+
+                if (maxHighLevelFrameworkVersion.ContainsKey(currentMaxLowLevelFrameworkVersionType)) //Если типы версий фреймворков совпадают
+                {
+                    maxHighLevelFrameworkVersionArray = maxHighLevelFrameworkVersion[currentMaxLowLevelFrameworkVersionType]; //То проверить соотв. версии
+                    CheckMaxFrameworkVersionDifferentLevelsConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                }
+                else
+                {
+                    if (maxHighLevelFrameworkVersion.ContainsKey("all")) //Если сверху супертип "all", то сравнить с ним
+                    {
+                        
+                        maxHighLevelFrameworkVersionArray = maxHighLevelFrameworkVersion["all"];
+                        CheckMaxFrameworkVersionDifferentLevelsConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                    }
+                    else
+                    {
+                        if (maxLowLevelFrameworkVersion.ContainsKey("all")) //если снизу супертип "all", то сравнить все вышестоящие с ним
+                        {
+                            foreach(var currentMaxHighLevelFrameworkVersion in maxHighLevelFrameworkVersion)
+                            {
+                                maxHighLevelFrameworkVersionArray = currentMaxHighLevelFrameworkVersion.Value;
+                                CheckMaxFrameworkVersionDifferentLevelsConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void CheckMaxFrameworkVersionOneLevelConflict(List<int> allMaxLevelFrameworkNums, List<int> currentMaxLevelFrameworkNums, ErrorLevel ruleLevel)
+        {
+
+            
+        }
+
+        private static void CheckMaxFrameworkVersionDifferentLevelsConflict(List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
+        {
+            var maxHighLevelFrameworkVersionArrayLength = maxHighLevelFrameworkVersionList.Count;
+            var maxLowLevelFrameworkVersionArrayLength = maxLowLevelFrameworkVersionList.Count;
 
             var minLengthValue = Math.Min(maxLowLevelFrameworkVersionArrayLength, maxHighLevelFrameworkVersionArrayLength);
 
             for (int i = 0; i < minLengthValue; i++)
             {
-                int currentLowLevelFrameworkVersionNum;
-                int currentHighLevelFrameworkVersionNum;
+                int currentLowLevelFrameworkVersionNum = maxLowLevelFrameworkVersionList[i];
+                int currentHighLevelFrameworkVersionNum = maxHighLevelFrameworkVersionList[i];
 
-                if (!Int32.TryParse(maxLowLevelFrameworkVersionArray[i], out currentLowLevelFrameworkVersionNum))
+                //if (!Int32.TryParse(maxLowLevelFrameworkVersionArray[i], out currentLowLevelFrameworkVersionNum))
+                //{
+                //    //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
+                //    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(lowRuleLevel, projName);//???
+                //    if (lowRuleLevel == ErrorLevel.Project)
+                //    {
+                //        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                //        return;
+                //    }
+
+                //    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                //        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                //    return;
+                //}
+
+                //if (!Int32.TryParse(maxHighLevelFrameworkVersionArray[i], out currentHighLevelFrameworkVersionNum))
+                //{
+                //    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(highRuleLevel, "");
+
+                //    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                //        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                //    return;
+                //}
+
+                if (currentHighLevelFrameworkVersionNum < currentLowLevelFrameworkVersionNum)
                 {
-                    //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
-                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(lowRuleLevel, projName);
-                    if (lowRuleLevel == ErrorLevel.Project)
-                    {
-                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
-                        return;
-                    }
-
-                    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
-                    
-                    return;
-                }
-
-                if (!Int32.TryParse(maxHighLevelFrameworkVersionArray[i], out currentHighLevelFrameworkVersionNum))
-                {
-                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(highRuleLevel, "");
-
-                    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
-                    
-                    return;
-                }
-
-                if(currentHighLevelFrameworkVersionNum < currentLowLevelFrameworkVersionNum)
-                {
+                    var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
+                    var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                     //Warning о противоречии между рефами
-                    var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersion, maxLowLevelFrameworkVersion, projName);
+                    var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
 
                     if (lowRuleLevel == ErrorLevel.Project)
                     {
@@ -1081,7 +1191,7 @@ namespace VSIXProject1
 
                     if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
                         maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
-                    
+
                     return;
                 }
                 else
@@ -1095,29 +1205,32 @@ namespace VSIXProject1
             {
                 for (int i = 0; i < maxLowLevelFrameworkVersionArrayLength; i++)
                 {
-                    int currentLowLevelFrameworkVersionNum;
+                    int currentLowLevelFrameworkVersionNum = maxLowLevelFrameworkVersionList[i];
 
-                    if (!Int32.TryParse(maxLowLevelFrameworkVersionArray[i], out currentLowLevelFrameworkVersionNum))
-                    {
-                        MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(lowRuleLevel, projName);
+                    //if (!Int32.TryParse(maxLowLevelFrameworkVersionArray[i], out currentLowLevelFrameworkVersionNum))
+                    //{
+                    //    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(lowRuleLevel, projName);
 
-                        if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                            maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                    //    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                    //        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
 
-                        break;
-                    }
+                    //    break;
+                    //}
 
-                    if(currentLowLevelFrameworkVersionNum > 0)
+                    if (currentLowLevelFrameworkVersionNum > 0)
                     {
                         //Warning о противоречии между рефами
-                        var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersion, maxLowLevelFrameworkVersion, projName);
+                        var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
+                        var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
 
-                        if(lowRuleLevel == ErrorLevel.Project)
+                        var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
+
+                        if (lowRuleLevel == ErrorLevel.Project)
                         {
                             maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
                             break;
                         }
-                            
+
                         if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
                             maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
 
@@ -1125,6 +1238,84 @@ namespace VSIXProject1
                     }
                 }
             }
+        }
+
+        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ErrorLevel errorLevel, string projName = "")
+        {
+            if(currentMaxFrameworkVersion == "-")
+                return new Dictionary<string, List<int>>();
+
+
+            if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project)
+            {
+                //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
+
+                MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
+
+                if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                    maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                return new Dictionary<string, List<int>>();
+            }
+
+
+            var currentMaxFrameworkVersionArray = currentMaxFrameworkVersion.Split(';');
+            var maxFrameworkDictionary = new Dictionary<string, List<int>>();
+
+            foreach (string maxFrameworkVersionElement in currentMaxFrameworkVersionArray) //Для каждого из ограничений
+            {
+                string maxFrameworkVersion = maxFrameworkVersionElement;
+                if (!maxFrameworkVersion.Contains(':'))
+                {
+                    maxFrameworkVersion = "all:" + maxFrameworkVersion;
+                }
+
+                var maxFrameworkVersionElementSplited = maxFrameworkVersion.Replace(" ", "").Split(':');
+
+                if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0]))
+                {
+                    //Выкинуть ошибку о некорректном формате
+
+                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, "");
+
+                    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                    return new Dictionary<string, List<int>>();
+                }
+
+                var maxFrameworkVersionNumbers = maxFrameworkVersionElementSplited[1].Split('.');
+                var maxFrameworkVersionNumsList = new List<int>();
+
+                foreach(var maxFrameworkVersionNumber in maxFrameworkVersionNumbers)
+                {
+                    int maxVersionCurrentNum;
+                    if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))
+                    {
+                        //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
+                        MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
+                        if (errorLevel == ErrorLevel.Project)
+                        {
+                            maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                        }
+                        else
+                        {
+                            if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                                maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                        }
+
+                        return new Dictionary<string, List<int>>();
+                    }
+                    maxFrameworkVersionNumsList.Add(maxVersionCurrentNum);
+                }
+
+                maxFrameworkDictionary.Add(maxFrameworkVersionElementSplited[0], maxFrameworkVersionNumsList);
+
+            }
+
+            return maxFrameworkDictionary;
         }
 
         private static void CheckRulesFromConfigFile()
@@ -1145,8 +1336,8 @@ namespace VSIXProject1
 
             CheckConfigPropertiesOnNotNull();
 
-            string maxGlobalFrameworkVersion = configFileGlobal?.framework_max_version ?? "-";
-            string maxSolutionFrameworkVersion = configFileSolution?.framework_max_version ?? "-";
+            var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileGlobal?.framework_max_version ?? "-", ErrorLevel.Global);
+            var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileSolution?.framework_max_version ?? "-", ErrorLevel.Solution);
 
             List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
             List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
@@ -1165,8 +1356,8 @@ namespace VSIXProject1
 
             CheckRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences);
 
-            if (maxGlobalFrameworkVersion != "-" && maxSolutionFrameworkVersion != "-")//проверка на противоречие с global
-                CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxSolutionFrameworkVersion, maxGlobalFrameworkVersion, "", ErrorLevel.Solution, ErrorLevel.Global);
+            if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)//проверка на противоречие с global
+                CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "", ErrorLevel.Solution, ErrorLevel.Global);
 
             foreach (KeyValuePair<string, ProjectState> currentProjState in commitedProjState)//для каждого project
             {
@@ -1180,7 +1371,7 @@ namespace VSIXProject1
 
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
-                    string maxFrameworkVersion = currentProjectConfigFileSettings?.framework_max_version ?? "-";
+                    var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ErrorLevel.Project, projName);
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -1190,26 +1381,26 @@ namespace VSIXProject1
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
 
-                    if (maxFrameworkVersion == "-") {
-                        if(maxSolutionFrameworkVersion != "-")
+                    if (maxFrameworkVersionByTypes.Count == 0) {
+                        if(maxSolutionFrameworkVersionByTypes.Count > 0)
                         {
-                            CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxSolutionFrameworkVersion, projName, ErrorLevel.Solution, maxGlobalFrameworkVersion);
+                            CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Solution, maxGlobalFrameworkVersionByTypes);
                         } 
                         else
                         {
-                            if(maxGlobalFrameworkVersion != "-")
-                                CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxGlobalFrameworkVersion, projName, ErrorLevel.Global);
+                            if(maxGlobalFrameworkVersionByTypes.Count > 0)
+                                CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Global);
                         }
                     }
                     else//Проверить на противоречие с уровнем solution и global
                     {
-                        if(maxSolutionFrameworkVersion != "-")
-                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersion, maxSolutionFrameworkVersion, projName, ErrorLevel.Project, ErrorLevel.Solution);
+                        if(maxSolutionFrameworkVersionByTypes.Count > 0)
+                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Solution);
 
-                        if(maxGlobalFrameworkVersion != "-")
-                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersion, maxGlobalFrameworkVersion, projName, ErrorLevel.Project, ErrorLevel.Global);
+                        if(maxGlobalFrameworkVersionByTypes.Count > 0)
+                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Global);
 
-                        CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxFrameworkVersion, projName, ErrorLevel.Project);
+                        CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxFrameworkVersionByTypes, projName, ErrorLevel.Project);
                     } 
 
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
