@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using VSIXProject1.Comparators;
 using VSIXProject1.Data;
 using VSIXProject1.Data.FrameworkVersion;
@@ -515,7 +516,7 @@ namespace VSIXProject1
                     case ErrorLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
                 }
 
-                string errorText = "RefDepGuard framework comparability version error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion 
+                string errorText = "RefDepGuard framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion 
                     + "', в то время как максимально допустимой для него версией является '"+ frameworkVersionComparabilityError.MaxFrameworkVersion  +"' (" + ruleLevel +"). Измените версию проекта или модифицируйте конфигурацию Config-файла";
 
                 StoreErrorTask(errorText, documentName, false);
@@ -844,26 +845,41 @@ namespace VSIXProject1
             }
         }
 
-        private static void CheckProjectTargetFrameworkVersion(string currentProjectFrameworkVersion, string maxFrameworkVersion, string projName, ErrorLevel errorLevel, string reserveMaxFrameworkVersion = "-")
+        private static void CheckProjectTargetFrameworkVersion(string currentProjectFramework, string maxFrameworkVersion, string projName, ErrorLevel errorLevel, string reserveMaxFrameworkVersion = "-")
         {
-            var currentProjFrameworkVersionArray = currentProjectFrameworkVersion.Split('.'); //Не все TargetFramework содержат точки! Пример: net45
-            var currentProjFrWorkVerArrayLength = currentProjFrameworkVersionArray.Length;//+ двойные точки тоже проблема. Пример: net5.0-windows1.2
+            //Предварительный сплит на тире!!! Пример: net5.0-windows1.2
+
+            var currentProjFrameworkArray = currentProjectFramework.Split('-');
+
+            //Формирование списка из цифр версии фреймворка и определение его типа
+            var currentProjFrameworkVersionArray = currentProjFrameworkArray[0].Split('.'); //Не все TargetFramework содержат точки! Пример: net45 - Не должно быть проблемой
+            var currentProjFrameworkVersionArrayLength = currentProjFrameworkVersionArray.Length;
+
+            var currentProjFrameworkMatch = Regex.Match(currentProjFrameworkVersionArray[0], @"^([a-zA-Z]+)(\d+)$");
+            var currentProjFrameworkType = "-";
+
+            if (currentProjFrameworkMatch.Success)
+            {
+                currentProjFrameworkType = currentProjFrameworkMatch.Groups[1].Value;
+                currentProjFrameworkVersionArray[0] = currentProjFrameworkMatch.Groups[2].Value;
+            }
 
             //Вынести в отдельную функцию
-            if (maxFrameworkVersion.Contains(";"))//Если формат, рассматривающий несколько ограничений, то найти нужное и учитывать его 
+            if (maxFrameworkVersion.Contains(";"))//Если формат, рассматривающий несколько ограничений, то найти нужное и учитывать его
             {
                 if(errorLevel != ErrorLevel.Project)
                 {
                     var maxFrameworkTypeVersionsArray = maxFrameworkVersion.Split(';');
+                    bool isCurrentProjFrameworkContainsMaxFrameworkVersionElement = false;
 
-                    foreach (string currentFrameworkVersion in maxFrameworkTypeVersionsArray)
+                    foreach (string currentMaxFrameworkVersion in maxFrameworkTypeVersionsArray) //Для каждого из ограничений
                     {
-                        var currentFrameworkVersionValue = currentFrameworkVersion.Replace(" ", "");
-                        if (currentFrameworkVersionValue.Contains(":")) //Мб сделать эту проверку иначе?
+                        var currentMaxFrameworkVersionValue = currentMaxFrameworkVersion.Replace(" ", "");
+                        if (currentMaxFrameworkVersionValue.Contains(":"))
                         {
-                            var currentFrameworkVersionElements = currentFrameworkVersionValue.Split(':');
+                            var currentMaxFrameworkVersionElements = currentMaxFrameworkVersionValue.Split(':'); //Взять название и цифры по отдельности
 
-                            if (String.IsNullOrEmpty(currentFrameworkVersionElements[0]))
+                            if (String.IsNullOrEmpty(currentMaxFrameworkVersionElements[0]))
                             {
                                 //Выкинуть ошибку о некорректном формате
 
@@ -875,26 +891,28 @@ namespace VSIXProject1
                                 return;
                             }
 
-                            if (currentProjFrameworkVersionArray[0].Contains(currentFrameworkVersionElements[0]))
+                            if (currentProjFrameworkType == currentMaxFrameworkVersionElements[0] && currentProjFrameworkType != "-")
                             {
-                                maxFrameworkVersion = currentFrameworkVersionElements[1];
+                                maxFrameworkVersion = currentMaxFrameworkVersionElements[1];
+                                isCurrentProjFrameworkContainsMaxFrameworkVersionElement = true;
                                 break;
                             }
                         }
                     }
 
-                    //Если не нашлось правила для типа из TargetFramework
-                    if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != "-")
-                        CheckProjectTargetFrameworkVersion(currentProjectFrameworkVersion, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
+                    if (!isCurrentProjFrameworkContainsMaxFrameworkVersionElement)//Если не нашлось правила для типа из TargetFramework
+                    {
+                        if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != "-") //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
+                            CheckProjectTargetFrameworkVersion(currentProjectFramework, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
 
-                    return;//равносильно "-"
+                        return;//равносильно "-"
+                    }
                 }
                 else
                 {
-                    //Выкинуть ошибку о некорректном формате
-                    //Возможно заслуживает отдельного описания ошибки?
+                    //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
 
-                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, "");
+                    MaxFrameworkVersionDeviantValue potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValue(errorLevel, projName);
 
                     if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
                         maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
@@ -906,10 +924,7 @@ namespace VSIXProject1
 
             var maxFrameworkVersionArray = maxFrameworkVersion.Split('.');
             var maxFrameworkVersionArrayLength = maxFrameworkVersionArray.Length;
-            var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrWorkVerArrayLength);
-
-            currentProjFrameworkVersionArray[0] = currentProjFrameworkVersionArray[0].Substring(currentProjFrameworkVersionArray[0].Length - 1); //Это не будет работать для "Xamarin!"
-            currentProjFrameworkVersionArray[currentProjFrWorkVerArrayLength - 1] = currentProjFrameworkVersionArray[currentProjFrWorkVerArrayLength - 1].Substring(0, 1);
+            var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
 
             for (int i = 0; i < minLengthValue; i++)
             {
@@ -955,9 +970,9 @@ namespace VSIXProject1
                 }
             }
 
-            if(currentProjFrWorkVerArrayLength > maxFrameworkVersionArrayLength) //Если в текущей версии есть ещё не рассмотренные цифры
+            if(currentProjFrameworkVersionArrayLength > maxFrameworkVersionArrayLength) //Если в текущей версии есть ещё не рассмотренные цифры
             {
-                for (int i = minLengthValue; i < currentProjFrWorkVerArrayLength; i++)
+                for (int i = minLengthValue; i < currentProjFrameworkVersionArrayLength; i++)
                 {
                     int currentProjVersionCurrentNum;
 
