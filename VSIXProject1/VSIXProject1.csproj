@@ -50,7 +50,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Command1.cs" />
+    <Compile Include="Comparators\FrameworkVersionComparabilityErrorContainsComparer.cs" />
+    <Compile Include="Comparators\FrameworkVersionComparabilityErrorExportContainsComparer.cs" />
     <Compile Include="Comparators\MaxFrameworkVersionConflictWarningContainsComparer.cs" />
+    <Compile Include="Comparators\MaxFrameworkVersionDeviantValueExportContainsComparer.cs" />
     <Compile Include="Comparators\SortComparators\ConfigFilePropertyNullErrorSortComparer.cs" />
     <Compile Include="Comparators\SortComparators\ReferenceMatchErrorSortComparer.cs" />
     <Compile Include="Data\ConfigFileServiceInfo.cs" />
@@ -62,6 +65,7 @@
     <Compile Include="Data\FrameworkVersion\FrameworkVersionComparabilityError.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionConflictWarning.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionDeviantValue.cs" />
+    <Compile Include="Data\FrameworkVersion\RequiredMaxFrVersion.cs" />
     <Compile Include="Data\ProjectState.cs" />
     <Compile Include="Data\Reference\ConfigFilePropertyNullError.cs" />
     <Compile Include="Data\Reference\RefDepGuardErrors.cs" />
@@ -70,6 +74,7 @@
     <Compile Include="Comparators\MaxFrameworkVersionDeviantValueContainsComparer.cs" />
     <Compile Include="Comparators\SortComparators\FrameworkVersionComparabilityErrorSortComparer.cs" />
     <Compile Include="Comparators\SortComparators\MaxFrameworkVersionDeviantValueSortComparer.cs" />
+    <Compile Include="Data\RequiredExportParameters.cs" />
     <Compile Include="MSBuildManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\Reference\ReferenceAffiliation.cs" />

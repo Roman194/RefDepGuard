@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using VSIXProject1.Comparators;
 using VSIXProject1.Data;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
@@ -14,14 +15,14 @@ namespace VSIXProject1
     public class XLSXManager
     {
 
-        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, List<RequiredReference> requiredReferences)
+        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
         {
             bool isLoadSuccessful = true;
             string currentDateTime = GetCurrentDateTimeInRightFormat();
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
-            LoadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList);
-            LoadInfoToReferencesBook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList, requiredReferences);
+            LoadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors, requiredExportParameters.MaxRequiredFrameworkVersion);
+            LoadInfoToReferencesBook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList, requiredExportParameters.RequiredReferences);
             LoadInfoToRefRepGuardErrors(excel, solutionName, currentDateTime, refDepGuardErrors);
 
             try
@@ -43,8 +44,13 @@ namespace VSIXProject1
             return isLoadSuccessful;
         }
 
-        private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, List<ReferenceError> refsErrorList)
+        private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersions)
         {
+            List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;
+            List<MaxFrameworkVersionDeviantValue> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
+            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorsList = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
+
+
             Worksheet projectsTable = (Worksheet)excel.Worksheets[1];
             projectsTable.Name = "Выборка по проектам";
 
@@ -57,34 +63,43 @@ namespace VSIXProject1
 
             projectsTable.Cells[4, 3] = "Проект";
 
-            projectsTable.Cells[4, 4] = "Всего референсов";
+            projectsTable.Cells[4, 4] = "Целевая рабочая\nсреда";
+            projectsTable.Cells[4, 5] = "Макс. допустимая\nверсия";
 
-            projectsTable.Cells[5, 4] = projectsTable.Cells[5, 6] = projectsTable.Cells[5, 8] = "Кол-во";
-            projectsTable.Cells[5, 5] = projectsTable.Cells[5, 7] = projectsTable.Cells[5, 9] = "Названия";
+            projectsTable.Cells[4, 6] = "Всего референсов";
+
+            projectsTable.Cells[5, 6] = projectsTable.Cells[5, 8] = projectsTable.Cells[5, 10] = "Кол-во";
+            projectsTable.Cells[5, 7] = projectsTable.Cells[5, 9] = projectsTable.Cells[5, 11] = "Названия";
 
             projectsTable.Cells[4, 6] = "Не обнаружено обязательных референсов";
 
             projectsTable.Cells[4, 8] = "Обнаружено недопустимых референсов";
 
-            projectsTable.Columns[5].ColumnWidth = 35;
+            projectsTable.Columns[4].ColumnWidth = 17;
+            projectsTable.Columns[5].ColumnWidth = 17;
             projectsTable.Columns[7].ColumnWidth = 35;
             projectsTable.Columns[9].ColumnWidth = 35;
+            projectsTable.Columns[11].ColumnWidth = 35;
 
-            Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 9]];
-            Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 9]];
+            Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 11]];
+            Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 11]];
             Range unionRangeSolutionNameAndGenerateTime = projectsTable.Range[unionRangeSolutionName, unionRangeGenerateTime];
             Range unionRangeNumTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[5, 2]];
             Range unionRangeProjectNameTitle = projectsTable.Range[projectsTable.Cells[4, 3], projectsTable.Cells[5, 3]];
-            Range unionRangeReferencesCountTitle = projectsTable.Range[projectsTable.Cells[4, 4], projectsTable.Cells[4, 5]];
-            Range unionRangeRequiredRefsErrors = projectsTable.Range[projectsTable.Cells[4, 6], projectsTable.Cells[4, 7]];
-            Range unionRangeUnacceptableRefsErrorsTitle = projectsTable.Range[projectsTable.Cells[4, 8], projectsTable.Cells[4, 9]];
+            Range unionRangeTargetFrameworkTitle = projectsTable.Range[projectsTable.Cells[4, 4], projectsTable.Cells[5, 4]];
+            Range unionRangeMaxFrVersionTitle = projectsTable.Range[projectsTable.Cells[4, 5], projectsTable.Cells[5, 5]];
+            Range unionRangeReferencesCountTitle = projectsTable.Range[projectsTable.Cells[4, 6], projectsTable.Cells[4, 7]];
+            Range unionRangeRequiredRefsErrors = projectsTable.Range[projectsTable.Cells[4, 8], projectsTable.Cells[4, 9]];
+            Range unionRangeUnacceptableRefsErrorsTitle = projectsTable.Range[projectsTable.Cells[4, 10], projectsTable.Cells[4, 11]];
 
-            Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[5, 9]];
+            Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[5, 11]];
 
             unionRangeSolutionName.Merge();
             unionRangeGenerateTime.Merge();
             unionRangeNumTitle.Merge();
             unionRangeProjectNameTitle.Merge();
+            unionRangeTargetFrameworkTitle.Merge();
+            unionRangeMaxFrVersionTitle.Merge();
             unionRangeReferencesCountTitle.Merge();
             unionRangeRequiredRefsErrors.Merge();
             unionRangeUnacceptableRefsErrorsTitle.Merge();
@@ -95,15 +110,16 @@ namespace VSIXProject1
             int i = 0;
             foreach (var currentProject in commitedProjectsState)
             {
-                string currentPorjectName = currentProject.Key;
+                string currentProjectName = currentProject.Key;
                 List<string> currentPorjectRefs = currentProject.Value.CurrentReferences;
+                string targetFramework = currentProject.Value.CurrentFrameworkVersion;
                 List<string> requiredRefsErrors = refsErrorList
-                    .Where(value => value.IsReferenceRequired && value.ErrorRelevantProjectName == currentPorjectName)
+                    .Where(value => value.IsReferenceRequired && value.ErrorRelevantProjectName == currentProjectName)
                     .Select(value => value.ReferenceName)
                     .ToList();
 
                 List<string> unacceptableRefsErrors = refsErrorList
-                    .Where(value => !value.IsReferenceRequired && value.ErrorRelevantProjectName == currentPorjectName)
+                    .Where(value => !value.IsReferenceRequired && value.ErrorRelevantProjectName == currentProjectName)
                     .Select(value => value.ReferenceName)
                     .ToList();
                 int requiredRefsErrorsCount = requiredRefsErrors.Count();
@@ -114,34 +130,61 @@ namespace VSIXProject1
                 else
                     projectsTable.Cells[6 + i, 2].FormulaLocal = $"=B{i + 5} + 1";
 
-                projectsTable.Cells[6 + i, 3] = currentPorjectName;
+                projectsTable.Cells[6 + i, 3] = currentProjectName;
 
-                projectsTable.Cells[6 + i, 4] = currentPorjectRefs.Count;
-                projectsTable.Cells[6 + i, 5] = GetProjectsString(currentPorjectRefs);
+                projectsTable.Cells[6 + i, 4] = targetFramework;
 
-                projectsTable.Cells[6 + i, 6] = requiredRefsErrorsCount;
+                Range currentMaxFrVersionCellRange = projectsTable.Range[projectsTable.Cells[6 + i, 5], projectsTable.Cells[6 + i, 5]];
+                currentMaxFrVersionCellRange.NumberFormat = "@";
+
+                if (maxFrVersionDeviantValuesList.Contains(new MaxFrameworkVersionDeviantValue(ErrorLevel.Global, currentProjectName), new MaxFrameworkVersionDeviantValueExportContainsComparer()))
+                    projectsTable.Cells[6 + i, 5] = "?";
+                else
+                {
+                    if (requiredMaxFrVersions.ContainsKey(currentProjectName)) {
+                        var currentMaxFrVersionRule = requiredMaxFrVersions[currentProjectName];
+                        var ruleLevelString = "";
+                        switch (currentMaxFrVersionRule.ErrorLevel)
+                        {
+                            case ErrorLevel.Global: ruleLevelString = "[G]"; break;
+                            case ErrorLevel.Solution: ruleLevelString = "[S]"; break;
+                        }
+                        projectsTable.Cells[6 + i, 5] = currentMaxFrVersionRule.VersionText + ruleLevelString;
+
+                        if (frameworkVersionComparabilityErrorsList.Contains(new FrameworkVersionComparabilityError(ErrorLevel.Global, "", "", currentProjectName), new FrameworkVersionComparabilityErrorExportContainsComparer()))
+                            projectsTable.Cells[6 + i, 5].Font.Color = 0x062CCE;  
+                    }
+                    else
+                        projectsTable.Cells[6 + i, 5] = "-";
+                    
+                }
+
+                projectsTable.Cells[6 + i, 6] = currentPorjectRefs.Count;
+                projectsTable.Cells[6 + i, 7] = GetProjectsString(currentPorjectRefs);
+
+                projectsTable.Cells[6 + i, 8] = requiredRefsErrorsCount;
 
                 if (requiredRefsErrorsCount > 0)
                 {
-                    projectsTable.Cells[6 + i, 6].Interior.Color = projectsTable.Cells[6 + i, 7].Interior.Color = 0xCEC7FF;//На самом деле это #FFC7CE, просто Interop зачем-то "разворачивает" это значение
-                    projectsTable.Cells[6 + i, 6].Font.Color = projectsTable.Cells[6 + i, 7].Font.Color = 0x062CCE;
-                }
-
-                projectsTable.Cells[6 + i, 7] = GetProjectsString(requiredRefsErrors);
-
-                projectsTable.Cells[6 + i, 8] = unacceptableRefsErrorsCount;
-                if (unacceptableRefsErrorsCount > 0)
-                {
-                    projectsTable.Cells[6 + i, 8].Interior.Color = projectsTable.Cells[6 + i, 9].Interior.Color = 0xCEC7FF;
+                    projectsTable.Cells[6 + i, 8].Interior.Color = projectsTable.Cells[6 + i, 9].Interior.Color = 0xCEC7FF;//На самом деле это #FFC7CE, просто Interop зачем-то "разворачивает" это значение
                     projectsTable.Cells[6 + i, 8].Font.Color = projectsTable.Cells[6 + i, 9].Font.Color = 0x062CCE;
                 }
 
+                projectsTable.Cells[6 + i, 9] = GetProjectsString(requiredRefsErrors);
+
+                projectsTable.Cells[6 + i, 10] = unacceptableRefsErrorsCount;
+                if (unacceptableRefsErrorsCount > 0)
+                {
+                    projectsTable.Cells[6 + i, 10].Interior.Color = projectsTable.Cells[6 + i, 11].Interior.Color = 0xCEC7FF;
+                    projectsTable.Cells[6 + i, 10].Font.Color = projectsTable.Cells[6 + i, 11].Font.Color = 0x062CCE;
+                }
+
                 var unacceptableRefsErrorsProjectString = GetProjectsString(unacceptableRefsErrors);
-                projectsTable.Cells[6 + i, 9] = unacceptableRefsErrorsProjectString;
+                projectsTable.Cells[6 + i, 11] = unacceptableRefsErrorsProjectString;
 
                 if(unacceptableRefsErrorsProjectString != "-") //Смена формата ячейки для того, чтобы при большом количестве рефов содержимое не выходило за пределы ячейки
                 {
-                    Range currentCellRange = projectsTable.Range[projectsTable.Cells[6 + i, 9], projectsTable.Cells[6 + i, 9]];
+                    Range currentCellRange = projectsTable.Range[projectsTable.Cells[6 + i, 11], projectsTable.Cells[6 + i, 11]];
                     currentCellRange.HorizontalAlignment = XlHAlign.xlHAlignFill;
                 }
 
@@ -151,13 +194,15 @@ namespace VSIXProject1
             //Работа с границами
             int projectsCount = commitedProjectsState.Count;
 
-            Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[projectsCount + 5, 9]];
+            Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[projectsCount + 5, 11]];
             Range unionRangeNum = projectsTable.Range[projectsTable.Cells[6, 2], projectsTable.Cells[projectsCount + 5, 2]];
             Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], unionRangeNum];
             Range unionRangeProjectName = projectsTable.Range[projectsTable.Cells[6, 3], projectsTable.Cells[projectsCount + 5, 3]];
-            Range unionRangeReferencesCount = projectsTable.Range[projectsTable.Cells[6, 4], projectsTable.Cells[projectsCount + 5, 4]];
-            Range unionRangeRequiredRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 6], projectsTable.Cells[projectsCount + 5, 6]];
-            Range unionRangeUnacceptableRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 8], projectsTable.Cells[projectsCount + 5, 8]];
+            Range unionRangeTargetFramework = projectsTable.Range[projectsTable.Cells[6, 4], projectsTable.Cells[projectsCount + 5, 4]];
+            Range unionRangeMaxFrVersionWithTitle = projectsTable.Range[projectsTable.Cells[4, 5], projectsTable.Cells[projectsCount + 5, 5]];
+            Range unionRangeReferencesCount = projectsTable.Range[projectsTable.Cells[6, 6], projectsTable.Cells[projectsCount + 5, 6]];
+            Range unionRangeRequiredRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 8], projectsTable.Cells[projectsCount + 5, 8]];
+            Range unionRangeUnacceptableRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 10], projectsTable.Cells[projectsCount + 5, 10]];
             //Range unionRangeUnacceptableRefsErrors = projectsTable.Range[projectsTable.Cells[6, 9], projectsTable.Cells[projectsCount + 5, 9]];
 
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
@@ -172,6 +217,10 @@ namespace VSIXProject1
             unionRangeNum.EntireColumn.AutoFit();
 
             unionRangeProjectName.EntireColumn.AutoFit();
+            //unionRangeTargetFramework.EntireColumn.AutoFit();
+
+            unionRangeMaxFrVersionWithTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
+            //unionRangeMaxFrVersionWithTitle.EntireColumn.AutoFit();
 
             unionRangeReferencesCount.HorizontalAlignment = XlVAlign.xlVAlignCenter;
             unionRangeReferencesCount.EntireColumn.AutoFit();
