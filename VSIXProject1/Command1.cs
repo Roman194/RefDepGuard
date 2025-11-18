@@ -389,11 +389,16 @@ namespace VSIXProject1
                 
         }
 
-        private void ExportRefsToHTML(object sender, EventArgs e)
+        private void ExportRefsToHTML(object sender, EventArgs e)//Объединить 2 экспорта?
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if(HTMLManager.LoadReferencesDataToGraphicReport(solutionName, packageExtendedName))
+            refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList,
+                maxFrameworkVersionDeviantValueList, frameworkVersionComparabilityErrorList);
+
+            requiredExportParameters = new RequiredExportParameters(requiredReferencesList, requiredMaxFrVersionsDict);
+
+            if (HTMLManager.LoadReferencesDataToGraphicReport(solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredExportParameters))
             {
                 ShowMessageBox("Графический экспорт завершён", "Экспорт в HTML");
             }else

@@ -71,9 +71,9 @@ namespace VSIXProject1
             projectsTable.Cells[5, 6] = projectsTable.Cells[5, 8] = projectsTable.Cells[5, 10] = "Кол-во";
             projectsTable.Cells[5, 7] = projectsTable.Cells[5, 9] = projectsTable.Cells[5, 11] = "Названия";
 
-            projectsTable.Cells[4, 6] = "Не обнаружено обязательных референсов";
+            projectsTable.Cells[4, 8] = "Не обнаружено обязательных референсов";
 
-            projectsTable.Cells[4, 8] = "Обнаружено недопустимых референсов";
+            projectsTable.Cells[4, 10] = "Обнаружено недопустимых референсов";
 
             projectsTable.Columns[4].ColumnWidth = 17;
             projectsTable.Columns[5].ColumnWidth = 17;
