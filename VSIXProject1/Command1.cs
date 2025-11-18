@@ -34,6 +34,7 @@ namespace VSIXProject1
         public const int GetChangedRefsId = 0x0110;
         public const int CommitCurrentRefsId = 0x0120;
         public const int ExportRefsToXSLXId = 0x0130;
+        public const int ExportRefsToHTMLId = 0x0140;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -99,16 +100,19 @@ namespace VSIXProject1
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
             var commitCurrentRefsMenuCommandID = new CommandID(CommandSet, CommitCurrentRefsId);
             var exportCurrentRefsToXSLXMenuCommandID = new CommandID(CommandSet, ExportRefsToXSLXId);
+            var exportCurrentRefsToHTMLMenuCommandID = new CommandID(CommandSet, ExportRefsToHTMLId);
 
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteChanges, getChangedRefsMenuCommandID);
             var commitCurrentRefsMenuItem = new MenuCommand(this.CommitCurrentReferences, commitCurrentRefsMenuCommandID);
             var exportCurrentRefsToXSLXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXSLXMenuCommandID);
+            var exportCurrentRefsToHTMLMenuItem = new MenuCommand(this.ExportRefsToHTML, exportCurrentRefsToHTMLMenuCommandID);
 
             commandService.AddCommand(menuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentRefsMenuItem);
             commandService.AddCommand(exportCurrentRefsToXSLXMenuItem);
+            commandService.AddCommand(exportCurrentRefsToHTMLMenuItem);
 
             onSolutionOpened();
         }
@@ -378,11 +382,22 @@ namespace VSIXProject1
 
             requiredExportParameters = new RequiredExportParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 
-            if(XLSXManager.LoadReferencesDataToCurrentReport(excel, solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredExportParameters))
+            if(XLSXManager.LoadReferencesDataToTableReport(excel, solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredExportParameters))
                 ShowMessageBox("Экспорт в эксель завершён", "Экспорт в XSLX");
             else
                 ShowMessageBox("Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл '" + solutionName + "_references_report.xlsx' не открыт в Excel", "Экспорт в XSLX");
                 
+        }
+
+        private void ExportRefsToHTML(object sender, EventArgs e)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            if(HTMLManager.LoadReferencesDataToGraphicReport(solutionName, packageExtendedName))
+            {
+                ShowMessageBox("Графический экспорт завершён", "Экспорт в HTML");
+            }else
+                ShowMessageBox("Не удалось загрузить данные в отчёт, так как файл занят другим процессом", "Экспорт в HTML");
         }
 
         private void ShowMessageBox(string message, string title)
@@ -1356,7 +1371,6 @@ namespace VSIXProject1
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
-
                 var projectFrameworkVersion = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
 
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;

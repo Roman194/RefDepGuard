@@ -15,10 +15,10 @@ namespace VSIXProject1
     public class XLSXManager
     {
 
-        public static bool LoadReferencesDataToCurrentReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
+        public static bool LoadReferencesDataToTableReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
         {
             bool isLoadSuccessful = true;
-            string currentDateTime = GetCurrentDateTimeInRightFormat();
+            string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
             LoadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors, requiredExportParameters.MaxRequiredFrameworkVersion);
@@ -336,27 +336,6 @@ namespace VSIXProject1
                 projectString = "-";
 
             return projectString;
-        }
-
-        private static string GetCurrentDateTimeInRightFormat()
-        {
-            DateTime currentDateTime = DateTime.Now;
-
-            return 
-                GetNumberWithFirstZeroIfNeeded(currentDateTime.Day) + "." +
-                GetNumberWithFirstZeroIfNeeded(currentDateTime.Month) + "." + 
-                currentDateTime.Year + "-" + 
-                GetNumberWithFirstZeroIfNeeded(currentDateTime.Hour) + "." + 
-                GetNumberWithFirstZeroIfNeeded(currentDateTime.Minute) + "." + 
-                GetNumberWithFirstZeroIfNeeded(currentDateTime.Second);
-        }
-
-        private static string GetNumberWithFirstZeroIfNeeded(int currentNumber)
-        {
-            if(currentNumber < 10)
-                return "0" + currentNumber;
-            else
-                return currentNumber.ToString();
         }
 
         private static void LoadInfoToRefRepGuardErrors(Application excel, string solutionName, string currentDateTime, RefDepGuardErrors refDepGuardErrors)
