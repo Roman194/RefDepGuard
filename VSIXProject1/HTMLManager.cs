@@ -13,31 +13,18 @@ namespace VSIXProject1
     public class HTMLManager
     {
 
-        public static bool LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, RequiredExportParameters requiredExportParameters) 
-            //Сделать общий export manager? solutionName из solutionAddress?
+        public static void LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, string currentReportDirectory, 
+            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, 
+            RequiredExportParameters requiredExportParameters) 
         {
-            bool isLoadSuccessful = true;
-            string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();
+            string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
 
-            try
-            {
-                string currentReportDirectory = solutionAddress + "\\reports\\graph_type\\" + currentDateTime;
-                Directory.CreateDirectory(currentReportDirectory);
+            StreamWriter sw = new StreamWriter(currentReportDirectory + "\\" + solutionName + "_references_report.html");
+            sw.Write(generatedHtml);
 
-                string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
-
-                StreamWriter sw = new StreamWriter(currentReportDirectory + "\\" + solutionName + "_references_report.html");
-                sw.Write(generatedHtml);
-
-                sw.Flush();
-                sw.Close();
-            }
-            catch (Exception ex)
-            {
-                isLoadSuccessful = false;
-            }
-
-            return isLoadSuccessful;
+            sw.Flush();
+            sw.Close();
+            
         }
 
         private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, RequiredExportParameters requiredExportParameters)
@@ -77,7 +64,7 @@ namespace VSIXProject1
                 var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project);
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersion;
 
-                var currentProjectMaxFrVersionString = "";//Доработать на ?!!!
+                var currentProjectMaxFrVersionString = "";
 
                 if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
                     maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
@@ -89,7 +76,7 @@ namespace VSIXProject1
                     if (requiredExportParameters.MaxRequiredFrameworkVersion.ContainsKey(currentProjectName))
                     {
                         currentProjectMaxFrVersion = requiredExportParameters.MaxRequiredFrameworkVersion[currentProjectName];
-                        currentProjectMaxFrVersionString = currentProjectMaxFrVersion.VersionText;
+                        currentProjectMaxFrVersionString = "Max: " + currentProjectMaxFrVersion.VersionText;
 
                         switch (currentProjectMaxFrVersion.ErrorLevel)
                         {

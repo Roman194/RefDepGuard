@@ -78,6 +78,7 @@
     <Compile Include="Comparators\SortComparators\MaxFrameworkVersionDeviantValueSortComparer.cs" />
     <Compile Include="Data\RequiredExportParameters.cs" />
     <Compile Include="DateTimeManager.cs" />
+    <Compile Include="ExportManager.cs" />
     <Compile Include="HTMLManager.cs" />
     <Compile Include="MSBuildManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

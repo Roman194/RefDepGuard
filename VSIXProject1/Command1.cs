@@ -1,6 +1,7 @@
 ﻿using EnvDTE;
 using EnvDTE80;
 using MessagePack;
+using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
@@ -377,36 +378,45 @@ namespace VSIXProject1
 
         private void ExportRefsToXSLX(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList, 
-                maxFrameworkVersionDeviantValueList, frameworkVersionComparabilityErrorList);
-
-            requiredExportParameters = new RequiredExportParameters(requiredReferencesList, requiredMaxFrVersionsDict);
-
-            if(XLSXManager.LoadReferencesDataToTableReport(excel, solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredExportParameters))
-                ShowMessageBox("Экспорт в эксель завершён", "Экспорт в XSLX");
-            else
-                ShowMessageBox("Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл '" + solutionName + "_references_report.xlsx' не открыт в Excel", "Экспорт в XSLX");
-                
+            ExportRefsGeneral("table_type");
         }
 
         private void ExportRefsToHTML(object sender, EventArgs e)//Объединить 2 экспорта?
+        {
+            ExportRefsGeneral("graph_type");
+        }
+
+        private void ExportRefsGeneral(string reportType)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList,
                 maxFrameworkVersionDeviantValueList, frameworkVersionComparabilityErrorList);
-
             refDepGuardWarnings = new RefDepGuardWarning(refsMatchWarningList, maxFrameworkVersionConflictWarningsList, maxFrameworkVersionReferenceConflictWarningsList);
-
             requiredExportParameters = new RequiredExportParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 
-            if (HTMLManager.LoadReferencesDataToGraphicReport(solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, refDepGuardWarnings, requiredExportParameters))
+            string reportTitleText = "", reportSuccessText = "", reportUnsuccessText = "";
+
+            switch (reportType)
             {
-                ShowMessageBox("Графический экспорт завершён", "Экспорт в HTML");
-            }else
-                ShowMessageBox("Не удалось загрузить данные в отчёт, так как файл занят другим процессом", "Экспорт в HTML");
+                case "table_type": 
+                    reportTitleText = "Экспорт в XSLX"; 
+                    reportSuccessText = "Экспорт в эксель завершён";
+                    reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + solutionName + "_references_report.xlsx' не открыт в Excel";
+                    break;
+
+                case "graph_type":
+                    reportTitleText = "Экспорт в HTML";
+                    reportSuccessText = "Графический экспорт завершён";
+                    reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом";
+                    break;
+            }
+
+            if(ExportManager.LoadReferencesDataToReport(excel, solutionName, packageExtendedName, reportType, commitedProjState, refDepGuardErrors, refDepGuardWarnings,
+                requiredExportParameters))
+                ShowMessageBox(reportSuccessText, reportTitleText);
+            else
+                ShowMessageBox(reportUnsuccessText, reportTitleText);
         }
 
         private void ShowMessageBox(string message, string title)
@@ -1124,17 +1134,7 @@ namespace VSIXProject1
                 {
                     var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                     var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-                    ////Warning о противоречии между рефами
-                    //var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
-
-                    //if (lowRuleLevel == ErrorLevel.Project)
-                    //{
-                    //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
-                    //    return;
-                    //}
-
-                    //if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
-                    //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+                    
                     if (lowRuleLevel != ErrorLevel.Undefined)
                         AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                     else
@@ -1160,17 +1160,6 @@ namespace VSIXProject1
                         //Warning о противоречии между рефами
                         var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                         var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-
-                        //var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
-
-                        //if (lowRuleLevel == ErrorLevel.Project)
-                        //{
-                        //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
-                        //    break;
-                        //}
-
-                        //if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
-                        //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
 
                         if (lowRuleLevel != ErrorLevel.Undefined)
                             AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);

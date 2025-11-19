@@ -15,33 +15,20 @@ namespace VSIXProject1
     public class XLSXManager
     {
 
-        public static bool LoadReferencesDataToTableReport(Application excel, string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
+        public static void LoadReferencesDataToTableReport(Application excel, string solutionName, string solutionAddress, string currentReportDirectory, string currentDateTime, 
+            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
         {
-            bool isLoadSuccessful = true;
-            string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
             LoadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors, requiredExportParameters.MaxRequiredFrameworkVersion);
             LoadInfoToReferencesBook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList, requiredExportParameters.RequiredReferences);
             LoadInfoToRefRepGuardErrors(excel, solutionName, currentDateTime, refDepGuardErrors);
 
-            try
-            {
-                string currentReportDirectory = solutionAddress + "\\reports\\table_type\\" + currentDateTime;
-                Directory.CreateDirectory(currentReportDirectory);
-
-                excel.Application.ActiveWorkbook.SaveAs(currentReportDirectory + "\\" + solutionName + "_references_report.xlsx", Type.Missing,
-                Type.Missing, Type.Missing, Type.Missing, Type.Missing, XlSaveAsAccessMode.xlNoChange,
-                Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing);
-            }
-            catch (COMException ex)
-            {
-                isLoadSuccessful = false;
-            }
+            excel.Application.ActiveWorkbook.SaveAs(currentReportDirectory + "\\" + solutionName + "_references_report.xlsx", Type.Missing,
+                Type.Missing, Type.Missing, Type.Missing, Type.Missing, XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, 
+                Type.Missing, Type.Missing);
 
             exportWorkbook.Close(false, Type.Missing, Type.Missing);
-
-            return isLoadSuccessful;
         }
 
         private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersions)
@@ -183,7 +170,8 @@ namespace VSIXProject1
                 var unacceptableRefsErrorsProjectString = GetProjectsString(unacceptableRefsErrors);
                 projectsTable.Cells[6 + i, 11] = unacceptableRefsErrorsProjectString;
 
-                if(unacceptableRefsErrorsProjectString != "-") //Смена формата ячейки для того, чтобы при большом количестве рефов содержимое не выходило за пределы ячейки
+                //Смена формата ячейки для того, чтобы при большом количестве рефов содержимое не выходило за пределы ячейки
+                if (unacceptableRefsErrorsProjectString.Length > 15) 
                 {
                     Range currentCellRange = projectsTable.Range[projectsTable.Cells[6 + i, 11], projectsTable.Cells[6 + i, 11]];
                     currentCellRange.HorizontalAlignment = XlHAlign.xlHAlignFill;
@@ -204,10 +192,8 @@ namespace VSIXProject1
             Range unionRangeReferencesCount = projectsTable.Range[projectsTable.Cells[6, 6], projectsTable.Cells[projectsCount + 5, 6]];
             Range unionRangeRequiredRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 8], projectsTable.Cells[projectsCount + 5, 8]];
             Range unionRangeUnacceptableRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 10], projectsTable.Cells[projectsCount + 5, 10]];
-            //Range unionRangeUnacceptableRefsErrors = projectsTable.Range[projectsTable.Cells[6, 9], projectsTable.Cells[projectsCount + 5, 9]];
 
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
-            //unionRangeAllTable.Borders.Weight = XlBorderWeight.xlMedium;
             unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeSolutionNameAndGenerateTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
@@ -216,12 +202,8 @@ namespace VSIXProject1
             //Работа с центровкой числовых столбцов
             unionRangeNum.HorizontalAlignment = XlVAlign.xlVAlignCenter;
             unionRangeNum.EntireColumn.AutoFit();
-
             unionRangeProjectName.EntireColumn.AutoFit();
-            //unionRangeTargetFramework.EntireColumn.AutoFit();
-
             unionRangeMaxFrVersionWithTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
-            //unionRangeMaxFrVersionWithTitle.EntireColumn.AutoFit();
 
             unionRangeReferencesCount.HorizontalAlignment = XlVAlign.xlVAlignCenter;
             unionRangeReferencesCount.EntireColumn.AutoFit();
@@ -231,8 +213,6 @@ namespace VSIXProject1
 
             unionRangeUnacceptableRefsErrorsCount.HorizontalAlignment = XlVAlign.xlVAlignCenter;
             unionRangeUnacceptableRefsErrorsCount.EntireColumn.AutoFit();
-
-            //unionRangeUnacceptableRefsErrors.HorizontalAlignment = XlHAlign.xlHAlignFill;
         }
 
         private static void LoadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, List<ReferenceError> refsErrorList, List<RequiredReference> requiredReferences)
@@ -339,9 +319,9 @@ namespace VSIXProject1
             return projectString;
         }
 
+        //Добавить подобный лист для предупреждений? 
         private static void LoadInfoToRefRepGuardErrors(Application excel, string solutionName, string currentDateTime, RefDepGuardErrors refDepGuardErrors)
         {
-            //Доработать для новых типов ошибок! 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[3];
             projectsTable.Name = "RefDepGuard errors";
 
