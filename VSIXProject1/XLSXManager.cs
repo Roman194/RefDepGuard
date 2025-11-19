@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using VSIXProject1.Comparators;
 using VSIXProject1.Data;
 using VSIXProject1.Data.FrameworkVersion;

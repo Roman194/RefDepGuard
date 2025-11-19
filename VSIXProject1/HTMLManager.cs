@@ -1,9 +1,6 @@
-﻿using EnvDTE;
-using HtmlAgilityPack;
-using System;
+﻿using HtmlAgilityPack;
 using System.Collections.Generic;
 using System.IO;
-using VSIXProject1.Comparators;
 using VSIXProject1.Data;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
@@ -98,8 +95,6 @@ namespace VSIXProject1
 
                 currentNodeNum++;
             }
-
-            //нужно ли сортировать по количеству рефов?
 
             currentNodeNum = 0;
             int currentRefNum = 0;

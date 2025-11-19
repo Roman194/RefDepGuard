@@ -1,9 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
-using MessagePack;
-using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
@@ -31,7 +28,7 @@ namespace VSIXProject1
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0100;
+        public const int GetCurrentRefsId = 0x0100;
         public const int GetChangedRefsId = 0x0110;
         public const int CommitCurrentRefsId = 0x0120;
         public const int ExportRefsToXSLXId = 0x0130;
@@ -99,19 +96,19 @@ namespace VSIXProject1
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
-            var menuCommandID = new CommandID(CommandSet, CommandId);
+            var getCurrentRefsCommandID = new CommandID(CommandSet, GetCurrentRefsId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
             var commitCurrentRefsMenuCommandID = new CommandID(CommandSet, CommitCurrentRefsId);
             var exportCurrentRefsToXSLXMenuCommandID = new CommandID(CommandSet, ExportRefsToXSLXId);
             var exportCurrentRefsToHTMLMenuCommandID = new CommandID(CommandSet, ExportRefsToHTMLId);
 
-            var menuItem = new MenuCommand(this.Execute, menuCommandID);
-            var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteChanges, getChangedRefsMenuCommandID);
+            var getCurrentRefsMenuItem = new MenuCommand(this.ExecuteCurrentRefs, getCurrentRefsCommandID);
+            var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteRefsChanges, getChangedRefsMenuCommandID);
             var commitCurrentRefsMenuItem = new MenuCommand(this.CommitCurrentReferences, commitCurrentRefsMenuCommandID);
             var exportCurrentRefsToXSLXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXSLXMenuCommandID);
             var exportCurrentRefsToHTMLMenuItem = new MenuCommand(this.ExportRefsToHTML, exportCurrentRefsToHTMLMenuCommandID);
 
-            commandService.AddCommand(menuItem);
+            commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentRefsMenuItem);
             commandService.AddCommand(exportCurrentRefsToXSLXMenuItem);
@@ -223,7 +220,7 @@ namespace VSIXProject1
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
-        private void Execute(object sender, EventArgs e)
+        private void ExecuteCurrentRefs(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             string message = "";
@@ -266,7 +263,7 @@ namespace VSIXProject1
                 OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
         }
 
-        private void ExcecuteChanges(object sender, EventArgs e)
+        private void ExcecuteRefsChanges(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -1270,21 +1267,45 @@ namespace VSIXProject1
             return maxFrameworkDictionary;
         }
 
+        private static void ClearErrorAndWarningLists()
+        {
+            if (errorListProvider != null)
+                errorListProvider.Tasks.Clear();
+
+            if (configPropertyNullErrorList != null)
+                configPropertyNullErrorList.Clear();
+
+            if (refsErrorList != null)
+                refsErrorList.Clear();
+
+            if (refsMatchErrorList != null)
+                refsMatchErrorList.Clear();
+
+            if(maxFrameworkVersionConflictWarningsList != null)
+                maxFrameworkVersionConflictWarningsList.Clear();
+
+            if(maxFrameworkVersionReferenceConflictWarningsList != null)
+                maxFrameworkVersionReferenceConflictWarningsList.Clear();
+
+            if(maxFrameworkVersionDeviantValueList != null)
+                maxFrameworkVersionDeviantValueList.Clear();
+
+            if(frameworkVersionComparabilityErrorList != null)
+                frameworkVersionComparabilityErrorList.Clear();
+
+            if(refsMatchWarningList != null) 
+                refsMatchWarningList.Clear();
+
+            if(requiredReferencesList != null)
+                requiredReferencesList.Clear();
+            
+        }
+
         private static void CheckRulesFromConfigFile()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (errorListProvider != null)
-                errorListProvider.Tasks.Clear();
-
-            if(configPropertyNullErrorList !=  null)
-                configPropertyNullErrorList.Clear();
-
-            if (refsErrorList!= null)
-                refsErrorList.Clear();
-
-            if(refsMatchErrorList != null)
-                refsMatchErrorList.Clear();
+            ClearErrorAndWarningLists();
 
             CheckConfigPropertiesOnNotNull();
 
