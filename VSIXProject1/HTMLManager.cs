@@ -3,6 +3,7 @@ using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using VSIXProject1.Comparators;
 using VSIXProject1.Data;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
@@ -12,7 +13,7 @@ namespace VSIXProject1
     public class HTMLManager
     {
 
-        public static bool LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters) 
+        public static bool LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, RequiredExportParameters requiredExportParameters) 
             //Сделать общий export manager? solutionName из solutionAddress?
         {
             bool isLoadSuccessful = true;
@@ -23,7 +24,7 @@ namespace VSIXProject1
                 string currentReportDirectory = solutionAddress + "\\reports\\graph_type\\" + currentDateTime;
                 Directory.CreateDirectory(currentReportDirectory);
 
-                string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardErrors, requiredExportParameters);
+                string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
 
                 StreamWriter sw = new StreamWriter(currentReportDirectory + "\\" + solutionName + "_references_report.html");
                 sw.Write(generatedHtml);
@@ -39,13 +40,13 @@ namespace VSIXProject1
             return isLoadSuccessful;
         }
 
-        private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
+        private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, RequiredExportParameters requiredExportParameters)
         {
             HtmlDocument htmlDoc = new HtmlDocument();
             HtmlNode divNode = htmlDoc.CreateElement("div");
 
             HtmlNode preNode = htmlDoc.CreateElement("pre");
-            preNode.InnerHtml = GetCurrentMermaidCode(commitedProjectsState, refDepGuardErrors, requiredExportParameters);
+            preNode.InnerHtml = GetCurrentMermaidCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
             preNode.AddClass("mermaid");
 
             HtmlNode scriptNode = htmlDoc.CreateElement("script");
@@ -58,35 +59,46 @@ namespace VSIXProject1
             return divNode.OuterHtml.Replace("class=\"module\"", "type=\"module\""); //на момент написания кода либа не даёт возможности задавать тип нода (только его читать), поэтому реализовано такое ухищрение
         }
 
-        private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
+        private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarnings, RequiredExportParameters requiredExportParameters)
         {
             string outputMermaidCode = "flowchart LR\r\n";
             Dictionary <string, string> projectNameToNodeIdCompare = new Dictionary<string, string>();
 
             List<RequiredReference> requiredReferences = requiredExportParameters.RequiredReferences;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
+            List<MaxFrameworkVersionDeviantValue> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
+            List<MaxFrameworkVersionReferenceConflictWarning> maxFrVersionRefConflictWarning = refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
 
             int currentNodeNum = 0;
-            foreach (var currentProject in commitedProjectsState)
+            foreach (var currentProject in commitedProjectsState) //Сначала задаём сами ноды (проекты)
             {
                 var currentProjectName = currentProject.Key;
-                var currentProjectMaxFrVersion = new Data.FrameworkVersion.RequiredMaxFrVersion("", ErrorLevel.Project);
+                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project);
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersion;
 
-                var currentProjectMaxFrVersionString = "-";
+                var currentProjectMaxFrVersionString = "";//Доработать на ?!!!
 
-                if (requiredExportParameters.MaxRequiredFrameworkVersion.ContainsKey(currentProjectName))
+                if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
+                    maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
                 {
-                    currentProjectMaxFrVersion = requiredExportParameters.MaxRequiredFrameworkVersion[currentProjectName];
-                    currentProjectMaxFrVersionString = currentProjectMaxFrVersion.VersionText;
+                    currentProjectMaxFrVersionString = "?";
                 }
-                
-                switch (currentProjectMaxFrVersion.ErrorLevel)
+                else
                 {
-                    case ErrorLevel.Global: currentProjectMaxFrVersionString += " G"; break;
-                    case ErrorLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
+                    if (requiredExportParameters.MaxRequiredFrameworkVersion.ContainsKey(currentProjectName))
+                    {
+                        currentProjectMaxFrVersion = requiredExportParameters.MaxRequiredFrameworkVersion[currentProjectName];
+                        currentProjectMaxFrVersionString = currentProjectMaxFrVersion.VersionText;
+
+                        switch (currentProjectMaxFrVersion.ErrorLevel)
+                        {
+                            case ErrorLevel.Global: currentProjectMaxFrVersionString += " G"; break;
+                            case ErrorLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
+                        }
+                    }
                 }
+
                 var nodeId = "node_" + currentNodeNum;
                 outputMermaidCode += GetProjectNode(nodeId, currentProjectName, currentProjectTargetFrVersion, currentProjectMaxFrVersionString);
                 projectNameToNodeIdCompare.Add(currentProjectName, nodeId);
@@ -109,7 +121,7 @@ namespace VSIXProject1
                 var currentProjectName = currentProject.Key;
                 var currentProjectRefsList = currentProject.Value;
                 string currentNodeId = "node_" + currentNodeNum;
-                foreach(var currentProjectRef in currentProjectRefsList.CurrentReferences)
+                foreach(var currentProjectRef in currentProjectRefsList.CurrentReferences) //Затем для каждого из нодов задаём все связи
                 {
                     if (projectNameToNodeIdCompare.ContainsKey(currentProjectRef))
                     {
@@ -117,9 +129,17 @@ namespace VSIXProject1
                         string errorText = "";
 
                         var currentError = refErrors.Find(value => value.ReferenceName == currentProjectRef && value.ErrorRelevantProjectName == currentProjectName);
-                        if (currentError != null)
+                        var currentRefError = maxFrVersionRefConflictWarning.Find(value => value.RefName == currentProjectRef && value.ProjName == currentProjectName);
+                        if (currentError != null) //Поиск на соответствие среди ошибок
                         {
                             errorText = "Запрещённая связь!";
+                        }
+                        else
+                        {
+                            if (currentRefError != null)
+                            {
+                                errorText = "Потенциальный конфликт версий!";
+                            }
                         }
 
                         outputMermaidCode += GetProjectLink(currentNodeId, refNodeId, errorText);
@@ -128,11 +148,21 @@ namespace VSIXProject1
                         {
                             outputMermaidCode += SetErrorLinkStyle(currentRefNum);
                         }
-
-                        var reqRef = requiredReferences.Find(value => value.ReferenceName == currentProjectRef && value.RelevantProject ==  currentProjectName);
-                        if (reqRef != null) //Протетсить!
+                        else
                         {
-                            outputMermaidCode += SetRequiredPrLinkStyle(currentRefNum);
+                            if (currentRefError != null)
+                            {
+                                outputMermaidCode += SetWarningLinkStyle(currentRefNum);
+                            }
+                            else
+                            {
+                                //Поиск на соответствие среди обязательных
+                                var reqRef = requiredReferences.Find(value => value.ReferenceName == currentProjectRef && (value.RelevantProject == currentProjectName || value.RelevantProject == ""));
+                                if (reqRef != null)
+                                {
+                                    outputMermaidCode += SetRequiredPrLinkStyle(currentRefNum);
+                                }
+                            }
                         }
 
                         currentRefNum++;
@@ -164,7 +194,10 @@ namespace VSIXProject1
 
         private static string GetProjectNode(string nodeId, string projectName, string projectTargetFrVersion, string projectMaxFrVersion)
         {
-            return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion + "\r\n   " + projectMaxFrVersion + "]\r\n";
+            if(projectMaxFrVersion == "")
+                return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion + "]\r\n";
+            else
+                return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion + "\r\n   " + projectMaxFrVersion + "]\r\n";
         }
 
         private static string GetProjectLink(string startNodeId, string endNodeId, string errorText)
@@ -183,6 +216,11 @@ namespace VSIXProject1
         private static string SetErrorLinkStyle(int i)
         {
             return "linkStyle " + i + " stroke:red,stroke-width:4px,color:red;\r\n";
+        }
+
+        private static string SetWarningLinkStyle(int i)
+        {
+            return "linkStyle " + i + " stroke:orange,stroke-width:4px,color:orange;\r\n";
         }
 
         private static string SetErrorProjectStyle(string nodeId)

@@ -64,8 +64,10 @@ namespace VSIXProject1
         static List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparabilityError>();
 
         static RefDepGuardErrors refDepGuardErrors; //Реализовать работу с этой структурой вместо верхних трёх-пяти?
+        static RefDepGuardWarning refDepGuardWarnings;
         static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
         static List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = new List<MaxFrameworkVersionConflictWarning>();
+        static List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = new List<MaxFrameworkVersionReferenceConflictWarning>();
 
         static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
         static Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersionsDict = new Dictionary<string, RequiredMaxFrVersion>();
@@ -396,9 +398,11 @@ namespace VSIXProject1
             refDepGuardErrors = new RefDepGuardErrors(configPropertyNullErrorList, refsErrorList, refsMatchErrorList,
                 maxFrameworkVersionDeviantValueList, frameworkVersionComparabilityErrorList);
 
+            refDepGuardWarnings = new RefDepGuardWarning(refsMatchWarningList, maxFrameworkVersionConflictWarningsList, maxFrameworkVersionReferenceConflictWarningsList);
+
             requiredExportParameters = new RequiredExportParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 
-            if (HTMLManager.LoadReferencesDataToGraphicReport(solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, requiredExportParameters))
+            if (HTMLManager.LoadReferencesDataToGraphicReport(solutionName, packageExtendedName, commitedProjState, refDepGuardErrors, refDepGuardWarnings, requiredExportParameters))
             {
                 ShowMessageBox("Графический экспорт завершён", "Экспорт в HTML");
             }else
@@ -462,7 +466,7 @@ namespace VSIXProject1
         {
             if (configFileReferences != null)
             {
-                foreach (string fileReference in configFileReferences)
+                foreach (string fileReference in configFileReferences) //Объединить с ProjectReferences?
                 {
                     if ((isReferenceRequired && !projReferences.Contains(fileReference)) ||
                         (!isReferenceRequired && projReferences.Contains(fileReference)))
@@ -647,6 +651,18 @@ namespace VSIXProject1
                 string errorText = "RefDepGuard framework_max_version conflict warning: значение '"+  maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion  
                     +"' параметра 'framework_max_version' " + lowErrorLevelText + " превосходит значение '"+ maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion 
                     + "' одноимённого параметра " + highErrorLevelText  + ". Устраните противоречие";
+
+                StoreErrorTask(errorText, documentName, true);
+            }
+
+            foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in maxFrameworkVersionReferenceConflictWarningsList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+
+                string errorText = "RefDepGuard framework_max_version reference conflict warning: значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
+                    + "' параметра 'framework_max_version' проекта " + maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
+                    ", так как имеется референс на проект, имеющий большее значение значение параметра 'framework_max_version' (проект: " + maxFrameworkVersionReferenceConflictWarning.RefName 
+                    + ", Версия: "+ maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + "). Устраните противоречие";
 
                 StoreErrorTask(errorText, documentName, true);
             }
@@ -1050,14 +1066,14 @@ namespace VSIXProject1
                 if (maxHighLevelFrameworkVersion.ContainsKey(currentMaxLowLevelFrameworkVersionType)) //Если типы версий фреймворков совпадают
                 {
                     maxHighLevelFrameworkVersionArray = maxHighLevelFrameworkVersion[currentMaxLowLevelFrameworkVersionType]; //То проверить соотв. версии
-                    CheckMaxFrameworkVersionCurrentLevelConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                    CheckMaxFrameworkVersionCurrentConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
                 }
                 else
                 {
                     if (maxHighLevelFrameworkVersion.ContainsKey("all")) //Если сверху супертип "all", то сравнить с ним
                     {
                         maxHighLevelFrameworkVersionArray = maxHighLevelFrameworkVersion["all"];
-                        CheckMaxFrameworkVersionCurrentLevelConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                        CheckMaxFrameworkVersionCurrentConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
                     }
                     else
                     {
@@ -1066,7 +1082,7 @@ namespace VSIXProject1
                             foreach(var currentMaxHighLevelFrameworkVersion in maxHighLevelFrameworkVersion)
                             {
                                 maxHighLevelFrameworkVersionArray = currentMaxHighLevelFrameworkVersion.Value;
-                                CheckMaxFrameworkVersionCurrentLevelConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                                CheckMaxFrameworkVersionCurrentConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
                             }
                         }
                     }
@@ -1086,13 +1102,13 @@ namespace VSIXProject1
                     {
                         List<int> maxCurrentTypeFrameworkVersionArray = currentMaxLowLevelFrameworkVersion.Value;
                         //Возможно это даже ошибка, а не предупреждение
-                        CheckMaxFrameworkVersionCurrentLevelConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, projName, ruleLevel, ruleLevel);
+                        CheckMaxFrameworkVersionCurrentConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, projName, ruleLevel, ruleLevel);
                     }
                 }
             }
         }
 
-        private static void CheckMaxFrameworkVersionCurrentLevelConflict(List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
+        private static void CheckMaxFrameworkVersionCurrentConflict(List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel, string refName = "")
         {
             var maxHighLevelFrameworkVersionArrayLength = maxHighLevelFrameworkVersionList.Count;
             var maxLowLevelFrameworkVersionArrayLength = maxLowLevelFrameworkVersionList.Count;
@@ -1108,18 +1124,22 @@ namespace VSIXProject1
                 {
                     var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                     var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-                    //Warning о противоречии между рефами
-                    var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
+                    ////Warning о противоречии между рефами
+                    //var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
 
-                    if (lowRuleLevel == ErrorLevel.Project)
-                    {
-                        maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
-                        return;
-                    }
+                    //if (lowRuleLevel == ErrorLevel.Project)
+                    //{
+                    //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+                    //    return;
+                    //}
 
-                    if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
-                        maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
-
+                    //if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
+                    //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+                    if (lowRuleLevel != ErrorLevel.Undefined)
+                        AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
+                    else
+                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName);
+                        
                     return;
                 }
                 else
@@ -1141,21 +1161,48 @@ namespace VSIXProject1
                         var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                         var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
 
-                        var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
+                        //var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
 
-                        if (lowRuleLevel == ErrorLevel.Project)
-                        {
-                            maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
-                            break;
-                        }
+                        //if (lowRuleLevel == ErrorLevel.Project)
+                        //{
+                        //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+                        //    break;
+                        //}
 
-                        if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
-                            maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+                        //if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
+                        //    maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
 
+                        if (lowRuleLevel != ErrorLevel.Undefined)
+                            AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
+                        else
+                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName);
+                            
                         break;
                     }
                 }
             }
+        }
+
+        private static void AddNewMaxFrameworkVersionConflictWarning(string maxHighLevelFrameworkVersionString, string maxLowLevelFrameworkVersionString, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
+        {
+            
+            //Warning о противоречии между рефами
+            var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
+
+            if (lowRuleLevel == ErrorLevel.Project)
+            {
+                maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+                return;
+            }
+
+            if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
+                maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
+        }
+
+        private static void AddNewMaxFrameworkVersionOnReferenceConflictWarning(string maxProjNameFrameworkVersionString, string maxRefNameFrameworkVersionString, string projName, string refName)
+        {
+            maxFrameworkVersionReferenceConflictWarningsList.Add(
+                new MaxFrameworkVersionReferenceConflictWarning(projName, maxProjNameFrameworkVersionString, refName, maxRefNameFrameworkVersionString));
         }
 
         private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ErrorLevel errorLevel, string projName = "")
@@ -1302,28 +1349,6 @@ namespace VSIXProject1
                         requiredReferences, unacceptableReferences, solutionRequiredReferences, solutionUnacceptableReferences
                     };
 
-                    if (maxFrameworkVersionByTypes.Count == 0) {
-                        if(maxSolutionFrameworkVersionByTypes.Count > 0)
-                        {
-                            CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Solution, maxGlobalFrameworkVersionByTypes);
-                        } 
-                        else
-                        {
-                            if(maxGlobalFrameworkVersionByTypes.Count > 0)
-                                CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Global);
-                        }
-                    }
-                    else//Проверить на противоречие с уровнем solution и global
-                    {
-                        if(maxSolutionFrameworkVersionByTypes.Count > 0)
-                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Solution);
-
-                        if(maxGlobalFrameworkVersionByTypes.Count > 0)
-                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Global);
-
-                        CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxFrameworkVersionByTypes, projName, ErrorLevel.Project);
-                    } 
-
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
 
                     CheckProjectRulesOnMatchConflicts(solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, 
@@ -1341,7 +1366,32 @@ namespace VSIXProject1
                         if (isConsiderUnacceptableReferences)
                             CheckRulesForSolutionOrGlobalReferences(projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.ReferenceTypeValue, false, configFileProjectAndSolutionReferences);
                     }
-                        
+
+                    if (maxFrameworkVersionByTypes.Count == 0)
+                    {
+                        if (maxSolutionFrameworkVersionByTypes.Count > 0)
+                        {
+                            CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Solution, maxGlobalFrameworkVersionByTypes);
+                        }
+                        else
+                        {
+                            if (maxGlobalFrameworkVersionByTypes.Count > 0)
+                                CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Global);
+                        }
+                    }
+                    else//Проверить на противоречие с уровнем solution и global
+                    {
+                        if (maxSolutionFrameworkVersionByTypes.Count > 0)
+                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Solution);
+
+                        if (maxGlobalFrameworkVersionByTypes.Count > 0)
+                            CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Global);
+
+                        CheckProjectTargetFrameworkVersion(projFrameworkVersion, maxFrameworkVersionByTypes, projName, ErrorLevel.Project);
+                    }
+
+                    CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(projName, projReferences);
+
                 }
                 else
                 {
@@ -1364,6 +1414,32 @@ namespace VSIXProject1
 
             if (errorListProvider != null)
                 errorListProvider.Show();
+        }
+
+        private static void CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(string projName, List<string> projReferences)
+        {
+            if (requiredMaxFrVersionsDict.ContainsKey(projName))
+            {
+                List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionText
+                    .Split('.')
+                    .ToList()
+                    .ConvertAll(value => Convert.ToInt32(value));
+                foreach (var projReference in projReferences)
+                {
+                    
+                    if (requiredMaxFrVersionsDict.ContainsKey(projReference))
+                    {
+                        List<int> currentRefMaxVersionNums = requiredMaxFrVersionsDict[projReference].VersionText
+                            .Split('.')
+                            .ToList()
+                            .ConvertAll(value => Convert.ToInt32(value));
+
+                        CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, ErrorLevel.Undefined, ErrorLevel.Undefined, projReference);
+
+                    }
+                }
+            }
+            
         }
 
         private static void CommitCurrentReferences()

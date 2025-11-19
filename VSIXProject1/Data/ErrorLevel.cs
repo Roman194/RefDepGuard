@@ -10,6 +10,7 @@ namespace VSIXProject1
     {
         Global,
         Solution,
-        Project
+        Project,
+        Undefined
     }
 }

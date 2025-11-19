@@ -15,7 +15,9 @@ namespace VSIXProject1.Data.Reference
         public List<MaxFrameworkVersionDeviantValue> MaxFrameworkVersionDeviantValueList;
         public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
 
-        public RefDepGuardErrors(List<ConfigFilePropertyNullError> configPropertyNullErrorList, List<ReferenceError> refsErrorList, List<ReferenceMatchError> refsMatchErrorList, List<MaxFrameworkVersionDeviantValue> maxFrameworkVersionDeviantValueList, List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList)
+        public RefDepGuardErrors(List<ConfigFilePropertyNullError> configPropertyNullErrorList, List<ReferenceError> refsErrorList, 
+            List<ReferenceMatchError> refsMatchErrorList, List<MaxFrameworkVersionDeviantValue> maxFrameworkVersionDeviantValueList,
+            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList)
         {
             ConfigPropertyNullErrorList = configPropertyNullErrorList;
             RefsErrorList = refsErrorList;

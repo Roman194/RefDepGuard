@@ -137,6 +137,7 @@ namespace VSIXProject1
                 Range currentMaxFrVersionCellRange = projectsTable.Range[projectsTable.Cells[6 + i, 5], projectsTable.Cells[6 + i, 5]];
                 currentMaxFrVersionCellRange.NumberFormat = "@";
 
+                //Проверить при ошибке на уровнях выше Project
                 if (maxFrVersionDeviantValuesList.Contains(new MaxFrameworkVersionDeviantValue(ErrorLevel.Global, currentProjectName), new MaxFrameworkVersionDeviantValueExportContainsComparer()))
                     projectsTable.Cells[6 + i, 5] = "?";
                 else
@@ -340,6 +341,7 @@ namespace VSIXProject1
 
         private static void LoadInfoToRefRepGuardErrors(Application excel, string solutionName, string currentDateTime, RefDepGuardErrors refDepGuardErrors)
         {
+            //Доработать для новых типов ошибок! 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[3];
             projectsTable.Name = "RefDepGuard errors";
 

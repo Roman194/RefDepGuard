@@ -11,7 +11,7 @@ namespace VSIXProject1.Comparators
     {
         public bool Equals(MaxFrameworkVersionDeviantValue x, MaxFrameworkVersionDeviantValue y)
         {
-            return x.ErrorRelevantProjectName == y.ErrorRelevantProjectName;
+            return x.ErrorRelevantProjectName == y.ErrorRelevantProjectName || x.ErrorRelevantProjectName == "";
         }
 
         public int GetHashCode(MaxFrameworkVersionDeviantValue obj)

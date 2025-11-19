@@ -65,8 +65,10 @@
     <Compile Include="Data\FrameworkVersion\FrameworkVersionComparabilityError.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionConflictWarning.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionDeviantValue.cs" />
+    <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionReferenceConflictWarning.cs" />
     <Compile Include="Data\FrameworkVersion\RequiredMaxFrVersion.cs" />
     <Compile Include="Data\ProjectState.cs" />
+    <Compile Include="Data\RefDepGuardWarning.cs" />
     <Compile Include="Data\Reference\ConfigFilePropertyNullError.cs" />
     <Compile Include="Data\Reference\RefDepGuardErrors.cs" />
     <Compile Include="Data\Reference\ReferenceMatchWarning.cs" />
