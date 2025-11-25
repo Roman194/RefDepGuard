@@ -10,7 +10,7 @@ using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1
 {
-    public class XLSXManager
+    public class XLSXSubManager
     {
         public static void LoadReferencesDataToTableReport(Application excel, string solutionName, string solutionAddress, string currentReportDirectory, string currentDateTime, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredParameters requiredExportParameters)

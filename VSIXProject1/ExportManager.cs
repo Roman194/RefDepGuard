@@ -29,12 +29,12 @@ namespace VSIXProject1
                 switch (reportType)
                 {
                     case "table_type":
-                        XLSXManager.LoadReferencesDataToTableReport(excel, solutionName, solutionAddress, currentReportDirectory, currentDateTime, commitedProjectsState,
+                        XLSXSubManager.LoadReferencesDataToTableReport(excel, solutionName, solutionAddress, currentReportDirectory, currentDateTime, commitedProjectsState,
                         refDepGuardErrors, refDepGuardExportParameters.RequiredParametersData); 
                         break;
 
                     case "graph_type":
-                        HTMLManager.LoadReferencesDataToGraphicReport(solutionName, solutionAddress, currentReportDirectory, commitedProjectsState, refDepGuardErrors,
+                        HTMLSubManager.LoadReferencesDataToGraphicReport(solutionName, solutionAddress, currentReportDirectory, commitedProjectsState, refDepGuardErrors,
                             refDepGuardWarnings, refDepGuardExportParameters.RequiredParametersData);
                         break;
                 }

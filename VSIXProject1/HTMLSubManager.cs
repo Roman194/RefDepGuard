@@ -7,7 +7,7 @@ using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1
 {
-    public class HTMLManager
+    public class HTMLSubManager
     {
 
         public static void LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, string currentReportDirectory, 
