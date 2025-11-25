@@ -12,7 +12,6 @@ namespace VSIXProject1
 {
     public class XLSXManager
     {
-
         public static void LoadReferencesDataToTableReport(Application excel, string solutionName, string solutionAddress, string currentReportDirectory, string currentDateTime, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
         {

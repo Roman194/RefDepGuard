@@ -53,7 +53,7 @@ namespace VSIXProject1
             // When initialized asynchronously, the current thread may be a background thread at this point.
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            await Command1.InitializeAsync(this);
+            await MainCommand.InitializeAsync(this);
 
             IVsSolution solution = GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
             if (solution != null)

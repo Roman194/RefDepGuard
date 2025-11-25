@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="HelloWorld" AfterTargets="Build">
-    <Warning Text="Trial warning">
-    </Warning>
-  </Target>
   <PropertyGroup>
     <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -49,7 +45,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Command1.cs" />
+    <Compile Include="ConfigFileManager.cs" />
+    <Compile Include="Data\ConfigFile\ConfigFilesData.cs" />
+    <Compile Include="MainCommand.cs" />
     <Compile Include="Comparators\FrameworkVersionComparabilityErrorContainsComparer.cs" />
     <Compile Include="Comparators\FrameworkVersionComparabilityErrorExportContainsComparer.cs" />
     <Compile Include="Comparators\MaxFrameworkVersionConflictWarningContainsComparer.cs" />
@@ -80,6 +78,7 @@
     <Compile Include="DateTimeManager.cs" />
     <Compile Include="ExportManager.cs" />
     <Compile Include="HTMLManager.cs" />
+    <Compile Include="MessageManager.cs" />
     <Compile Include="MSBuildManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Data\Reference\ReferenceAffiliation.cs" />

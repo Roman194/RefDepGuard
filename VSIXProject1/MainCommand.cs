@@ -1,6 +1,4 @@
 ﻿using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
@@ -12,6 +10,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using VSIXProject1.Comparators;
 using VSIXProject1.Data;
+using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 using VSLangProj;
@@ -23,7 +22,7 @@ namespace VSIXProject1
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class Command1
+    internal sealed class MainCommand
     {
         /// <summary>
         /// Command ID.
@@ -45,7 +44,6 @@ namespace VSIXProject1
         private readonly AsyncPackage package;
 
         private static DTE dte;
-        private static DTE2 dte2;
 
         static Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
         static List<string> changedRefs = new List<string>();
@@ -71,27 +69,24 @@ namespace VSIXProject1
         static Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersionsDict = new Dictionary<string, RequiredMaxFrVersion>();
         static RequiredExportParameters requiredExportParameters;
 
-        static ConfigFileSolution configFileSolution;
-        static ConfigFileGlobal configFileGlobal;
+        //static ConfigFileSolution configFileSolution;
+        //static ConfigFileGlobal configFileGlobal;
+        //static string solutionName;
+        //static string packageExtendedName;
 
-        static string solutionName;
-        static string packageExtendedName;
+        static ConfigFilesData configFilesData;
 
         static ErrorListProvider errorListProvider;
-        static IVsOutputWindowPane generalPane;
-        static Guid generalPaneGuid;
-        static IVsOutputWindow outWindow;
-
+        
         static Excel.Application excel = new Excel.Application();
 
-
         /// <summary>
-        /// Initializes a new instance of the <see cref="Command1"/> class.
+        /// Initializes a new instance of the <see cref="MainCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private Command1(AsyncPackage package, OleMenuCommandService commandService)
+        private MainCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -120,7 +115,7 @@ namespace VSIXProject1
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static Command1 Instance
+        public static MainCommand Instance
         {
             get;
             private set;
@@ -153,28 +148,12 @@ namespace VSIXProject1
             errorListProvider = new ErrorListProvider(package);
 
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
-            dte2 = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
             dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
-            //dte.Events.SolutionEvents.Opened += onSolutionOpened; 
-
-            //if (dte.Solution.IsOpen)
-            //{
-            //    onSolutionOpened();
-            //}
-
+            
             await Task.Delay(10000);
 
-            Instance = new Command1(package, commandService);
-
-            outWindow = (IVsOutputWindow) Package.GetGlobalService(typeof(SVsOutputWindow)); //Создание собственного окна (м.б. полезно для вывода варнингов)
-            generalPaneGuid = VSConstants.GUID_OutWindowGeneralPane;
-            outWindow.CreatePane(ref generalPaneGuid, "Warning pane", 1, 0);
-            outWindow.GetPane(ref generalPaneGuid, out generalPane);
-            generalPane.OutputString("Nope!");
-
-            //Microsoft.Build.Framework.
-
+            Instance = new MainCommand(package, commandService);
         }
 
         private static void BeforeSolutionClosed()
@@ -188,18 +167,12 @@ namespace VSIXProject1
             ThreadHelper.ThrowIfNotOnUIThread();
 
             //Здесь прописаны отслеживание соответствия референсов правилам
-
             CommitCurrentReferences();
-
             CheckRulesFromConfigFile();
 
             if (errorListProvider.Tasks.Count > 0) //Коммит завершился с ошибками
-            {
-                generalPane.Activate();
-
                 dte.ExecuteCommand("Build.Cancel");
-
-            }
+            
         }
 
         private void onSolutionOpened()
@@ -226,10 +199,7 @@ namespace VSIXProject1
             string message = "";
             string title = "Связи между проектами на текущий момент";
 
-            
             EnvDTE.Solution solution = dte.Solution;
-
-            //commitedProjState.Clear();
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
@@ -251,16 +221,7 @@ namespace VSIXProject1
                 }
             }
 
-            
-
-            // Show a message box to prove we were here
-            VsShellUtilities.ShowMessageBox(
-                this.package,
-                message,
-                title,
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            MessageManager.ShowMessageBox(this.package, message, title);
         }
 
         private void ExcecuteRefsChanges(object sender, EventArgs e)
@@ -353,13 +314,7 @@ namespace VSIXProject1
                 }
             }
 
-            VsShellUtilities.ShowMessageBox(
-                this.package,
-                message,
-                title,
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+            MessageManager.ShowMessageBox(this.package, message, title);
 
             addedRefs.Clear();
             removedRefs.Clear();
@@ -378,7 +333,7 @@ namespace VSIXProject1
             ExportRefsGeneral("table_type");
         }
 
-        private void ExportRefsToHTML(object sender, EventArgs e)//Объединить 2 экспорта?
+        private void ExportRefsToHTML(object sender, EventArgs e)
         {
             ExportRefsGeneral("graph_type");
         }
@@ -399,7 +354,7 @@ namespace VSIXProject1
                 case "table_type": 
                     reportTitleText = "Экспорт в XSLX"; 
                     reportSuccessText = "Экспорт в эксель завершён";
-                    reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + solutionName + "_references_report.xlsx' не открыт в Excel";
+                    reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.solutionName + "_references_report.xlsx' не открыт в Excel";
                     break;
 
                 case "graph_type":
@@ -409,22 +364,13 @@ namespace VSIXProject1
                     break;
             }
 
-            if(ExportManager.LoadReferencesDataToReport(excel, solutionName, packageExtendedName, reportType, commitedProjState, refDepGuardErrors, refDepGuardWarnings,
-                requiredExportParameters))
-                ShowMessageBox(reportSuccessText, reportTitleText);
-            else
-                ShowMessageBox(reportUnsuccessText, reportTitleText);
-        }
+            if(ExportManager.LoadReferencesDataToReport(
+                excel, configFilesData.solutionName, configFilesData.packageExtendedName, 
+                reportType, commitedProjState, refDepGuardErrors, refDepGuardWarnings, requiredExportParameters))
 
-        private void ShowMessageBox(string message, string title)
-        {
-            VsShellUtilities.ShowMessageBox(
-                    this.package,
-                    message,
-                    title,
-                    OLEMSGICON.OLEMSGICON_INFO,
-                    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                MessageManager.ShowMessageBox(this.package, reportSuccessText, reportTitleText);
+            else
+                MessageManager.ShowMessageBox(this.package, reportUnsuccessText, reportTitleText);
         }
 
         private static void ShowUnsuccessfulCheckingRulesWarning()
@@ -521,7 +467,7 @@ namespace VSIXProject1
         {
             foreach(MaxFrameworkVersionDeviantValue maxFrameworkVersionDeviantValue in maxFrameworkVersionDeviantValueList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string relevantProjectName = "";
                 string globalPrefix = "";
 
@@ -539,7 +485,7 @@ namespace VSIXProject1
 
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in frameworkVersionComparabilityErrorList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string ruleLevel = "";
 
 
@@ -558,7 +504,7 @@ namespace VSIXProject1
 
             foreach(ConfigFilePropertyNullError configFilePropertyNullError in configPropertyNullErrorList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string relevantProjectName = "";
 
                 if (configFilePropertyNullError.IsGlobal)
@@ -576,7 +522,7 @@ namespace VSIXProject1
             {
                 string projectName = "";
                 string referenceLevelText = "";
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string matchErrorDescription = "";
 
                 if (referenceMatchError.IsProjNameMatchError)
@@ -633,7 +579,7 @@ namespace VSIXProject1
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in maxFrameworkVersionConflictWarningsList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string highErrorLevelText = "";
                 string lowErrorLevelText = "";
 
@@ -664,7 +610,7 @@ namespace VSIXProject1
 
             foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in maxFrameworkVersionReferenceConflictWarningsList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
 
                 string errorText = "RefDepGuard framework_max_version reference conflict warning: значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version' проекта " + maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
@@ -676,7 +622,7 @@ namespace VSIXProject1
 
             foreach (ReferenceMatchWarning referenceMatchWarning in refsMatchWarningList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string projectName = "";
                 string highReferenceLevelText = "";
                 string lowReferenceLevelText = "";
@@ -731,16 +677,16 @@ namespace VSIXProject1
 
         private static void CheckConfigFileSolutionProperties() //How to make it better? Reflection doesn't work
         {
-            if (configFileSolution.name is null)
+            if (configFilesData.configFileSolution.name is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("name", false, ""));
 
-            if (configFileSolution.framework_max_version is null)
+            if (configFilesData.configFileSolution.framework_max_version is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", false, ""));
 
-            if (configFileSolution.solution_required_references is null)
+            if (configFilesData.configFileSolution.solution_required_references is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_required_references", false, ""));
 
-            if (configFileSolution.solution_unacceptable_references is null)
+            if (configFilesData.configFileSolution.solution_unacceptable_references is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_unacceptable_references", false, ""));
         }
 
@@ -761,28 +707,28 @@ namespace VSIXProject1
 
         private static void CheckConfigFileGlobalProperties()
         {
-            if (configFileGlobal.name is null)
+            if (configFilesData.configFileGlobal.name is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("name", true, ""));
 
-            if (configFileGlobal.framework_max_version is null)
+            if (configFilesData.configFileGlobal.framework_max_version is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", true, ""));
 
-            if (configFileGlobal.global_required_references is null)
+            if (configFilesData.configFileGlobal.global_required_references is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("global_required_references", true, ""));
 
-            if (configFileGlobal.global_unacceptable_references is null)
+            if (configFilesData.configFileGlobal.global_unacceptable_references is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("global_unacceptable_references", true, ""));
         }
 
         private static void CheckConfigPropertiesOnNotNull()
         {
-            if (configFileSolution != null)
+            if (configFilesData.configFileSolution != null)
             {
                 CheckConfigFileSolutionProperties();
 
-                if (configFileSolution.projects != null)
+                if (configFilesData.configFileSolution.projects != null)
                 {
-                    foreach (var project in configFileSolution.projects)
+                    foreach (var project in configFilesData.configFileSolution.projects)
                     {
                         if (project.Value != null)
                             CheckConfigFileProjectProperties(project.Key, project.Value);
@@ -795,10 +741,10 @@ namespace VSIXProject1
                     configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("projects", false, ""));
             }
             else
-                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError(solutionName, false, ""));
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError(configFilesData.solutionName, false, ""));
 
 
-            if (configFileGlobal != null)
+            if (configFilesData.configFileGlobal != null)
                 CheckConfigFileGlobalProperties();
             else
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("Global", true, ""));
@@ -1309,17 +1255,17 @@ namespace VSIXProject1
 
             CheckConfigPropertiesOnNotNull();
 
-            var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileGlobal?.framework_max_version ?? "-", ErrorLevel.Global);
-            var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileSolution?.framework_max_version ?? "-", ErrorLevel.Solution);
+            var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFilesData.configFileGlobal?.framework_max_version ?? "-", ErrorLevel.Global);
+            var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFilesData.configFileSolution?.framework_max_version ?? "-", ErrorLevel.Solution);
 
             CheckMaxFrameworkVersionOneLevelConflict(maxGlobalFrameworkVersionByTypes, ErrorLevel.Global);
             CheckMaxFrameworkVersionOneLevelConflict(maxSolutionFrameworkVersionByTypes, ErrorLevel.Solution);
 
-            List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
-            List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
+            List<string> solutionRequiredReferences = configFilesData.configFileSolution?.solution_required_references ?? new List<string>();
+            List<string> solutionUnacceptableReferences = configFilesData.configFileSolution?.solution_unacceptable_references ?? new List<string>();
 
-            List<string> globalRequiredReferences = configFileGlobal?.global_required_references ?? new List<string>();
-            List<string> globalUnacceptableReferences = configFileGlobal?.global_unacceptable_references ?? new List<string>();
+            List<string> globalRequiredReferences = configFilesData.configFileGlobal?.global_required_references ?? new List<string>();
+            List<string> globalUnacceptableReferences = configFilesData.configFileGlobal?.global_unacceptable_references ?? new List<string>();
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
             {
@@ -1341,9 +1287,9 @@ namespace VSIXProject1
                 var projReferences = currentProjState.Value.CurrentReferences;
                 var projFrameworkVersion = currentProjState.Value.CurrentFrameworkVersion;
 
-                if (configFileSolution?.projects?.ContainsKey(projName) ?? false)
+                if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {
-                    ConfigFileProject currentProjectConfigFileSettings = configFileSolution.projects[projName];
+                    ConfigFileProject currentProjectConfigFileSettings = configFilesData.configFileSolution.projects[projName];
 
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
@@ -1455,7 +1401,6 @@ namespace VSIXProject1
         private static void CommitCurrentReferences()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
             commitedProjState.Clear();
 
             EnvDTE.Solution solution = dte.Solution;
@@ -1463,7 +1408,6 @@ namespace VSIXProject1
             foreach (EnvDTE.Project project in solution.Projects)
             {
                 var projectFrameworkVersion = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
-
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 
                 if (vSProject != null)
@@ -1472,15 +1416,11 @@ namespace VSIXProject1
 
                     foreach (VSLangProj.Reference vRef in vSProject.References)
                     {
-
                         if (vRef.SourceProject != null)
-                        {
                             refsList.Add(vRef.Name);
-                        }
                     }
 
                     commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkVersion, refsList));
-
                 }
             }
         }
@@ -1490,198 +1430,15 @@ namespace VSIXProject1
             foreach (KeyValuePair<string, ProjectState> keyValuePair in commitedProjState)
             {
                 if (keyValuePair.Value.CurrentReferences.Count > 0)
-                {
                     return true;
-                }
             }
 
             return false;
         }
 
-        private void RestoreInfoToRollbackFile(string currentConfigGuardFile, string currentConfigGuardRollbackFile)
-        {
-            try
-            {
-                string fileInfo;
-
-                using (FileStream fileStream = new FileStream(currentConfigGuardFile, FileMode.Open))
-                {
-                    StreamReader sr = new StreamReader(fileStream);
-
-                    fileInfo = sr.ReadToEnd();
-                }
-
-                using (FileStream fileStream = File.Create(currentConfigGuardRollbackFile))
-                {
-                    StreamWriter streamWriter = new StreamWriter(fileStream);
-
-                    streamWriter.Write(fileInfo);
-
-                    streamWriter.Flush();
-                    fileStream.Flush();
-
-                    streamWriter.Close();
-
-                }
-            }
-            catch (Exception ex)
-            {
-
-                VsShellUtilities.ShowMessageBox( 
-                        this.package,
-                        "Проверьте, что глобальный и локальные .rdg файлы не имеют запретов на чтение, а в корневой папке solution нет запрета на создание файлов",
-                        "RefDepGuard: Ошибка генерации Rollback файла",
-                        OLEMSGICON.OLEMSGICON_INFO,
-                        OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                        OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST
-                     );
-
-            }
-        }
-
-        private void CreateNewConfigFile(string currentConfigGuardFile, bool isGlobal)
-        {
-
-            using (FileStream fileStream = File.Create(currentConfigGuardFile))
-            {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
-                string json;
-
-                if(isGlobal)
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileGlobal());
-                else
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileSolution());
-
-                streamWriter.Write(json);
-
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
-            }
-        }
-
-        private ConfigFileSolution generateDefaultConfigFileSolution()
-        {
-            configFileSolution = new ConfigFileSolution();
-            configFileSolution.name = solutionName;
-            configFileSolution.framework_max_version = "-";
-            configFileSolution.solution_required_references = new List<string>();
-            configFileSolution.solution_unacceptable_references = new List<string>();
-            configFileSolution.projects = new Dictionary<string, ConfigFileProject>();
-
-            foreach (var projectName in commitedProjState.Keys)
-            {
-                ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
-                configFileProjectRefsConsidering.required = true;
-                configFileProjectRefsConsidering.unacceptable = true;
-
-                ConfigFileProject fileProject = new ConfigFileProject();
-                fileProject.framework_max_version = "-";
-                fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
-                fileProject.required_references = new List<string>();
-                fileProject.unacceptable_references = new List<string>();
-
-                configFileSolution.projects.Add(projectName, fileProject);
-            }
-
-            return configFileSolution;
-        }
-
-        private ConfigFileGlobal generateDefaultConfigFileGlobal()
-        {
-            configFileGlobal = new ConfigFileGlobal();
-            configFileGlobal.name = "Global";
-            configFileGlobal.framework_max_version = "-";
-            configFileGlobal.global_required_references = new List<string>();
-            configFileGlobal.global_unacceptable_references = new List<string>();
-
-            return configFileGlobal;
-        }
-
-        private void showConfigFileParseErrorMessage(string errorReason, bool isErrorGlobal, bool isFileExists) 
-        {
-            string rollbackAction = "";
-            string solutionNameInfo = "";
-
-            if (isFileExists)
-                rollbackAction = "Информация, содержащаяся в файле конфигурации будет перезаписана в rollback-файл.\r\nПроверьте её на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации!";
-              
-            if (!isErrorGlobal)
-                solutionNameInfo = " для solution '" + solutionName + "'";
-            
-                VsShellUtilities.ShowMessageBox(
-                            this.package,
-                            errorReason + solutionNameInfo + ".\r\n Шаблон файла конфигурации будет сгенерирован расширением" + ". \r\n" + rollbackAction,
-                            "RefDepGuard Error: Ошибка загрузки файла конфигурации",
-                            OLEMSGICON.OLEMSGICON_INFO,
-                            OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                            OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST
-                         );
-        }
-
-        private void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
-        {
-            if (File.Exists(configFileServiceInfo.SolutionConfigGuardFile))
-            {
-                try
-                {
-                    using (FileStream fileStream = new FileStream(configFileServiceInfo.SolutionConfigGuardFile, FileMode.Open))
-                    {
-                        StreamReader sr = new StreamReader(fileStream);
-
-                        if(configFileServiceInfo.IsGlobal)
-                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(sr.ReadToEnd());
-                        else
-                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.BadDataErrorMessage, false, true);
-
-                    RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
-
-                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
-
-                }
-
-            }
-            else
-            {
-                showConfigFileParseErrorMessage(configFileServiceInfo.FileErrorMessage.FileNotFoundErrorMessage, false, false);
-
-                CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
-            }
-        }
-
         private void GetConfigFileInfo()
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            string dteSolutionFullName = dte.Solution.FullName;
-            int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
-            int lastSlashIndex = dteSolutionFullName.LastIndexOf('\\');
-            string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
-            packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
-
-            solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1);
-
-            string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
-            string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";
-
-            string solutionConfigGuardRollbackFile = solutionExtendedName + "_config_guard_rollback.rdg";
-            string globalConfigGuardRollbackFile = packageExtendedName + "\\global_config_guard_rollback.rdg";
-
-            FileErrorMessage currentSolutionFileErrorMessages = new FileErrorMessage("Не получилось загрузить файл конфигурации", "Файл конфигурации не найден");
-            FileErrorMessage globalFileErrorMessages = new FileErrorMessage("Не получилось загрузить глобальный файл конфигурации", "Глобальный файл конфигурации не найден");
-
-            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(false, solutionConfigGuardFile, solutionConfigGuardRollbackFile, currentSolutionFileErrorMessages);
-            ConfigFileServiceInfo globalSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(true, globalConfigGuardFile, globalConfigGuardRollbackFile, globalFileErrorMessages);
-
-            GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
-
-            GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
+            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(dte, this.package, commitedProjState);
         }
     }
 }

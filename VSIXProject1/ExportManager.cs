@@ -36,7 +36,7 @@ namespace VSIXProject1
                         break;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 isLoadSuccessful = false;
             }

@@ -11,13 +11,11 @@ namespace VSIXProject1.Data
         public bool IsGlobal;
         public string SolutionConfigGuardFile;
         public string SolutionConfigGuardRollbackFile;
-        public FileErrorMessage FileErrorMessage;
 
-        public ConfigFileServiceInfo(bool isGlobal, string solutionConfigGuardFile, string solutionConfigGuardRollbackFile, FileErrorMessage fileErrorMessage) {
+        public ConfigFileServiceInfo(bool isGlobal, string solutionConfigGuardFile, string solutionConfigGuardRollbackFile) {
             IsGlobal = isGlobal;
             SolutionConfigGuardFile = solutionConfigGuardFile;  
             SolutionConfigGuardRollbackFile = solutionConfigGuardRollbackFile;
-            FileErrorMessage = fileErrorMessage;
         }
     }
 }
