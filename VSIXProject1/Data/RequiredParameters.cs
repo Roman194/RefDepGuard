@@ -8,12 +8,12 @@ using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1.Data
 {
-    public class RequiredExportParameters
+    public class RequiredParameters
     {
         public List<RequiredReference> RequiredReferences;
         public Dictionary<string, RequiredMaxFrVersion> MaxRequiredFrameworkVersion;
 
-        public RequiredExportParameters(List<RequiredReference> requiredReferences, Dictionary<string, RequiredMaxFrVersion> maxRequiredFrameworkVersion)
+        public RequiredParameters(List<RequiredReference> requiredReferences, Dictionary<string, RequiredMaxFrVersion> maxRequiredFrameworkVersion)
         {
             RequiredReferences = requiredReferences;
             MaxRequiredFrameworkVersion = maxRequiredFrameworkVersion;

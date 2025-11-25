@@ -13,7 +13,7 @@ namespace VSIXProject1
     public class XLSXManager
     {
         public static void LoadReferencesDataToTableReport(Application excel, string solutionName, string solutionAddress, string currentReportDirectory, string currentDateTime, 
-            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredExportParameters requiredExportParameters)
+            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RequiredParameters requiredExportParameters)
         {
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
@@ -31,7 +31,7 @@ namespace VSIXProject1
         private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersions)
         {
             List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;
-            List<MaxFrameworkVersionDeviantValue> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
+            List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorsList = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
 
 
@@ -122,7 +122,7 @@ namespace VSIXProject1
                 currentMaxFrVersionCellRange.NumberFormat = "@";
 
                 //Проверить при ошибке на уровнях выше Project
-                if (maxFrVersionDeviantValuesList.Contains(new MaxFrameworkVersionDeviantValue(ErrorLevel.Global, currentProjectName), new MaxFrameworkVersionDeviantValueExportContainsComparer()))
+                if (maxFrVersionDeviantValuesList.Contains(new MaxFrameworkVersionDeviantValueError(ErrorLevel.Global, currentProjectName), new MaxFrameworkVersionDeviantValueExportContainsComparer()))
                     projectsTable.Cells[6 + i, 5] = "?";
                 else
                 {
@@ -348,7 +348,7 @@ namespace VSIXProject1
 
             int i = 0;
 
-            foreach(MaxFrameworkVersionDeviantValue maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
+            foreach(MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
             {
                 if (i == 0)
                     projectsTable.Cells[5, 2] = "1";

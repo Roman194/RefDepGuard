@@ -11,8 +11,8 @@ namespace VSIXProject1
     {
 
         public static void LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, string currentReportDirectory, 
-            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, 
-            RequiredExportParameters requiredExportParameters) 
+            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarning, 
+            RequiredParameters requiredExportParameters) 
         {
             string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
 
@@ -21,10 +21,9 @@ namespace VSIXProject1
 
             sw.Flush();
             sw.Close();
-            
         }
 
-        private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, RequiredExportParameters requiredExportParameters)
+        private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarning, RequiredParameters requiredExportParameters)
         {
             HtmlDocument htmlDoc = new HtmlDocument();
             HtmlNode divNode = htmlDoc.CreateElement("div");
@@ -43,14 +42,14 @@ namespace VSIXProject1
             return divNode.OuterHtml.Replace("class=\"module\"", "type=\"module\""); //на момент написания кода либа не даёт возможности задавать тип нода (только его читать), поэтому реализовано такое ухищрение
         }
 
-        private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarnings, RequiredExportParameters requiredExportParameters)
+        private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarnings, RequiredParameters requiredExportParameters)
         {
             string outputMermaidCode = "flowchart LR\r\n";
             Dictionary <string, string> projectNameToNodeIdCompare = new Dictionary<string, string>();
 
             List<RequiredReference> requiredReferences = requiredExportParameters.RequiredReferences;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
-            List<MaxFrameworkVersionDeviantValue> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
+            List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrVersionRefConflictWarning = refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
 

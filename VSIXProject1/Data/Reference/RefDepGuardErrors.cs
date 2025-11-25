@@ -12,11 +12,11 @@ namespace VSIXProject1.Data.Reference
         public List<ConfigFilePropertyNullError> ConfigPropertyNullErrorList;
         public List<ReferenceError> RefsErrorList;
         public List<ReferenceMatchError> RefsMatchErrorList;
-        public List<MaxFrameworkVersionDeviantValue> MaxFrameworkVersionDeviantValueList;
+        public List<MaxFrameworkVersionDeviantValueError> MaxFrameworkVersionDeviantValueList;
         public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
 
         public RefDepGuardErrors(List<ConfigFilePropertyNullError> configPropertyNullErrorList, List<ReferenceError> refsErrorList, 
-            List<ReferenceMatchError> refsMatchErrorList, List<MaxFrameworkVersionDeviantValue> maxFrameworkVersionDeviantValueList,
+            List<ReferenceMatchError> refsMatchErrorList, List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueList,
             List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList)
         {
             ConfigPropertyNullErrorList = configPropertyNullErrorList;

@@ -198,7 +198,5 @@ namespace VSIXProject1
                     );
             }
         }
-
-
     }
 }

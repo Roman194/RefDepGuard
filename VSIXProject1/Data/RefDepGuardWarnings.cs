@@ -8,13 +8,13 @@ using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1.Data
 {
-    public class RefDepGuardWarning
+    public class RefDepGuardWarnings
     {
         public List<ReferenceMatchWarning> RefsMatchWarningList;
         public List<MaxFrameworkVersionConflictWarning> MaxFrameworkVersionConflictWarningsList;
         public List<MaxFrameworkVersionReferenceConflictWarning> MaxFrameworkVersionReferenceConflictWarningsList;
 
-        public RefDepGuardWarning(List<ReferenceMatchWarning> refsMatchWarningList, List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList, List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList)
+        public RefDepGuardWarnings(List<ReferenceMatchWarning> refsMatchWarningList, List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList, List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList)
         {
             RefsMatchWarningList = refsMatchWarningList;
             MaxFrameworkVersionConflictWarningsList = maxFrameworkVersionConflictWarningsList;

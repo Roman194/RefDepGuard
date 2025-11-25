@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace VSIXProject1.Data.FrameworkVersion
 {
-    public class MaxFrameworkVersionDeviantValue
+    public class MaxFrameworkVersionDeviantValueError
     {
         public ErrorLevel ErrorLevel;
         public string ErrorRelevantProjectName;
         
-        public MaxFrameworkVersionDeviantValue(ErrorLevel errorLevel, string errorRelevantProjectName)
+        public MaxFrameworkVersionDeviantValueError(ErrorLevel errorLevel, string errorRelevantProjectName)
         {
             ErrorLevel = errorLevel;
             ErrorRelevantProjectName = errorRelevantProjectName;

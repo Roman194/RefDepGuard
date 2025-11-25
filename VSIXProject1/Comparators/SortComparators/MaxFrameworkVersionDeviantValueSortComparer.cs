@@ -3,9 +3,9 @@ using VSIXProject1.Data.FrameworkVersion;
 
 namespace VSIXProject1
 {
-    internal class MaxFrameworkVersionDeviantValueSortComparer : IComparer<MaxFrameworkVersionDeviantValue>
+    internal class MaxFrameworkVersionDeviantValueSortComparer : IComparer<MaxFrameworkVersionDeviantValueError>
     {
-        public int Compare(MaxFrameworkVersionDeviantValue x, MaxFrameworkVersionDeviantValue y)
+        public int Compare(MaxFrameworkVersionDeviantValueError x, MaxFrameworkVersionDeviantValueError y)
         {
             if (x == null && y == null) return 0;
             if (x == null) return -1;

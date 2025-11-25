@@ -3,14 +3,14 @@ using VSIXProject1.Data.FrameworkVersion;
 
 namespace VSIXProject1
 {
-    public class MaxFrameworkVersionDeviantValueContainsComparer : IEqualityComparer<MaxFrameworkVersionDeviantValue>
+    public class MaxFrameworkVersionDeviantValueContainsComparer : IEqualityComparer<MaxFrameworkVersionDeviantValueError>
     {
-        public bool Equals(MaxFrameworkVersionDeviantValue x, MaxFrameworkVersionDeviantValue y)
+        public bool Equals(MaxFrameworkVersionDeviantValueError x, MaxFrameworkVersionDeviantValueError y)
         {
             return x.ErrorLevel == y.ErrorLevel && x.ErrorRelevantProjectName == y.ErrorRelevantProjectName;
         }
 
-        public int GetHashCode(MaxFrameworkVersionDeviantValue obj)
+        public int GetHashCode(MaxFrameworkVersionDeviantValueError obj)
         {
             unchecked
             {

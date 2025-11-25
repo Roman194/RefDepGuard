@@ -45,8 +45,13 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CheckRulesManager.cs" />
+    <Compile Include="CommitManager.cs" />
     <Compile Include="ConfigFileManager.cs" />
     <Compile Include="Data\ConfigFile\ConfigFilesData.cs" />
+    <Compile Include="Data\RefDepGuardExportParameters.cs" />
+    <Compile Include="Data\RefDepGuardFindedProblems.cs" />
+    <Compile Include="ExcecuteRefsManager.cs" />
     <Compile Include="MainCommand.cs" />
     <Compile Include="Comparators\FrameworkVersionComparabilityErrorContainsComparer.cs" />
     <Compile Include="Comparators\FrameworkVersionComparabilityErrorExportContainsComparer.cs" />
@@ -62,11 +67,11 @@
     <Compile Include="Data\FileErrorMessage.cs" />
     <Compile Include="Data\FrameworkVersion\FrameworkVersionComparabilityError.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionConflictWarning.cs" />
-    <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionDeviantValue.cs" />
+    <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionDeviantValueError.cs" />
     <Compile Include="Data\FrameworkVersion\MaxFrameworkVersionReferenceConflictWarning.cs" />
     <Compile Include="Data\FrameworkVersion\RequiredMaxFrVersion.cs" />
     <Compile Include="Data\ProjectState.cs" />
-    <Compile Include="Data\RefDepGuardWarning.cs" />
+    <Compile Include="Data\RefDepGuardWarnings.cs" />
     <Compile Include="Data\Reference\ConfigFilePropertyNullError.cs" />
     <Compile Include="Data\Reference\RefDepGuardErrors.cs" />
     <Compile Include="Data\Reference\ReferenceMatchWarning.cs" />
@@ -74,7 +79,7 @@
     <Compile Include="Comparators\MaxFrameworkVersionDeviantValueContainsComparer.cs" />
     <Compile Include="Comparators\SortComparators\FrameworkVersionComparabilityErrorSortComparer.cs" />
     <Compile Include="Comparators\SortComparators\MaxFrameworkVersionDeviantValueSortComparer.cs" />
-    <Compile Include="Data\RequiredExportParameters.cs" />
+    <Compile Include="Data\RequiredParameters.cs" />
     <Compile Include="DateTimeManager.cs" />
     <Compile Include="ExportManager.cs" />
     <Compile Include="HTMLManager.cs" />

@@ -13,10 +13,13 @@ namespace VSIXProject1
     public class ExportManager
     {
 
-        public static bool LoadReferencesDataToReport(Application excel, string solutionName, string solutionAddress, string reportType, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarning refDepGuardWarning, RequiredExportParameters requiredExportParameters)
+        public static bool LoadReferencesDataToReport(Application excel, string solutionName, string solutionAddress, string reportType, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             bool isLoadSuccessful = true;
             string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();
+
+            RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
+            RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
 
             try
             {
@@ -27,12 +30,12 @@ namespace VSIXProject1
                 {
                     case "table_type":
                         XLSXManager.LoadReferencesDataToTableReport(excel, solutionName, solutionAddress, currentReportDirectory, currentDateTime, commitedProjectsState,
-                        refDepGuardErrors, requiredExportParameters); 
+                        refDepGuardErrors, refDepGuardExportParameters.RequiredParametersData); 
                         break;
 
                     case "graph_type":
                         HTMLManager.LoadReferencesDataToGraphicReport(solutionName, solutionAddress, currentReportDirectory, commitedProjectsState, refDepGuardErrors,
-                            refDepGuardWarning, requiredExportParameters);
+                            refDepGuardWarnings, refDepGuardExportParameters.RequiredParametersData);
                         break;
                 }
             }
