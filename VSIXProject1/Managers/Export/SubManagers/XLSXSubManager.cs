@@ -28,6 +28,7 @@ namespace VSIXProject1
             exportWorkbook.Close(false, Type.Missing, Type.Missing);
         }
 
+        //Вынести в отдельные файлы Воркбуки?
         private static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersions)
         {
             List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;

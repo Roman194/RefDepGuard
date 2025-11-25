@@ -11,7 +11,7 @@ namespace VSIXProject1
 {
     public class ExcecuteRefsManager
     {
-        public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider)
+        public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider) //Сделать общий над двумя методами?
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             string message = "";

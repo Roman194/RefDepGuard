@@ -11,10 +11,10 @@ namespace VSIXProject1.Data
     {
         public RefDepGuardWarnings RefDepGuardWarnings;
         public RefDepGuardErrors RefDepGuardErrors;
-        public RefDepGuardFindedProblems(RefDepGuardWarnings refDepGuardWarning, RefDepGuardErrors refDepGuardErrors)
+        public RefDepGuardFindedProblems(RefDepGuardWarnings refDepGuardWarnings, RefDepGuardErrors refDepGuardErrors)
         {
             RefDepGuardErrors = refDepGuardErrors;
-            RefDepGuardWarnings = refDepGuardWarning;
+            RefDepGuardWarnings = refDepGuardWarnings;
         }
 
     }

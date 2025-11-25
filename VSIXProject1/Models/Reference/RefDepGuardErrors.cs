@@ -14,16 +14,19 @@ namespace VSIXProject1.Data.Reference
         public List<ReferenceMatchError> RefsMatchErrorList;
         public List<MaxFrameworkVersionDeviantValueError> MaxFrameworkVersionDeviantValueList;
         public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
+        public List<string> UntypedErrorsList;
 
-        public RefDepGuardErrors(List<ConfigFilePropertyNullError> configPropertyNullErrorList, List<ReferenceError> refsErrorList, 
+        public RefDepGuardErrors(
+            List<ConfigFilePropertyNullError> configPropertyNullErrorList, List<ReferenceError> refsErrorList, 
             List<ReferenceMatchError> refsMatchErrorList, List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueList,
-            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList)
+            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, List<string> untypedErrorsList)
         {
             ConfigPropertyNullErrorList = configPropertyNullErrorList;
             RefsErrorList = refsErrorList;
             RefsMatchErrorList = refsMatchErrorList;
             MaxFrameworkVersionDeviantValueList = maxFrameworkVersionDeviantValueList;
             FrameworkVersionComparabilityErrorList = frameworkVersionComparabilityErrorList;
+            UntypedErrorsList = untypedErrorsList;
         }
     }
 }

@@ -1,0 +1,256 @@
+﻿using Microsoft.VisualStudio.Shell;
+using VSIXProject1.Data;
+using VSIXProject1.Data.FrameworkVersion;
+using VSIXProject1.Data.Reference;
+
+namespace VSIXProject1.Managers.CheckRules
+{
+    public class ELPStoreSubManager
+    {
+        public static void StoreErrorListProviderByValues(RefDepGuardFindedProblems refDepGuardFindedProblems, string solutionName, ErrorListProvider errorListProvider)
+        {
+            RefDepGuardErrors refDepGuardErrors = refDepGuardFindedProblems.RefDepGuardErrors;
+            RefDepGuardWarnings refDepGuardWarnings = refDepGuardFindedProblems.RefDepGuardWarnings;
+
+            if (errorListProvider != null)
+                errorListProvider.Tasks.Clear();
+
+            foreach (var projName in refDepGuardErrors.UntypedErrorsList)
+            {
+                string currentText = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'";
+
+                StoreErrorTask(errorListProvider, currentText, solutionName + ".csproj", true);
+            }
+
+            foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string relevantProjectName = "";
+                string globalPrefix = "";
+
+                switch (maxFrameworkVersionDeviantValue.ErrorLevel)
+                {
+                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; globalPrefix = "глобального "; break;
+                    case ErrorLevel.Solution: relevantProjectName = " уровня Solution"; break;
+                    case ErrorLevel.Project: relevantProjectName = " проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
+                }
+
+                string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " + relevantProjectName + " содержит некорректную запись своего значения. Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, false);
+            }
+
+            foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string ruleLevel = "";
+
+
+                switch (frameworkVersionComparabilityError.ErrorLevel)
+                {
+                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; ruleLevel = "ограничение глобального уровня"; break;
+                    case ErrorLevel.Solution: ruleLevel = "ограничение уровня решения"; break;
+                    case ErrorLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
+                }
+
+                string errorText = "RefDepGuard framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion
+                    + "', в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "' (" + ruleLevel + "). Измените версию проекта или модифицируйте конфигурацию Config-файла";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, false);
+            }
+
+            foreach (ConfigFilePropertyNullError configFilePropertyNullError in refDepGuardErrors.ConfigPropertyNullErrorList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string relevantProjectName = "";
+
+                if (configFilePropertyNullError.IsGlobal)
+                    documentName = "global_config_guard.rdg";
+
+                if (configFilePropertyNullError.ErrorRelevantProjectName != "")
+                    relevantProjectName = " для проекта '" + configFilePropertyNullError.ErrorRelevantProjectName + "'";
+
+                string errorText = "RefDepGuard Null property error: Config-файл не содержит свойство '" + configFilePropertyNullError.PropertyName + "'" + relevantProjectName + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, false);
+            }
+
+            foreach (ReferenceMatchError referenceMatchError in refDepGuardErrors.RefsMatchErrorList)
+            {
+                string projectName = "";
+                string referenceLevelText = "";
+                string documentName = solutionName + "_config_guard.rdg";
+                string matchErrorDescription = "";
+
+                if (referenceMatchError.IsProjNameMatchError)
+                    matchErrorDescription = " совпадает с именем проекта";
+                else
+                    matchErrorDescription = " одновременно заявлен как обязательный и недопустимый";
+
+                if (referenceMatchError.ProjectName != "")
+                    projectName = "' проекта '" + referenceMatchError.ProjectName;
+
+
+                switch (referenceMatchError.ReferenceLevelValue)
+                {
+                    case ErrorLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ErrorLevel.Project: break;
+                }
+
+                string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, false);
+            }
+
+
+            foreach (ReferenceError error in refDepGuardErrors.RefsErrorList)
+            {
+                string referenceTypeText = "";
+                string referenceLevelText = "";
+                string documentName = error.ErrorRelevantProjectName + ".csproj";
+                string actionForUser = "";
+
+                if (error.IsReferenceRequired)
+                {
+                    referenceTypeText = "Отсутсвует обязательный";
+                    actionForUser = "Добавьте";
+                }
+                else
+                {
+                    referenceTypeText = "Присутствует недопустимый";
+                    actionForUser = "Удалите";
+                }
+
+                switch (error.CurrentReferenceLevel)
+                {
+                    case ErrorLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ErrorLevel.Project: break;
+                }
+
+                string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, false);
+            }
+
+            foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string highErrorLevelText = "";
+                string lowErrorLevelText = "";
+
+                if (maxFrameworkVersionConflictValue.HighErrorLevel == maxFrameworkVersionConflictValue.LowErrorLevel)
+                    highErrorLevelText = ", указанное в супертипе 'all' на том же уровне";
+
+                else
+                {
+                    switch (maxFrameworkVersionConflictValue.HighErrorLevel)
+                    {
+                        case ErrorLevel.Global: highErrorLevelText = "глобального уровня"; break;
+                        case ErrorLevel.Solution: highErrorLevelText = "уровня Solution"; break;
+                    }
+                }
+
+                switch (maxFrameworkVersionConflictValue.LowErrorLevel)
+                {
+                    case ErrorLevel.Solution: lowErrorLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Project: lowErrorLevelText = "в проекте '" + maxFrameworkVersionConflictValue.ErrorRelevantProjectName + "'"; break;
+                }
+
+                string errorText = "RefDepGuard framework_max_version conflict warning: значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
+                    + "' параметра 'framework_max_version' " + lowErrorLevelText + " превосходит значение '" + maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
+                    + "' одноимённого параметра " + highErrorLevelText + ". Устраните противоречие";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, true);
+            }
+
+            foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+
+                string errorText = "RefDepGuard framework_max_version reference conflict warning: значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
+                    + "' параметра 'framework_max_version' проекта " + maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
+                    ", так как имеется референс на проект, имеющий большее значение значение параметра 'framework_max_version' (проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
+                    + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + "). Устраните противоречие";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, true);
+            }
+
+            foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
+            {
+                string documentName = solutionName + "_config_guard.rdg";
+                string projectName = "";
+                string highReferenceLevelText = "";
+                string lowReferenceLevelText = "";
+                string referenceTypeText = "";
+                string warningDescription = "";
+                string warningAction = "";
+
+
+                if (referenceMatchWarning.ProjectName != "")
+                {
+                    projectName = "' проекта '" + referenceMatchWarning.ProjectName;
+                }
+
+                if (referenceMatchWarning.LowReferenceLevel == ErrorLevel.Solution)
+                {
+                    lowReferenceLevelText = "уровня Solution";
+                }
+
+                switch (referenceMatchWarning.HighReferenceLevel)
+                {
+                    case ErrorLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ErrorLevel.Project: break;
+                }
+
+                if (referenceMatchWarning.IsReferenceStraight)
+                {
+                    warningDescription = " дубирует правило с одноимённым референсом ";
+                    warningAction = ". Устраните дублирование правила";
+
+                    if (referenceMatchWarning.IsHighLevelReq)
+                        referenceTypeText = " является обязательным и";
+                    else
+                        referenceTypeText = " является недопустимым и";
+                }
+                else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" праивлу
+                {
+                    warningDescription = " противоречит правилу с одноимённым референсом ";
+                    warningAction = ". Устраните противоречие в правиле";
+
+                    if (referenceMatchWarning.IsHighLevelReq)
+                        referenceTypeText = " является недопустимым и";
+                    else
+                        referenceTypeText = " является обязательным и";
+                }
+
+                string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
+
+                StoreErrorTask(errorListProvider, errorText, documentName, true);
+            }
+
+            if (errorListProvider != null)
+                errorListProvider.Show();
+        }
+
+        private static void StoreErrorTask(ErrorListProvider errorListProvider, string currentText, string currentDocument, bool isWarning)
+        {
+            TaskErrorCategory currentTask = TaskErrorCategory.Error;
+
+            if (isWarning)
+                currentTask = TaskErrorCategory.Warning;
+
+            ErrorTask errorTask = new ErrorTask
+            {
+                Category = TaskCategory.User,
+                ErrorCategory = currentTask,
+                Document = currentDocument,
+                Text = currentText
+            };
+
+            errorListProvider.Tasks.Add(errorTask);
+        }
+    }
+}
