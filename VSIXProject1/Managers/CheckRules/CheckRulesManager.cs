@@ -147,13 +147,10 @@ namespace VSIXProject1
                 }
                 else
                 {
-
-                    //Проект есть в solution но его нет в config
+                    //Проект есть в solution но его нет в config - вывести соответствующий warning
                 }
 
-                //А что делать если проекта нет в solution, но он есть в config?
-                //Рассмотреть в т.ч. случаи когда свойство projects пустое
-
+                //А что делать если проекта нет в solution, но он есть в config? - вывести соответствующий warning
             }
 
             var refsMatchWarningList = RefsRuleChecksSubManager.GetReferenceWarnings();//На текущий момент только тип RefsMatchWarning 
@@ -163,7 +160,7 @@ namespace VSIXProject1
             var maxFrameworkRuleErrors = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleErrors();
             var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
 
-            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorComparer());
+            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorSortComparer());
             refsRuleCheckErrors.RefsMatchErrorList.Sort(new ReferenceMatchErrorSortComparer());
             configPropertyNullErrorList.Sort(new ConfigFilePropertyNullErrorSortComparer());
             maxFrameworkVersionDeviantValueList.Sort(new MaxFrameworkVersionDeviantValueSortComparer());
@@ -207,7 +204,6 @@ namespace VSIXProject1
             if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project)
             {
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
-
                 MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
 
                 if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
@@ -232,7 +228,6 @@ namespace VSIXProject1
                 if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0])) //Если не указано название типа фреймворка
                 {
                     //Выкинуть ошибку о некорректном формате
-
                     MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, "");
 
                     if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))

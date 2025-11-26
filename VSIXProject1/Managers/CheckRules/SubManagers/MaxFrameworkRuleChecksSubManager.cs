@@ -44,7 +44,6 @@ namespace VSIXProject1.Managers.CheckRules
                     if (currentMaxLowLevelFrameworkVersion.Key != "all")
                     {
                         List<int> maxCurrentTypeFrameworkVersionArray = currentMaxLowLevelFrameworkVersion.Value;
-                        //Возможно это даже ошибка, а не предупреждение
                         CheckMaxFrameworkVersionCurrentConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, projName, ruleLevel, ruleLevel);
                     }
                 }

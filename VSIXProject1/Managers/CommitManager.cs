@@ -1,10 +1,6 @@
 ﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VSIXProject1.Data;
 
 namespace VSIXProject1

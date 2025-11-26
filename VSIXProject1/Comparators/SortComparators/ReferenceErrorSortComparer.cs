@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace VSIXProject1
 {
-    public class ReferenceErrorComparer : IComparer<ReferenceError>
+    public class ReferenceErrorSortComparer : IComparer<ReferenceError>
     {
         public int Compare(ReferenceError x, ReferenceError y)
         {
