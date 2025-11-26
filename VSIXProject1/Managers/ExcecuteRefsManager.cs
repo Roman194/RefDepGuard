@@ -32,7 +32,6 @@ namespace VSIXProject1
                     {
                         if (vRef.SourceProject != null)
                         {
-
                             refsList.Add(vRef.Name);
                             message += (vRef.Name + "\r\n");
                         }

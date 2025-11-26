@@ -252,5 +252,21 @@ namespace VSIXProject1.Managers.CheckRules
 
             errorListProvider.Tasks.Add(errorTask);
         }
+
+        public static void ShowUnsuccessfulCheckingRulesWarning(ErrorListProvider errorListProvider)
+        {
+            if (errorListProvider != null)
+                errorListProvider.Tasks.Clear();
+
+            ErrorTask errorTask = new ErrorTask
+            {
+                Category = TaskCategory.User,
+                ErrorCategory = TaskErrorCategory.Warning,
+                Text = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой"
+            };
+
+            errorListProvider.Tasks.Add(errorTask);
+            errorListProvider.Show();
+        }
     }
 }

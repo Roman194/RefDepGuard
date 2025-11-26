@@ -46,15 +46,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
-    <Compile Include="Managers\CheckRules\ELPStoreSubManager.cs" />
-    <Compile Include="Managers\CheckRules\MaxFrameworkRulesChecksSubManager.cs" />
-    <Compile Include="Managers\CheckRules\NotNullChecksSubManager.cs" />
+    <Compile Include="Managers\CheckRules\SubManagers\ELPStoreSubManager.cs" />
+    <Compile Include="Managers\CheckRules\SubManagers\MaxFrameworkRuleChecksSubManager.cs" />
+    <Compile Include="Managers\CheckRules\SubManagers\NotNullChecksSubManager.cs" />
+    <Compile Include="Managers\CheckRules\SubManagers\RefsRuleChecksSubManager.cs" />
     <Compile Include="Managers\CommitManager.cs" />
     <Compile Include="Managers\Import\ConfigFileManager.cs" />
     <Compile Include="Models\ConfigFile\ConfigFilesData.cs" />
+    <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleErrors.cs" />
+    <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionWarnings.cs" />
     <Compile Include="Models\RefDepGuardExportParameters.cs" />
     <Compile Include="Models\RefDepGuardFindedProblems.cs" />
     <Compile Include="Managers\ExcecuteRefsManager.cs" />
+    <Compile Include="Models\Reference\ReferenceRuleErrors.cs" />
     <Compile Include="UI\MainCommand.cs" />
     <Compile Include="Comparators\FrameworkVersionComparabilityErrorContainsComparer.cs" />
     <Compile Include="Comparators\FrameworkVersionComparabilityErrorExportContainsComparer.cs" />
@@ -76,7 +80,7 @@
     <Compile Include="Models\ProjectState.cs" />
     <Compile Include="Models\RefDepGuardWarnings.cs" />
     <Compile Include="Models\Reference\ConfigFilePropertyNullError.cs" />
-    <Compile Include="Models\Reference\RefDepGuardErrors.cs" />
+    <Compile Include="Models\RefDepGuardErrors.cs" />
     <Compile Include="Models\Reference\ReferenceMatchWarning.cs" />
     <Compile Include="Models\Reference\RequiredReference.cs" />
     <Compile Include="Comparators\MaxFrameworkVersionDeviantValueContainsComparer.cs" />

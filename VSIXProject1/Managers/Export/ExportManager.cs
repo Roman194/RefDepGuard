@@ -12,8 +12,10 @@ namespace VSIXProject1
 {
     public class ExportManager
     {
-
-        public static bool LoadReferencesDataToReport(Application excel, string solutionName, string solutionAddress, string reportType, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
+        public static bool LoadReferencesDataToReport(
+            Application excel, string solutionName, string solutionAddress, string reportType, 
+            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters
+            )
         {
             bool isLoadSuccessful = true;
             string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();

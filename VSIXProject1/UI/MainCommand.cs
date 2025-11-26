@@ -7,6 +7,7 @@ using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
+using VSIXProject1.Managers.CheckRules;
 
 namespace VSIXProject1
 {
@@ -133,7 +134,7 @@ namespace VSIXProject1
             if (IsReferencesAddedCorrectly()) //иначе - вывести warning
                 CheckRulesFromConfigFile();
             else
-                ShowUnsuccessfulCheckingRulesWarning();
+                ELPStoreSubManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
         }
 
         private static void BeforeSolutionClosed()
@@ -179,7 +180,6 @@ namespace VSIXProject1
                 if (keyValuePair.Value.CurrentReferences.Count > 0)
                     return true;
             }
-
             return false;
         }
 
@@ -191,23 +191,6 @@ namespace VSIXProject1
         private static void CheckRulesFromConfigFile()
         {
             refDepGuardExportParameters = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState);
-        }
-
-        private static void ShowUnsuccessfulCheckingRulesWarning() //Вынести куда-то в подменджеры CheckRulesManager?
-        {
-            if (errorListProvider != null)
-                errorListProvider.Tasks.Clear();
-
-            ErrorTask errorTask = new ErrorTask
-            {
-                Category = TaskCategory.User,
-                ErrorCategory = TaskErrorCategory.Warning,
-                Text = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой"
-            };
-
-            errorListProvider.Tasks.Add(errorTask);
-
-            errorListProvider.Show();
         }
 
         private void ExportRefsToXSLX(object sender, EventArgs e)

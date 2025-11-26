@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.Reference;
 
@@ -10,21 +6,28 @@ namespace VSIXProject1.Managers.CheckRules
 {
     public class NotNullChecksSubManager
     {
-        public static void CheckConfigPropertiesOnNotNull(ConfigFilesData configFilesData, List<ConfigFilePropertyNullError> configPropertyNullErrorList)
+        static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
+
+        public static void ClearConfigPropertyNullErrorList()
+        {
+            if (configPropertyNullErrorList != null)
+                configPropertyNullErrorList.Clear();
+        }
+        public static List<ConfigFilePropertyNullError> CheckConfigPropertiesOnNotNull(ConfigFilesData configFilesData)
         {
             ConfigFileGlobal configFileGlobal = configFilesData.configFileGlobal;
             ConfigFileSolution configFileSolution = configFilesData.configFileSolution;
 
             if (configFileSolution != null)
             {
-                CheckConfigFileSolutionProperties(configFileSolution, configPropertyNullErrorList);
+                CheckConfigFileSolutionProperties(configFileSolution);
 
                 if (configFileSolution.projects != null)
                 {
                     foreach (var project in configFileSolution.projects)
                     {
                         if (project.Value != null)
-                            CheckConfigFileProjectProperties(project.Key, project.Value, configPropertyNullErrorList);
+                            CheckConfigFileProjectProperties(project.Key, project.Value);
 
                         else
                             configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("project_value", false, project.Key));
@@ -38,12 +41,14 @@ namespace VSIXProject1.Managers.CheckRules
 
 
             if (configFileGlobal != null)
-                CheckConfigFileGlobalProperties(configFileGlobal, configPropertyNullErrorList);
+                CheckConfigFileGlobalProperties(configFileGlobal);
             else
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("Global", true, ""));
+
+            return configPropertyNullErrorList;
         }
 
-        private static void CheckConfigFileSolutionProperties(ConfigFileSolution configFileSolution, List<ConfigFilePropertyNullError> configPropertyNullErrorList) 
+        private static void CheckConfigFileSolutionProperties(ConfigFileSolution configFileSolution) 
             //How to make it better? Reflection doesn't work
         {
             if (configFileSolution.name is null)
@@ -59,7 +64,7 @@ namespace VSIXProject1.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_unacceptable_references", false, ""));
         }
 
-        private static void CheckConfigFileProjectProperties(string projectKey, ConfigFileProject currentProject, List<ConfigFilePropertyNullError> configPropertyNullErrorList)
+        private static void CheckConfigFileProjectProperties(string projectKey, ConfigFileProject currentProject)
         {
             if (currentProject.framework_max_version is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", false, projectKey));
@@ -74,7 +79,7 @@ namespace VSIXProject1.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("unacceptable_references", false, projectKey));
         }
 
-        private static void CheckConfigFileGlobalProperties(ConfigFileGlobal configFileGlobal, List<ConfigFilePropertyNullError> configPropertyNullErrorList)
+        private static void CheckConfigFileGlobalProperties(ConfigFileGlobal configFileGlobal)
         {
             if (configFileGlobal.name is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("name", true, ""));

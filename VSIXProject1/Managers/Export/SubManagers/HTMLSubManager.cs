@@ -9,7 +9,6 @@ namespace VSIXProject1
 {
     public class HTMLSubManager
     {
-
         public static void LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, string currentReportDirectory, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarning, 
             RequiredParameters requiredExportParameters) 

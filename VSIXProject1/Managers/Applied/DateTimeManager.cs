@@ -10,7 +10,6 @@ namespace VSIXProject1
     {
         public static string GetCurrentDateTimeInRightFormat()
         {
-
             DateTime currentDateTime = DateTime.Now;
 
             return

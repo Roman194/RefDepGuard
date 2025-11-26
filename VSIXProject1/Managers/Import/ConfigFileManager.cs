@@ -19,7 +19,9 @@ namespace VSIXProject1
 
         static Dictionary<string, ProjectState> commitedProjState;
 
-        public static ConfigFilesData GetInfoFromConfigFiles(DTE dte, IServiceProvider currentServiceProvider, Dictionary<string, ProjectState> currentCommitedProjState)
+        public static ConfigFilesData GetInfoFromConfigFiles(
+            DTE dte, IServiceProvider currentServiceProvider, Dictionary<string, ProjectState> currentCommitedProjState
+            )
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -106,7 +108,6 @@ namespace VSIXProject1
 
         private static void CreateNewConfigFile(string currentConfigGuardFile, bool isGlobal)
         {
-
             using (FileStream fileStream = File.Create(currentConfigGuardFile))
             {
                 StreamWriter streamWriter = new StreamWriter(fileStream);
