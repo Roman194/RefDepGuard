@@ -15,25 +15,23 @@ namespace VSIXProject1.Data.Reference
         public List<ReferenceMatchError> RefsMatchErrorList;
         public List<MaxFrameworkVersionDeviantValueError> MaxFrameworkVersionDeviantValueList;
         public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
-        public List<string> UntypedErrorsList;
 
         public RefDepGuardErrors(
             List<ConfigFilePropertyNullError> configPropertyNullErrorList, List<ReferenceError> refsErrorList, 
             List<ReferenceMatchError> refsMatchErrorList, List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueList,
-            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, List<string> untypedErrorsList)
+            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList)
         {
             ConfigPropertyNullErrorList = configPropertyNullErrorList;
             RefsErrorList = refsErrorList;
             RefsMatchErrorList = refsMatchErrorList;
             MaxFrameworkVersionDeviantValueList = maxFrameworkVersionDeviantValueList;
             FrameworkVersionComparabilityErrorList = frameworkVersionComparabilityErrorList;
-            UntypedErrorsList = untypedErrorsList;
         }
 
         public bool IsEmpty()
         {
-            if (ConfigPropertyNullErrorList.Count < 1 && RefsErrorList.Count < 1 && RefsMatchErrorList.Count < 1 && MaxFrameworkVersionDeviantValueList.Count < 1
-                && FrameworkVersionComparabilityErrorList.Count < 1 && UntypedErrorsList.Count < 1)
+            if (ConfigPropertyNullErrorList.Count < 1 && RefsErrorList.Count < 1 && RefsMatchErrorList.Count < 1 
+                && MaxFrameworkVersionDeviantValueList.Count < 1 && FrameworkVersionComparabilityErrorList.Count < 1)
                 return true;
             else
                 return false;

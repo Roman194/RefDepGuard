@@ -13,15 +13,15 @@ namespace VSIXProject1.Managers.CheckRules
         static List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = new List<MaxFrameworkVersionConflictWarning>();
         static List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = new List<MaxFrameworkVersionReferenceConflictWarning>();
 
-        static List<string> untypedErrorsList = new List<string>();
+        static List<string> untypedWarningsList = new List<string>();
         static List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparabilityError>();
 
         static Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersionsDict = new Dictionary<string, RequiredMaxFrVersion>();
 
         public static void ClearErrorAndWarningLists()
         {
-            if (untypedErrorsList != null)
-                untypedErrorsList.Clear();
+            if (untypedWarningsList != null)
+                untypedWarningsList.Clear();
 
             if (maxFrameworkVersionConflictWarningsList != null)
                 maxFrameworkVersionConflictWarningsList.Clear();
@@ -255,7 +255,7 @@ namespace VSIXProject1.Managers.CheckRules
                     if (!Int32.TryParse(currentProjFrameworkVersionArray[i], out currentProjCurrentNum))
                     {
                         //предупреждение без типа о том, что не удалось спарсить название проекта и проверка версии фреймворка не получилась
-                        untypedErrorsList.Add(projName);
+                        untypedWarningsList.Add(projName);
                         return;
                     }
 
@@ -294,7 +294,7 @@ namespace VSIXProject1.Managers.CheckRules
 
                         if (!Int32.TryParse(currentProjFrameworkVersionArray[j], out currentProjVersionCurrentNum))
                         {
-                            untypedErrorsList.Add(projName);
+                            untypedWarningsList.Add(projName);
                             break;
                         }
 
@@ -347,7 +347,7 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static MaxFrameworkRuleErrors GetMaxFrameworkRuleErrors()
         {
-            return new MaxFrameworkRuleErrors(frameworkVersionComparabilityErrorList, untypedErrorsList);
+            return new MaxFrameworkRuleErrors(frameworkVersionComparabilityErrorList, untypedWarningsList);
         }
 
         public static Dictionary<string, RequiredMaxFrVersion> GetRequiredMaxFrVersionsDict()

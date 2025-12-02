@@ -10,12 +10,12 @@ namespace VSIXProject1.Models.FrameworkVersion
     public class MaxFrameworkRuleErrors
     {
         public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
-        public List<string> UntypedErrorsList;
+        public List<string> UntypedWarningsList;
 
-        public MaxFrameworkRuleErrors(List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, List<string> untypedErrorsList)
+        public MaxFrameworkRuleErrors(List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, List<string> untypedWarningsList)
         {
             FrameworkVersionComparabilityErrorList = frameworkVersionComparabilityErrorList;
-            UntypedErrorsList = untypedErrorsList;
+            UntypedWarningsList = untypedWarningsList;
         }
     }
 }

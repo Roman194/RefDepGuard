@@ -15,7 +15,7 @@ namespace VSIXProject1.Managers.CheckRules
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
-            foreach (var projName in refDepGuardErrors.UntypedErrorsList)//Чё? UntypedError на сам деле Warning?
+            foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
                 string currentText = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'";
 

@@ -118,13 +118,14 @@ namespace VSIXProject1
         }
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
-        { 
-            CommitCurrentReferences();
+        {
+            CommitReferencesAndCheckRules(true);
+            //CommitCurrentReferences();
 
-            if (IsReferencesAddedCorrectly())
-                CheckRulesFromConfigFile(true); //Отслеживание соответствия референсов правилам
-            else
-                ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+            //if (IsReferencesAddedCorrectly())
+            //    CheckRulesFromConfigFile(true);
+            //else
+            //    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
         }
 
         private static async void onSolutionOpened()
@@ -134,11 +135,12 @@ namespace VSIXProject1
 
             GetConfigFileInfo();//Загрузка данных из конфиг файлов производится только при загрузке/открытии нового solution
 
-            CommitCurrentReferences();
-            if (IsReferencesAddedCorrectly()) //иначе - вывести warning
-                CheckRulesFromConfigFile(false);
-            else
-                ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+            //CommitCurrentReferences();
+            //if (IsReferencesAddedCorrectly()) //иначе - вывести warning
+            //    CheckRulesFromConfigFile(false);
+            //else
+            //    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+            CommitReferencesAndCheckRules(false);
 
             isExtentionInitialized = true;
         }
@@ -178,17 +180,29 @@ namespace VSIXProject1
 
             if (isExtentionInitialized)
             {
-                CommitCurrentReferences();
+                //CommitCurrentReferences();
 
-                if (IsReferencesAddedCorrectly())
-                    CheckRulesFromConfigFile(false);
-                else
-                    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+                //if (IsReferencesAddedCorrectly())
+                //    CheckRulesFromConfigFile(false);
+                //else
+                //    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+
+                CommitReferencesAndCheckRules(false);
 
                 MessageManager.ShowMessageBox(serviceProvider, "Референсы успешно зафиксированы", "RefDepGuard");
             }
             else
                 NotInitializedYetMessage();
+        }
+
+        private static void CommitReferencesAndCheckRules(bool isBuildCheck)
+        {
+            CommitCurrentReferences();
+
+            if (IsReferencesAddedCorrectly())
+                CheckRulesFromConfigFile(isBuildCheck); //Отслеживание соответствия референсов правилам
+            else
+                ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
         }
 
         private static void CommitCurrentReferences()
@@ -221,7 +235,7 @@ namespace VSIXProject1
                 ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider); //Вывод сообщения о том, что проблемы не найдены
             else
             {
-                if(isBuildCheck && refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty())
+                if(isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //В случае если buildCheck и обнаружены ошибки
                     dte.ExecuteCommand("Build.Cancel"); //Отмена билда
             }
         }

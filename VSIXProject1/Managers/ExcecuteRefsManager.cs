@@ -16,16 +16,16 @@ namespace VSIXProject1
             ThreadHelper.ThrowIfNotOnUIThread();
             string message = "";
             string title = "Связи между проектами на текущий момент";
+            bool isNoReferences = true;
 
             EnvDTE.Solution solution = dte.Solution;
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
-                message += ("Рефы в проекте:" + project.Name + "\r\n");
+                message += ("Рефы в проекте: " + project.Name + "\r\n");
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
                 if (vSProject != null)
                 {
-
                     var refsList = new List<string>();
 
                     foreach (VSLangProj.Reference vRef in vSProject.References)
@@ -33,11 +33,23 @@ namespace VSIXProject1
                         if (vRef.SourceProject != null)
                         {
                             refsList.Add(vRef.Name);
-                            message += (vRef.Name + "\r\n");
+                            message += ("   " + vRef.Name + "\r\n");
                         }
                     }
+
+                    if (refsList.Count == 0)
+                        message += ("   -" + "\r\n");
+                    else
+                    {
+                        if (isNoReferences)
+                            isNoReferences = false;
+                    }
+                    
                 }
             }
+
+            if (isNoReferences)
+                message += "На текущий момент в проекте не обнаружены референсы";
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
@@ -133,6 +145,8 @@ namespace VSIXProject1
                     }
                 }
             }
+            if (addedRefs.Count == 0 && removedRefs.Count == 0)
+                message = "Изменения в рефах не обнаружены";
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }

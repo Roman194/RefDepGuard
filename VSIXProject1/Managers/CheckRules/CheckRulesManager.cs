@@ -168,11 +168,11 @@ namespace VSIXProject1
 
             refDepGuardErrors = new RefDepGuardErrors(
                 configPropertyNullErrorList, refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, maxFrameworkVersionDeviantValueList,
-                maxFrameworkRuleErrors.FrameworkVersionComparabilityErrorList, maxFrameworkRuleErrors.UntypedErrorsList
+                maxFrameworkRuleErrors.FrameworkVersionComparabilityErrorList
                 );
             refDepGuardWarnings = new RefDepGuardWarnings(
                 refsMatchWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
-                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList);
+                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkRuleErrors.UntypedWarningsList);
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
