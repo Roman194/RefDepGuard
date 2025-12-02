@@ -176,7 +176,7 @@ namespace VSIXProject1
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
-            ELPStoreSubManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData.solutionName, errorListProvider);
+            ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData.solutionName, errorListProvider);
 
             requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 

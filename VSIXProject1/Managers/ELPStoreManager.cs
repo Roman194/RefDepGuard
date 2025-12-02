@@ -5,7 +5,7 @@ using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1.Managers.CheckRules
 {
-    public class ELPStoreSubManager
+    public class ELPStoreManager
     {
         public static void StoreErrorListProviderByValues(RefDepGuardFindedProblems refDepGuardFindedProblems, string solutionName, ErrorListProvider errorListProvider)
         {
@@ -15,11 +15,11 @@ namespace VSIXProject1.Managers.CheckRules
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
-            foreach (var projName in refDepGuardErrors.UntypedErrorsList)
+            foreach (var projName in refDepGuardErrors.UntypedErrorsList)//Чё? UntypedError на сам деле Warning?
             {
                 string currentText = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'";
 
-                StoreErrorTask(errorListProvider, currentText, solutionName + ".csproj", true);
+                StoreErrorTask(errorListProvider, currentText, solutionName + ".csproj", TaskErrorCategory.Warning);
             }
 
             foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
@@ -37,7 +37,7 @@ namespace VSIXProject1.Managers.CheckRules
 
                 string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " + relevantProjectName + " содержит некорректную запись своего значения. Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, false);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
@@ -53,10 +53,10 @@ namespace VSIXProject1.Managers.CheckRules
                     case ErrorLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
                 }
 
-                string errorText = "RefDepGuard framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion
+                string errorText = "RefDepGuard Framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion
                     + "', в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "' (" + ruleLevel + "). Измените версию проекта или модифицируйте конфигурацию Config-файла";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, false);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
             foreach (ConfigFilePropertyNullError configFilePropertyNullError in refDepGuardErrors.ConfigPropertyNullErrorList)
@@ -72,7 +72,7 @@ namespace VSIXProject1.Managers.CheckRules
 
                 string errorText = "RefDepGuard Null property error: Config-файл не содержит свойство '" + configFilePropertyNullError.PropertyName + "'" + relevantProjectName + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, false);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
             foreach (ReferenceMatchError referenceMatchError in refDepGuardErrors.RefsMatchErrorList)
@@ -100,7 +100,7 @@ namespace VSIXProject1.Managers.CheckRules
 
                 string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, false);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
 
@@ -131,7 +131,7 @@ namespace VSIXProject1.Managers.CheckRules
 
                 string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, false);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
@@ -162,7 +162,7 @@ namespace VSIXProject1.Managers.CheckRules
                     + "' параметра 'framework_max_version' " + lowErrorLevelText + " превосходит значение '" + maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
                     + "' одноимённого параметра " + highErrorLevelText + ". Устраните противоречие";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, true);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
 
             foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList)
@@ -174,7 +174,7 @@ namespace VSIXProject1.Managers.CheckRules
                     ", так как имеется референс на проект, имеющий большее значение значение параметра 'framework_max_version' (проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + "). Устраните противоречие";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, true);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
 
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
@@ -228,20 +228,32 @@ namespace VSIXProject1.Managers.CheckRules
 
                 string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
 
-                StoreErrorTask(errorListProvider, errorText, documentName, true);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
 
             if (errorListProvider != null)
                 errorListProvider.Show();
         }
 
-        private static void StoreErrorTask(ErrorListProvider errorListProvider, string currentText, string currentDocument, bool isWarning)
+        public static void ShowNoProblemsFindedMessage(ErrorListProvider errorListProvider)
         {
-            TaskErrorCategory currentTask = TaskErrorCategory.Error;
+            var currentText = "RefDepGuard: проблемы не обнаружены";
+            StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Message);
+            errorListProvider.Show();
+        }
 
-            if (isWarning)
-                currentTask = TaskErrorCategory.Warning;
+        public static void ShowUnsuccessfulCheckingRulesWarning(ErrorListProvider errorListProvider)
+        {
+            if (errorListProvider != null)
+                errorListProvider.Tasks.Clear();
 
+            var currentText = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой";
+            StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
+            errorListProvider.Show();
+        }
+
+        private static void StoreErrorTask(ErrorListProvider errorListProvider, string currentText, string currentDocument, TaskErrorCategory currentTask)
+        {
             ErrorTask errorTask = new ErrorTask
             {
                 Category = TaskCategory.User,
@@ -251,22 +263,6 @@ namespace VSIXProject1.Managers.CheckRules
             };
 
             errorListProvider.Tasks.Add(errorTask);
-        }
-
-        public static void ShowUnsuccessfulCheckingRulesWarning(ErrorListProvider errorListProvider)
-        {
-            if (errorListProvider != null)
-                errorListProvider.Tasks.Clear();
-
-            ErrorTask errorTask = new ErrorTask
-            {
-                Category = TaskCategory.User,
-                ErrorCategory = TaskErrorCategory.Warning,
-                Text = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой"
-            };
-
-            errorListProvider.Tasks.Add(errorTask);
-            errorListProvider.Show();
         }
     }
 }

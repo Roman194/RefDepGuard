@@ -34,13 +34,15 @@ namespace VSIXProject1
         /// VS Package that provides this command, not null.
         /// </summary>
         private readonly AsyncPackage package;
+        private static IServiceProvider serviceProvider;
         private static DTE dte;
-        static ErrorListProvider errorListProvider;
-        static Excel.Application excel = new Excel.Application();
+        private static ErrorListProvider errorListProvider;
+        private static Excel.Application excel = new Excel.Application();
+        private static bool isExtentionInitialized = false;
 
-        static Dictionary<string, ProjectState> commitedProjState = new Dictionary<string, ProjectState>();
-        static ConfigFilesData configFilesData;
-        static RefDepGuardExportParameters refDepGuardExportParameters;
+        private static Dictionary<string, ProjectState> commitedProjState = new Dictionary<string, ProjectState>();
+        private static ConfigFilesData configFilesData;
+        private static RefDepGuardExportParameters refDepGuardExportParameters;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainCommand"/> class.
@@ -52,6 +54,7 @@ namespace VSIXProject1
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
+            serviceProvider = this.package;
 
             var getCurrentRefsCommandID = new CommandID(CommandSet, GetCurrentRefsId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
@@ -109,32 +112,35 @@ namespace VSIXProject1
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
             dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
-            
-            await Task.Delay(10000);
+            dte.Events.SolutionEvents.Opened += onSolutionOpened;
 
             Instance = new MainCommand(package, commandService);
         }
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
+        { 
             CommitCurrentReferences();
-            CheckRulesFromConfigFile(); //Отслеживание соответствия референсов правилам
 
-            if (errorListProvider.Tasks.Count > 0) //Коммит завершился с ошибками
-                dte.ExecuteCommand("Build.Cancel");
+            if (IsReferencesAddedCorrectly())
+                CheckRulesFromConfigFile(true); //Отслеживание соответствия референсов правилам
+            else
+                ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
         }
 
-        private void onSolutionOpened()
+        private static async void onSolutionOpened()
         {
-            CommitCurrentReferences();
-            GetConfigFileInfo();//message
+            isExtentionInitialized = false;
+            await Task.Delay(10000);
 
+            GetConfigFileInfo();//Загрузка данных из конфиг файлов производится только при загрузке/открытии нового solution
+
+            CommitCurrentReferences();
             if (IsReferencesAddedCorrectly()) //иначе - вывести warning
-                CheckRulesFromConfigFile();
+                CheckRulesFromConfigFile(false);
             else
-                ELPStoreSubManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+                ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+
+            isExtentionInitialized = true;
         }
 
         private static void BeforeSolutionClosed()
@@ -152,20 +158,37 @@ namespace VSIXProject1
         /// <param name="e">Event args.</param>
         private void ExecuteCurrentRefs(object sender, EventArgs e)
         {
-            ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package);
+            if(isExtentionInitialized)
+                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package);
+            else
+                NotInitializedYetMessage();
         }
 
         private void ExcecuteRefsChanges(object sender, EventArgs e)
         {
-            ExcecuteRefsManager.ExcecuteChangedRefs(dte, this.package, commitedProjState);
+            if(isExtentionInitialized)
+                ExcecuteRefsManager.ExcecuteChangedRefs(dte, this.package, commitedProjState);
+            else
+                NotInitializedYetMessage();
         }
 
         private void ForceCommitCurrentReferences(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            CommitCurrentReferences();
-            CheckRulesFromConfigFile();
+            if (isExtentionInitialized)
+            {
+                CommitCurrentReferences();
+
+                if (IsReferencesAddedCorrectly())
+                    CheckRulesFromConfigFile(false);
+                else
+                    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+
+                MessageManager.ShowMessageBox(serviceProvider, "Референсы успешно зафиксированы", "RefDepGuard");
+            }
+            else
+                NotInitializedYetMessage();
         }
 
         private static void CommitCurrentReferences()
@@ -183,24 +206,45 @@ namespace VSIXProject1
             return false;
         }
 
-        private void GetConfigFileInfo()
+        private static void GetConfigFileInfo()
         {
-            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(dte, this.package, commitedProjState);
+            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(dte, serviceProvider, commitedProjState);
         }
 
-        private static void CheckRulesFromConfigFile()
+        private static void CheckRulesFromConfigFile(bool isBuildCheck)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             refDepGuardExportParameters = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState);
+
+            if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty())
+                ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider); //Вывод сообщения о том, что проблемы не найдены
+            else
+            {
+                if(isBuildCheck && refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty())
+                    dte.ExecuteCommand("Build.Cancel"); //Отмена билда
+            }
         }
 
         private void ExportRefsToXSLX(object sender, EventArgs e)
         {
-            ExportRefsGeneral("table_type");
+            if (isExtentionInitialized)
+                ExportRefsGeneral("table_type");
+            else
+                NotInitializedYetMessage();
         }
 
         private void ExportRefsToHTML(object sender, EventArgs e)
         {
-            ExportRefsGeneral("graph_type");
+            if (isExtentionInitialized)
+                ExportRefsGeneral("graph_type");
+            else
+                NotInitializedYetMessage();
+        }
+
+        private void NotInitializedYetMessage()
+        {
+            MessageManager.ShowMessageBox(serviceProvider, "Расширение ещё не загружено. Дождитесь его загрузки, чтобы выполнить действие", "RefDepGuard");
         }
 
         private void ExportRefsGeneral(string reportType)

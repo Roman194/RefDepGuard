@@ -20,5 +20,13 @@ namespace VSIXProject1.Data
             MaxFrameworkVersionConflictWarningsList = maxFrameworkVersionConflictWarningsList;
             MaxFrameworkVersionReferenceConflictWarningsList = maxFrameworkVersionReferenceConflictWarningsList;
         }
+
+        public bool IsEmpty()
+        {
+            if (RefsMatchWarningList.Count == 0 && MaxFrameworkVersionConflictWarningsList.Count == 0 && MaxFrameworkVersionReferenceConflictWarningsList.Count == 0)
+                return true;
+            else 
+                return false;
+        }
     }
 }

@@ -46,7 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
-    <Compile Include="Managers\CheckRules\SubManagers\ELPStoreSubManager.cs" />
+    <Compile Include="Managers\ELPStoreManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\MaxFrameworkRuleChecksSubManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\NotNullChecksSubManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\RefsRuleChecksSubManager.cs" />

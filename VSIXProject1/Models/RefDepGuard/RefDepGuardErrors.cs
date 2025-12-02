@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.Debugger.Interop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,15 @@ namespace VSIXProject1.Data.Reference
             MaxFrameworkVersionDeviantValueList = maxFrameworkVersionDeviantValueList;
             FrameworkVersionComparabilityErrorList = frameworkVersionComparabilityErrorList;
             UntypedErrorsList = untypedErrorsList;
+        }
+
+        public bool IsEmpty()
+        {
+            if (ConfigPropertyNullErrorList.Count < 1 && RefsErrorList.Count < 1 && RefsMatchErrorList.Count < 1 && MaxFrameworkVersionDeviantValueList.Count < 1
+                && FrameworkVersionComparabilityErrorList.Count < 1 && UntypedErrorsList.Count < 1)
+                return true;
+            else
+                return false;
         }
     }
 }
