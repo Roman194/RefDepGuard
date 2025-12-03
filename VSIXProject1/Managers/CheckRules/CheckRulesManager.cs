@@ -147,10 +147,22 @@ namespace VSIXProject1
                 }
                 else
                 {
-                    //Проект есть в solution но его нет в config - вывести соответствующий warning
+                    //Проект есть в solution но его нет в config - 0. вывести соответствующий warning (Message box)
+                    //1. Добавить его в config-файл
+                    //2. Спарсить его референсы и TargetFramework
                 }
-
-                //А что делать если проекта нет в solution, но он есть в config? - вывести соответствующий warning
+                //foreach( var dictValue in configFilesData.configFileSolution?.projects)
+                //{
+                //    if (!currentCommitedProjState.ContainsKey(dictValue.Key))
+                //    {
+                //        //Проект есть в config, но его нет в Solution - значит он был удалён
+                //        //Нужно: 0. Вывести предупреждение об этом и попросить подтверждение его удаления
+                //        // Если нет, то... пока его не трогать, но вывести соответствующий warning || error (TBD)
+                //        //1. Удалить его из шаблона
+                //        //2. Убрать все связанные с ним ошибки и предупреждения
+                //        //3. Убрать все связанные с ним required-параметры
+                //    }
+                //}
             }
 
             var refsMatchWarningList = RefsRuleChecksSubManager.GetReferenceWarnings();//На текущий момент только тип RefsMatchWarning 

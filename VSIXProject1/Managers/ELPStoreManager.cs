@@ -135,7 +135,7 @@ namespace VSIXProject1.Managers.CheckRules
             }
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
-            {
+            { //Выделить в error случаи, когда рассматриваюся версии одного уровня? (случаи с all)
                 string documentName = solutionName + "_config_guard.rdg";
                 string highErrorLevelText = "";
                 string lowErrorLevelText = "";

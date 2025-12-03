@@ -120,12 +120,6 @@ namespace VSIXProject1
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
         {
             CommitReferencesAndCheckRules(true);
-            //CommitCurrentReferences();
-
-            //if (IsReferencesAddedCorrectly())
-            //    CheckRulesFromConfigFile(true);
-            //else
-            //    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
         }
 
         private static async void onSolutionOpened()
@@ -134,12 +128,6 @@ namespace VSIXProject1
             await Task.Delay(10000);
 
             GetConfigFileInfo();//Загрузка данных из конфиг файлов производится только при загрузке/открытии нового solution
-
-            //CommitCurrentReferences();
-            //if (IsReferencesAddedCorrectly()) //иначе - вывести warning
-            //    CheckRulesFromConfigFile(false);
-            //else
-            //    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
             CommitReferencesAndCheckRules(false);
 
             isExtentionInitialized = true;
@@ -180,15 +168,7 @@ namespace VSIXProject1
 
             if (isExtentionInitialized)
             {
-                //CommitCurrentReferences();
-
-                //if (IsReferencesAddedCorrectly())
-                //    CheckRulesFromConfigFile(false);
-                //else
-                //    ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
-
                 CommitReferencesAndCheckRules(false);
-
                 MessageManager.ShowMessageBox(serviceProvider, "Референсы успешно зафиксированы", "RefDepGuard");
             }
             else

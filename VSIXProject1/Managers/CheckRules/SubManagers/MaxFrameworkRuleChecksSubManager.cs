@@ -317,7 +317,7 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static void CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(string projName, List<string> projReferences)
         {
-            if (requiredMaxFrVersionsDict.ContainsKey(projName))
+            if (requiredMaxFrVersionsDict.ContainsKey(projName)) //При проверке потенциального конфликта TargetFramework на текущий момент тип фреймворка не учитывается!
             {
                 List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionText
                     .Split('.')
