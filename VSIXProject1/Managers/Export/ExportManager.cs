@@ -12,12 +12,12 @@ namespace VSIXProject1
 {
     public class ExportManager
     {
-        public static bool LoadReferencesDataToReport(
+        public static string LoadReferencesDataToReport(
             Application excel, string solutionName, string solutionAddress, string reportType, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters
             )
         {
-            bool isLoadSuccessful = true;
+            string  loadError = "";
             string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();
 
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
@@ -41,12 +41,12 @@ namespace VSIXProject1
                         break;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                isLoadSuccessful = false;
+                loadError = ex.Message;
             }
 
-            return isLoadSuccessful;
+            return loadError;
         }
     }
 }

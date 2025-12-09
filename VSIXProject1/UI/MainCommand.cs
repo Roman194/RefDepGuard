@@ -22,7 +22,7 @@ namespace VSIXProject1
         public const int GetCurrentRefsId = 0x0100;
         public const int GetChangedRefsId = 0x0110;
         public const int CommitCurrentRefsId = 0x0120;
-        public const int ExportRefsToXSLXId = 0x0130;
+        public const int ExportRefsToXLSXId = 0x0130;
         public const int ExportRefsToHTMLId = 0x0140;
 
         /// <summary>
@@ -39,6 +39,7 @@ namespace VSIXProject1
         private static ErrorListProvider errorListProvider;
         private static Excel.Application excel = new Excel.Application();
         private static bool isExtentionInitialized = false;
+        private static bool isSuccessfulCheckingRules = true;
 
         private static Dictionary<string, ProjectState> commitedProjState = new Dictionary<string, ProjectState>();
         private static ConfigFilesData configFilesData;
@@ -59,19 +60,19 @@ namespace VSIXProject1
             var getCurrentRefsCommandID = new CommandID(CommandSet, GetCurrentRefsId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
             var commitCurrentRefsMenuCommandID = new CommandID(CommandSet, CommitCurrentRefsId);
-            var exportCurrentRefsToXSLXMenuCommandID = new CommandID(CommandSet, ExportRefsToXSLXId);
+            var exportCurrentRefsToXLSXMenuCommandID = new CommandID(CommandSet, ExportRefsToXLSXId);
             var exportCurrentRefsToHTMLMenuCommandID = new CommandID(CommandSet, ExportRefsToHTMLId);
 
             var getCurrentRefsMenuItem = new MenuCommand(this.ExecuteCurrentRefs, getCurrentRefsCommandID);
             var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteRefsChanges, getChangedRefsMenuCommandID);
             var commitCurrentRefsMenuItem = new MenuCommand(this.ForceCommitCurrentReferences, commitCurrentRefsMenuCommandID);
-            var exportCurrentRefsToXSLXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXSLXMenuCommandID);
+            var exportCurrentRefsToXLSXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXLSXMenuCommandID);
             var exportCurrentRefsToHTMLMenuItem = new MenuCommand(this.ExportRefsToHTML, exportCurrentRefsToHTMLMenuCommandID);
 
             commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentRefsMenuItem);
-            commandService.AddCommand(exportCurrentRefsToXSLXMenuItem);
+            commandService.AddCommand(exportCurrentRefsToXLSXMenuItem);
             commandService.AddCommand(exportCurrentRefsToHTMLMenuItem);
 
             onSolutionOpened();
@@ -127,8 +128,9 @@ namespace VSIXProject1
             isExtentionInitialized = false;
             await Task.Delay(10000);
 
+            CommitCurrentReferences();
             GetConfigFileInfo();//Загрузка данных из конфиг файлов производится только при загрузке/открытии нового solution
-            CommitReferencesAndCheckRules(false);
+            CommitReferencesAndCheckRules(false);//Повторный коммит не производится, так как при загрзуке он уже произведён до этого
 
             isExtentionInitialized = true;
         }
@@ -177,12 +179,20 @@ namespace VSIXProject1
 
         private static void CommitReferencesAndCheckRules(bool isBuildCheck)
         {
-            CommitCurrentReferences();
+            if(isExtentionInitialized) // ЕСли расширение инициализировано, то функция была вызвана не из загрузки Solution, а значит коммита ещё не было
+                CommitCurrentReferences();
 
             if (IsReferencesAddedCorrectly())
+            {
                 CheckRulesFromConfigFile(isBuildCheck); //Отслеживание соответствия референсов правилам
+                isSuccessfulCheckingRules = true;
+            }
             else
+            {
                 ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
+                isSuccessfulCheckingRules = false;
+            }
+                
         }
 
         private static void CommitCurrentReferences()
@@ -245,27 +255,34 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            string reportTitleText = "", reportSuccessText = "", reportUnsuccessText = "";
-            switch (reportType)
+            if (isSuccessfulCheckingRules)
             {
-                case "table_type": 
-                    reportTitleText = "Экспорт в XSLX"; 
-                    reportSuccessText = "Экспорт в эксель завершён";
-                    reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.solutionName + "_references_report.xlsx' не открыт в Excel";
-                    break;
+                string reportTitleText = "", reportSuccessText = "", reportUnsuccessText = "";
+                switch (reportType)
+                {
+                    case "table_type":
+                        reportTitleText = "Экспорт в XLSX";
+                        reportSuccessText = "Экспорт в эксель завершён";
+                        reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.solutionName + "_references_report.xlsx' не открыт в Excel";
+                        break;
 
-                case "graph_type":
-                    reportTitleText = "Экспорт в HTML";
-                    reportSuccessText = "Графический экспорт завершён";
-                    reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом";
-                    break;
+                    case "graph_type":
+                        reportTitleText = "Экспорт в HTML";
+                        reportSuccessText = "Графический экспорт завершён";
+                        reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом";
+                        break;
+                }
+
+                var loadError = ExportManager.LoadReferencesDataToReport(
+                    excel, configFilesData.solutionName, configFilesData.packageExtendedName, reportType, commitedProjState, refDepGuardExportParameters);
+
+                if (loadError == "")
+                    MessageManager.ShowMessageBox(this.package, reportSuccessText, reportTitleText);
+                else
+                    MessageManager.ShowMessageBox(this.package, reportUnsuccessText + "\r\nТекст ошибки: " + loadError, reportTitleText);
             }
-
-            if(ExportManager.LoadReferencesDataToReport(
-                excel, configFilesData.solutionName, configFilesData.packageExtendedName, reportType, commitedProjState, refDepGuardExportParameters))
-                MessageManager.ShowMessageBox(this.package, reportSuccessText, reportTitleText);
             else
-                MessageManager.ShowMessageBox(this.package, reportUnsuccessText, reportTitleText);
+                MessageManager.ShowMessageBox(serviceProvider, "Невозможно запустить экспорт так как расширение не обнаружило референсы в проекте", "RefDepGuard");
         }
     }
 }

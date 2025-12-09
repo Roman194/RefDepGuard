@@ -49,7 +49,7 @@ namespace VSIXProject1
             }
 
             if (isNoReferences)
-                message += "На текущий момент в проекте не обнаружены референсы";
+                message += "На текущий момент в Solution не обнаружены референсы";
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
