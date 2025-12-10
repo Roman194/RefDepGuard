@@ -17,6 +17,11 @@ namespace VSIXProject1
         {
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
+            while(exportWorkbook.Worksheets.Count < 3) //На некоторых ПК эксель по дефолту создаёт 1 лист, а не 3. Тогда нужно создать нехватающие листы вручную
+            {
+                exportWorkbook.Worksheets.Add();
+            }
+            
             LoadInfoToProjectsWorkbook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors, requiredExportParameters.MaxRequiredFrameworkVersion);
             LoadInfoToReferencesBook(excel, solutionName, currentDateTime, commitedProjectsState, refDepGuardErrors.RefsErrorList, requiredExportParameters.RequiredReferences);
             LoadInfoToRefRepGuardErrors(excel, solutionName, currentDateTime, refDepGuardErrors);

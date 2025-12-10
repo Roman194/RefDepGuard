@@ -11,7 +11,10 @@ namespace VSIXProject1.Comparators
     {
         public bool Equals(FrameworkVersionComparabilityError x, FrameworkVersionComparabilityError y)
         {
-            return x.ErrorLevel == y.ErrorLevel && x.TargetFrameworkVersion == y.TargetFrameworkVersion && x.MaxFrameworkVersion == y.MaxFrameworkVersion;
+            return x.ErrorLevel == y.ErrorLevel && 
+                x.TargetFrameworkVersion == y.TargetFrameworkVersion && 
+                x.MaxFrameworkVersion == y.MaxFrameworkVersion && 
+                x.ErrorRelevantProjectName == y.ErrorRelevantProjectName;
         }
 
         public int GetHashCode(FrameworkVersionComparabilityError obj)
@@ -22,6 +25,7 @@ namespace VSIXProject1.Comparators
                 hash = hash * 23 + obj.ErrorLevel.GetHashCode();
                 hash = hash * 23 + obj.TargetFrameworkVersion.GetHashCode();
                 hash = hash * 23 + obj.MaxFrameworkVersion.GetHashCode();
+                hash = hash * 23 + obj.ErrorRelevantProjectName.GetHashCode();
                 return hash;
             }
         }

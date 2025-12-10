@@ -211,10 +211,18 @@ namespace VSIXProject1.Managers.CheckRules
 
                     switch (currentProjFrameworkType)
                     {
-                        case "v": currentProjFrameworkType = "netf"; break; //В случае если встретился старый .net framework проект с TargetFrameworkVersion
-                        case "net": currentProjFrameworkType = currentProjFrameworkVersionArrayLength < 2 ? "netf" : "net"; break;
+                        case "v": 
+                            currentProjFrameworkType = "netf"; 
+                            break; //В случае если встретился старый .net framework проект с TargetFrameworkVersion
+                        case "net": 
+                            currentProjFrameworkType = currentProjFrameworkVersionArrayLength < 2 ? "netf" : "net";   
+                            break;
                             //Т.к. .NET и .NET Framework имеют одно название типа, то для фреймворка в проге условно введён тип "netf"!
                     }
+
+                    if (currentProjFrameworkType == "netf" && currentProjFrameworkVersionArrayLength < 2)//Т.к. у нового стиля netf версия записывается без точек и обычный split на неё не действует
+                        currentProjFrameworkVersionArray = SplitStrByEachNum(currentProjFrameworkVersionArray[0]);
+                    
                 }
 
                 List<int> currentMaxFrameworkVersionNums = new List<int>();
@@ -338,6 +346,17 @@ namespace VSIXProject1.Managers.CheckRules
                     }
                 }
             }
+        }
+
+        private static string[] SplitStrByEachNum(string currentString)
+        {
+            int currentStringLength = currentString.Length;
+            string[] resultString = new string[currentStringLength];
+
+            for (int i = 0; i < currentStringLength; i++)
+                resultString[i] = currentString[i].ToString();
+            
+            return resultString;
         }
 
         public static MaxFrameworkVersionWarnings GetMaxFrameworkVersionWarnings()

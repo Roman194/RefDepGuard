@@ -31,8 +31,8 @@ namespace VSIXProject1.Managers.CheckRules
                 switch (maxFrameworkVersionDeviantValue.ErrorLevel)
                 {
                     case ErrorLevel.Global: documentName = "global_config_guard.rdg"; globalPrefix = "глобального "; break;
-                    case ErrorLevel.Solution: relevantProjectName = " уровня Solution"; break;
-                    case ErrorLevel.Project: relevantProjectName = " проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
+                    case ErrorLevel.Solution: relevantProjectName = "уровня Solution"; break;
+                    case ErrorLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
                 }
 
                 string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " + relevantProjectName + " содержит некорректную запись своего значения. Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
