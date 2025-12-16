@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using System;
@@ -16,6 +17,7 @@ namespace VSIXProject1
         static ConfigFileSolution configFileSolution;
         static ConfigFileGlobal configFileGlobal;
         static string solutionName;
+        static string packageExtendedName;
 
         static Dictionary<string, ProjectState> commitedProjState;
 
@@ -32,7 +34,7 @@ namespace VSIXProject1
             int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
             int lastSlashIndex = dteSolutionFullName.LastIndexOf('\\');
             string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
-            string packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
+            packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
 
             solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1);
 
@@ -68,10 +70,14 @@ namespace VSIXProject1
                     {
                         StreamReader sr = new StreamReader(fileStream);
 
+                        string currentFileConetnt = sr.ReadToEnd();
+                        if (String.IsNullOrEmpty(currentFileConetnt))
+                            throw new Exception();
+
                         if (configFileServiceInfo.IsGlobal)
-                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(sr.ReadToEnd());
+                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(currentFileConetnt);
                         else
-                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(sr.ReadToEnd());
+                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(currentFileConetnt);
                     }
                 }
                 catch (Exception)
@@ -125,6 +131,61 @@ namespace VSIXProject1
 
                 streamWriter.Close();
             }
+        }
+
+        public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
+        {
+            configFileSolution = currentConfigFilesData.configFileSolution;
+            configFileGlobal = currentConfigFilesData.configFileGlobal; //???
+
+            using (FileStream fileStream = File.Create(packageExtendedName + "\\" + solutionName + "_config_guard.rdg"))
+            {
+                StreamWriter streamWriter = new StreamWriter(fileStream);
+                string json;
+
+                if(isProjectAdding)
+                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByAddingProjects(differProjectsList));
+                else
+                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByRemovingProjects(differProjectsList));
+
+                streamWriter.Write(json);
+
+                streamWriter.Flush();
+                fileStream.Flush();
+
+                streamWriter.Close();
+            }
+
+            return new ConfigFilesData(configFileSolution, configFileGlobal, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
+        }
+
+        private static ConfigFileSolution updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)
+        {
+            foreach (var projectName in addedProjectsList)
+            {
+                ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
+                configFileProjectRefsConsidering.required = true;
+                configFileProjectRefsConsidering.unacceptable = true;
+
+                ConfigFileProject fileProject = new ConfigFileProject();
+                fileProject.framework_max_version = "-";
+                fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
+                fileProject.required_references = new List<string>();
+                fileProject.unacceptable_references = new List<string>();
+
+                configFileSolution.projects.Add(projectName, fileProject);
+            }
+
+            return configFileSolution;
+        }
+
+        private static ConfigFileSolution updateConfigFileSolutionByRemovingProjects(List<string> removedProjectsList)
+        {
+
+            foreach(var project in removedProjectsList)
+                configFileSolution.projects.Remove(project);
+            
+            return configFileSolution;
         }
 
         private static ConfigFileSolution generateDefaultConfigFileSolution()

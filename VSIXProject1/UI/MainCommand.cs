@@ -1,13 +1,14 @@
 ﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
+using VSIXProject1.Managers.CheckRules;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
-using VSIXProject1.Managers.CheckRules;
 
 namespace VSIXProject1
 {
@@ -35,6 +36,7 @@ namespace VSIXProject1
         /// </summary>
         private readonly AsyncPackage package;
         private static IServiceProvider serviceProvider;
+        private static IVsUIShell uiShell;
         private static DTE dte;
         private static ErrorListProvider errorListProvider;
         private static Excel.Application excel = new Excel.Application();
@@ -116,6 +118,8 @@ namespace VSIXProject1
             dte.Events.SolutionEvents.Opened += onSolutionOpened;
 
             Instance = new MainCommand(package, commandService);
+
+            uiShell = (IVsUIShell)await package.GetServiceAsync(typeof(SVsUIShell));
         }
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
@@ -219,7 +223,7 @@ namespace VSIXProject1
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            refDepGuardExportParameters = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState);
+            (refDepGuardExportParameters, configFilesData) = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
 
             if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty())
                 ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider); //Вывод сообщения о том, что проблемы не найдены

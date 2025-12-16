@@ -22,6 +22,18 @@ namespace VSIXProject1.Managers.CheckRules
                 StoreErrorTask(errorListProvider, currentText, solutionName + ".csproj", TaskErrorCategory.Warning);
             }
 
+            foreach(var currentProjectMatchWarning in refDepGuardWarnings.ProjectMatchWarningList)
+            {
+                string placeWhereProjectNotFound = "solution";
+
+                if (currentProjectMatchWarning.IsNoProjectInConfigFile)
+                    placeWhereProjectNotFound = "config-файле";
+
+                string currentText = "RefDepGuard Project match warning: проект '" + currentProjectMatchWarning.ProjName + "' не обнаружен в " + placeWhereProjectNotFound + ". Проверьте проект на корректность написания его имени в config-файле";
+
+                StoreErrorTask(errorListProvider, currentText, solutionName + "_config_guard.rdg", TaskErrorCategory.Warning);
+            }
+
             foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
             {
                 string documentName = solutionName + "_config_guard.rdg";

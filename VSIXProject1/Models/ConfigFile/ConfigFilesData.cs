@@ -18,7 +18,7 @@ namespace VSIXProject1.Data.ConfigFile
         {
             this.configFileSolution = configFileSolution;
             this.configFileGlobal = configFileGlobal;
-            this.solutionName = solutionName;
+            this.solutionName = solutionName; //Nam-ы парсятся не из конфиг-файла
             this.packageExtendedName = packageExtendedName;
         }
     }

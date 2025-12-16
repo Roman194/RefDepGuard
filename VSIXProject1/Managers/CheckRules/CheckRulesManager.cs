@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.OLE.Interop;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +11,7 @@ using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 using VSIXProject1.Managers.CheckRules;
 using VSIXProject1.Managers.CheckRules.SubManagers;
+using VSIXProject1.Models;
 
 namespace VSIXProject1
 {
@@ -22,12 +25,13 @@ namespace VSIXProject1
         static RequiredParameters requiredExportParameters;
         static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
-        public static RefDepGuardExportParameters CheckRulesFromConfigFiles(
-            ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState
+        public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckRulesFromConfigFiles(
+            ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell
             )
         {
             ConfigFileGlobal configFileGlobal = configFilesData.configFileGlobal;
             ConfigFileSolution configFileSolution = configFilesData.configFileSolution;
+            string solutionName = configFilesData.solutionName;
 
             ClearErrorAndWarningLists();
 
@@ -63,13 +67,17 @@ namespace VSIXProject1
                     maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "", ErrorLevel.Solution, ErrorLevel.Global
                     );
 
+            //Проверка на наличие незафиксированных в конфиге и уже удалённых в solution проектов
+            var projectMatchWarningList = new List<ProjectMatchWarning>();
+            (configFilesData, projectMatchWarningList) = CheckProjectsMatchSubManager.CheckAndUpdateProjectsOnMatch(configFilesData, currentCommitedProjState, uIShell);
+
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//для каждого project
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value.CurrentReferences;
                 var projFrameworkVersion = currentProjState.Value.CurrentFrameworkVersion;
 
-                if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)
+                if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)//Эта проверка требуется, так как п-ль мог запретить автомат. добавление недостающих проектов
                 {
                     ConfigFileProject currentProjectConfigFileSettings = configFileSolution.projects[projName];
 
@@ -145,24 +153,6 @@ namespace VSIXProject1
 
                     MaxFrameworkRuleChecksSubManager.CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(projName, projReferences);
                 }
-                else
-                {
-                    //Проект есть в solution но его нет в config - 0. вывести соответствующий warning (Message box)
-                    //1. Добавить его в config-файл
-                    //2. Спарсить его референсы и TargetFramework
-                }
-                //foreach( var dictValue in configFilesData.configFileSolution?.projects)
-                //{
-                //    if (!currentCommitedProjState.ContainsKey(dictValue.Key))
-                //    {
-                //        //Проект есть в config, но его нет в Solution - значит он был удалён
-                //        //Нужно: 0. Вывести предупреждение об этом и попросить подтверждение его удаления
-                //        // Если нет, то... пока его не трогать, но вывести соответствующий warning || error (TBD)
-                //        //1. Удалить его из шаблона
-                //        //2. Убрать все связанные с ним ошибки и предупреждения
-                //        //3. Убрать все связанные с ним required-параметры
-                //    }
-                //}
             }
 
             var refsMatchWarningList = RefsRuleChecksSubManager.GetReferenceWarnings();//На текущий момент только тип RefsMatchWarning 
@@ -184,7 +174,8 @@ namespace VSIXProject1
                 );
             refDepGuardWarnings = new RefDepGuardWarnings(
                 refsMatchWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
-                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkRuleErrors.UntypedWarningsList);
+                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, projectMatchWarningList, 
+                maxFrameworkRuleErrors.UntypedWarningsList);
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
@@ -192,7 +183,10 @@ namespace VSIXProject1
 
             requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 
-            return new RefDepGuardExportParameters(refDepGuardFindedProblems, requiredExportParameters);
+            return new Tuple<RefDepGuardExportParameters, ConfigFilesData>(
+                new RefDepGuardExportParameters(refDepGuardFindedProblems, requiredExportParameters), 
+                configFilesData
+            );
         }
 
         private static void ClearErrorAndWarningLists()
@@ -206,6 +200,7 @@ namespace VSIXProject1
             NotNullChecksSubManager.ClearConfigPropertyNullErrorList();
             RefsRuleChecksSubManager.ClearRefsErrorsAndWarnings();
             MaxFrameworkRuleChecksSubManager.ClearErrorAndWarningLists();
+            CheckProjectsMatchSubManager.ClearErrorLists();
         }
 
         private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ErrorLevel errorLevel, string projName = "")
