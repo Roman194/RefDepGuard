@@ -277,8 +277,7 @@ namespace VSIXProject1
                         break;
                 }
 
-                var loadError = ExportManager.LoadReferencesDataToReport(
-                    excel, configFilesData.solutionName, configFilesData.packageExtendedName, reportType, commitedProjState, refDepGuardExportParameters);
+                var loadError = ExportManager.LoadReferencesDataToReport(excel, configFilesData, reportType, commitedProjState, refDepGuardExportParameters);
 
                 if (loadError == "")
                     MessageManager.ShowMessageBox(this.package, reportSuccessText, reportTitleText);

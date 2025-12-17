@@ -1,4 +1,6 @@
 ﻿using Microsoft.Build.Evaluation;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VSIXProject1
 {
@@ -18,11 +20,11 @@ namespace VSIXProject1
                     return targetFramework;
                 }
 
-                string [] targetFrameworks = currentProject.GetPropertyValue("TargetFrameworks").Split(';');
+                string targetFrameworks = currentProject.GetPropertyValue("TargetFrameworks");
 
-                if (!string.IsNullOrEmpty(targetFrameworks[0])) //На текущий момент работа с несколькими таргетами для одного проекта не рассматривается!
+                if (!string.IsNullOrEmpty(targetFrameworks))
                 {
-                    return targetFrameworks[0];
+                    return targetFrameworks;
                 }
 
                 string targetFrameworkVersion = currentProject.GetPropertyValue("TargetFrameworkVersion");

@@ -75,7 +75,7 @@ namespace VSIXProject1
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value.CurrentReferences;
-                var projFrameworkVersion = currentProjState.Value.CurrentFrameworkVersion;
+                var projFrameworkVersions = currentProjState.Value.CurrentFrameworkVersions;
 
                 if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)//Эта проверка требуется, так как п-ль мог запретить автомат. добавление недостающих проектов
                 {
@@ -123,14 +123,14 @@ namespace VSIXProject1
                         if (maxSolutionFrameworkVersionByTypes.Count > 0)
                         {
                             MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
-                                projFrameworkVersion, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Solution, maxGlobalFrameworkVersionByTypes
+                                projFrameworkVersions, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Solution, maxGlobalFrameworkVersionByTypes
                                 );
                         }
                         else
                         {
                             if (maxGlobalFrameworkVersionByTypes.Count > 0)
                                 MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
-                                    projFrameworkVersion, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Global
+                                    projFrameworkVersions, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Global
                                     );
                         }
                     }
@@ -147,7 +147,7 @@ namespace VSIXProject1
                                 );
 
                         MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
-                            projFrameworkVersion, maxFrameworkVersionByTypes, projName, ErrorLevel.Project
+                            projFrameworkVersions, maxFrameworkVersionByTypes, projName, ErrorLevel.Project
                             );
                     }
 

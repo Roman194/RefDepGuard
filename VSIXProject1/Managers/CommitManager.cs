@@ -16,7 +16,7 @@ namespace VSIXProject1
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
-                var projectFrameworkVersion = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
+                var projectFrameworkVersions = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
 
                 if (vSProject != null)
@@ -29,7 +29,7 @@ namespace VSIXProject1
                             refsList.Add(vRef.Name);
                     }
 
-                    commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkVersion, refsList));
+                    commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkVersions, refsList));
                 }
             }
 

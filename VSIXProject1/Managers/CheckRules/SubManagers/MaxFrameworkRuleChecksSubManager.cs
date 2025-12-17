@@ -186,9 +186,16 @@ namespace VSIXProject1.Managers.CheckRules
             string currentProjectSupportedFrameworks,  Dictionary<string, List<int>> maxFrameworkVersion, 
             string projName, ErrorLevel errorLevel, Dictionary<string, List<int>> reserveMaxFrameworkVersion = null)
         {
-
+            if (String.IsNullOrEmpty(currentProjectSupportedFrameworks))
+            {
+                //Если вообще не получилось спарсить строку с таргетами, то нельзя допускать попытку проверки + соотв. warning
+                untypedWarningsList.Add(projName);
+                return;
+            }
+            
             //В случае если строка идёт из TargetFrameworks (Maui и пр.) нужно предварительное деление по ";"
-            //Нужно проверить каждый из 
+            //Нужно проверить каждый из таргетов на предмет противоречия макс версии.
+            //Если версии таргетов и их макс ограничения совпадают (как в Maui), то у них будет одна общая ошибка (при превышении макс версии)
             var currentProjectSupportedFrameworksArray = currentProjectSupportedFrameworks.Split(';');
 
             foreach (string currentProjectFramework in currentProjectSupportedFrameworksArray)
@@ -321,6 +328,7 @@ namespace VSIXProject1.Managers.CheckRules
                     }
                 }
             }
+            
         }
 
         public static void CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(string projName, List<string> projReferences)

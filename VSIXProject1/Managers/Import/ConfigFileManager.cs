@@ -1,5 +1,4 @@
 ﻿using EnvDTE;
-using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio.Shell;
 using Newtonsoft.Json;
 using System;
@@ -120,9 +119,9 @@ namespace VSIXProject1
                 string json;
 
                 if (isGlobal)
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileGlobal());
+                    json = JsonConvert.SerializeObject(generateDefaultConfigFileGlobal(), Formatting.Indented);
                 else
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileSolution());
+                    json = JsonConvert.SerializeObject(generateDefaultConfigFileSolution(), Formatting.Indented);
 
                 streamWriter.Write(json);
 
@@ -144,9 +143,9 @@ namespace VSIXProject1
                 string json;
 
                 if(isProjectAdding)
-                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByAddingProjects(differProjectsList));
+                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByAddingProjects(differProjectsList), Formatting.Indented);
                 else
-                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByRemovingProjects(differProjectsList));
+                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByRemovingProjects(differProjectsList), Formatting.Indented);
 
                 streamWriter.Write(json);
 

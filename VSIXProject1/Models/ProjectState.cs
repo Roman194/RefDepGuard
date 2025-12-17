@@ -8,11 +8,11 @@ namespace VSIXProject1.Data
 {
     public class ProjectState
     {
-        public string CurrentFrameworkVersion;
+        public string CurrentFrameworkVersions;
         public List<string> CurrentReferences;
         
-        public ProjectState(string currentFrameworkVersion, List<string> currentReferences) {
-            CurrentFrameworkVersion = currentFrameworkVersion;
+        public ProjectState(string currentFrameworkVersions, List<string> currentReferences) {
+            CurrentFrameworkVersions = currentFrameworkVersions;
             CurrentReferences = currentReferences;
         }
     }

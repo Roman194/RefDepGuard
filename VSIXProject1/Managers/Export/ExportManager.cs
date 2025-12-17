@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VSIXProject1.Data;
+using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.Reference;
 
 namespace VSIXProject1
@@ -13,7 +14,7 @@ namespace VSIXProject1
     public class ExportManager
     {
         public static string LoadReferencesDataToReport(
-            Application excel, string solutionName, string solutionAddress, string reportType, 
+            Application excel, ConfigFilesData configFilesData, string reportType, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters
             )
         {
@@ -25,19 +26,18 @@ namespace VSIXProject1
 
             try
             {
-                string currentReportDirectory = solutionAddress + "\\reports\\"+ reportType +"\\" + currentDateTime;
+                string currentReportDirectory = configFilesData.packageExtendedName + "\\reports\\"+ reportType +"\\" + currentDateTime;
                 Directory.CreateDirectory(currentReportDirectory);
 
                 switch (reportType)
                 {
                     case "table_type":
-                        XLSXSubManager.LoadReferencesDataToTableReport(excel, solutionName, solutionAddress, currentReportDirectory, currentDateTime, commitedProjectsState,
-                        refDepGuardErrors, refDepGuardExportParameters.RequiredParametersData); 
+                        XLSXSubManager.LoadReferencesDataToTableReport(excel, configFilesData, currentReportDirectory, currentDateTime, commitedProjectsState,
+                        refDepGuardExportParameters); 
                         break;
 
                     case "graph_type":
-                        HTMLSubManager.LoadReferencesDataToGraphicReport(solutionName, solutionAddress, currentReportDirectory, commitedProjectsState, refDepGuardErrors,
-                            refDepGuardWarnings, refDepGuardExportParameters.RequiredParametersData);
+                        HTMLSubManager.LoadReferencesDataToGraphicReport(configFilesData, currentReportDirectory, commitedProjectsState, refDepGuardExportParameters);
                         break;
                 }
             }

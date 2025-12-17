@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using VSIXProject1.Data;
+using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 
@@ -9,26 +10,25 @@ namespace VSIXProject1
 {
     public class HTMLSubManager
     {
-        public static void LoadReferencesDataToGraphicReport(string solutionName, string solutionAddress, string currentReportDirectory, 
-            Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarning, 
-            RequiredParameters requiredExportParameters) 
+        public static void LoadReferencesDataToGraphicReport(ConfigFilesData configFilesData, string currentReportDirectory, Dictionary<string, ProjectState> commitedProjectsState, 
+            RefDepGuardExportParameters refDepGuardExportParameters) 
         {
-            string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
+            string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardExportParameters);
 
-            StreamWriter sw = new StreamWriter(currentReportDirectory + "\\" + solutionName + "_references_report.html");
+            StreamWriter sw = new StreamWriter(currentReportDirectory + "\\" + configFilesData.solutionName + "_references_report.html");
             sw.Write(generatedHtml);
 
             sw.Flush();
             sw.Close();
         }
 
-        private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarning, RequiredParameters requiredExportParameters)
+        private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             HtmlDocument htmlDoc = new HtmlDocument();
             HtmlNode divNode = htmlDoc.CreateElement("div");
 
             HtmlNode preNode = htmlDoc.CreateElement("pre");
-            preNode.InnerHtml = GetCurrentMermaidCode(commitedProjectsState, refDepGuardErrors, refDepGuardWarning, requiredExportParameters);
+            preNode.InnerHtml = GetCurrentMermaidCode(commitedProjectsState, refDepGuardExportParameters);
             preNode.AddClass("mermaid");
 
             HtmlNode scriptNode = htmlDoc.CreateElement("script");
@@ -41,12 +41,15 @@ namespace VSIXProject1
             return divNode.OuterHtml.Replace("class=\"module\"", "type=\"module\""); //на момент написания кода либа не даёт возможности задавать тип нода (только его читать), поэтому реализовано такое ухищрение
         }
 
-        private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardErrors refDepGuardErrors, RefDepGuardWarnings refDepGuardWarnings, RequiredParameters requiredExportParameters)
+        private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             string outputMermaidCode = "flowchart LR\r\n";
             Dictionary <string, string> projectNameToNodeIdCompare = new Dictionary<string, string>();
+            RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
+            RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
 
-            List<RequiredReference> requiredReferences = requiredExportParameters.RequiredReferences;
+            List<RequiredReference> requiredReferences = refDepGuardExportParameters.RequiredParametersData.RequiredReferences;
+            Dictionary<string, RequiredMaxFrVersion> requiredExportParameters = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
@@ -57,7 +60,7 @@ namespace VSIXProject1
             {
                 var currentProjectName = currentProject.Key;
                 var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project);
-                var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersion;
+                var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersions;
 
                 var currentProjectMaxFrVersionString = "";
 
@@ -68,9 +71,9 @@ namespace VSIXProject1
                 }
                 else
                 {
-                    if (requiredExportParameters.MaxRequiredFrameworkVersion.ContainsKey(currentProjectName))
+                    if (requiredExportParameters.ContainsKey(currentProjectName))
                     {
-                        currentProjectMaxFrVersion = requiredExportParameters.MaxRequiredFrameworkVersion[currentProjectName];
+                        currentProjectMaxFrVersion = requiredExportParameters[currentProjectName];
                         currentProjectMaxFrVersionString = "Max: " + currentProjectMaxFrVersion.VersionText;
 
                         switch (currentProjectMaxFrVersion.ErrorLevel)
