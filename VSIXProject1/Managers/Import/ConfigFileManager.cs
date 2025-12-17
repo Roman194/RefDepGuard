@@ -1,33 +1,42 @@
 ﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
+using VSIXProject1.Managers.CheckRules;
 
 namespace VSIXProject1
 {
     public class ConfigFileManager
     {
         static IServiceProvider serviceProvider;
+        static IVsUIShell uiShell;
+        static ErrorListProvider errorListProvider;
 
         static ConfigFileSolution configFileSolution;
         static ConfigFileGlobal configFileGlobal;
         static string solutionName;
         static string packageExtendedName;
+        static bool isParseError;
 
         static Dictionary<string, ProjectState> commitedProjState;
 
         public static ConfigFilesData GetInfoFromConfigFiles(
-            DTE dte, IServiceProvider currentServiceProvider, Dictionary<string, ProjectState> currentCommitedProjState
+            DTE dte, IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, ErrorListProvider currentErrorListProvider, Dictionary<string, ProjectState> currentCommitedProjState
             )
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             serviceProvider = currentServiceProvider;
+            uiShell = currentUiShell;
+            errorListProvider = currentErrorListProvider;
+
             commitedProjState = currentCommitedProjState;
+            isParseError = false;
 
             string dteSolutionFullName = dte.Solution.FullName;
             int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
@@ -49,7 +58,7 @@ namespace VSIXProject1
             GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
             GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, solutionName, packageExtendedName);
+            return new ConfigFilesData(configFileSolution, configFileGlobal, isParseError, solutionName, packageExtendedName);
         }
 
         private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
@@ -81,34 +90,60 @@ namespace VSIXProject1
                 }
                 catch (Exception)
                 {
-                    showConfigFileParseErrorMessage(fileErrorMessage.BadDataErrorMessage, false, true);
-                    RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
-                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+                    showConfigFileParseErrorMessageAndCreateFileIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal);
                 }
             }
             else
             {
-                showConfigFileParseErrorMessage(fileErrorMessage.FileNotFoundErrorMessage, false, false);
+                showConfigFileNotFoundErrorMessage(fileErrorMessage.FileNotFoundErrorMessage, configFileServiceInfo.IsGlobal);
                 CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
         }
 
-        private static void showConfigFileParseErrorMessage(string errorReason, bool isErrorGlobal, bool isFileExists)
+        private static void showConfigFileNotFoundErrorMessage(string errorReason, bool isErrorGlobal)
         {
-            string rollbackAction = "";
             string solutionNameInfo = "";
-
-            if (isFileExists)
-                rollbackAction = "Информация, содержащаяся в файле конфигурации будет перезаписана в rollback-файл.\r\nПроверьте её на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации!";
 
             if (!isErrorGlobal)
                 solutionNameInfo = " для solution '" + solutionName + "'";
 
             MessageManager.ShowMessageBox(
-                serviceProvider,
-                errorReason + solutionNameInfo + ".\r\n Шаблон файла конфигурации будет сгенерирован расширением" + ". \r\n" + rollbackAction,
+                    serviceProvider,
+                    errorReason + solutionNameInfo + ".\r\n Шаблон файла конфигурации будет сгенерирован расширением",
+                    "RefDepGuard Error: Ошибка загрузки файла конфигурации"
+            );
+        }
+
+        private static void showConfigFileParseErrorMessageAndCreateFileIfNeeded(ConfigFileServiceInfo configFileServiceInfo, string errorReason, bool isErrorGlobal)
+        {
+            bool rollbackAction = true;
+            string solutionNameInfo = "";
+
+            if (!isErrorGlobal)
+                solutionNameInfo = " для solution '" + solutionName + "'";
+
+            rollbackAction = MessageManager.ShowYesNoPrompt(
+                uiShell,
+                errorReason + solutionNameInfo + ".\r\nСгенерирвать для вас стандартный шаблон файла конфигурации?\r\nВсё содержимое файла конфигурации будет перенесено в Rollback-файл",
                 "RefDepGuard Error: Ошибка загрузки файла конфигурации"
                 );
+
+            if (rollbackAction)
+            {
+                RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
+                CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+            }
+            else
+            {
+                isParseError = true;
+                //Перенести!
+                ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, isErrorGlobal ? "глобального файла конфигурации": "файла конфигурации конкретного solution");
+
+                if (isErrorGlobal)//Даже если пользователь не хочет генерировать дефолт файл, то всё-равно внутри проги нужно сгенерировать дефолт конфигурационные данные
+                    generateDefaultConfigFileDataGlobal();
+                else
+                    generateDefaultConfigFileDataSolution();
+            }    
         }
 
         private static void CreateNewConfigFile(string currentConfigGuardFile, bool isGlobal)
@@ -119,9 +154,9 @@ namespace VSIXProject1
                 string json;
 
                 if (isGlobal)
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileGlobal(), Formatting.Indented);
+                    json = JsonConvert.SerializeObject(generateDefaultConfigFileDataGlobal(), Formatting.Indented);
                 else
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileSolution(), Formatting.Indented);
+                    json = JsonConvert.SerializeObject(generateDefaultConfigFileDataSolution(), Formatting.Indented);
 
                 streamWriter.Write(json);
 
@@ -134,6 +169,7 @@ namespace VSIXProject1
 
         public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
         {
+            isParseError = false;
             configFileSolution = currentConfigFilesData.configFileSolution;
             configFileGlobal = currentConfigFilesData.configFileGlobal; //???
 
@@ -155,7 +191,7 @@ namespace VSIXProject1
                 streamWriter.Close();
             }
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
+            return new ConfigFilesData(configFileSolution, configFileGlobal, isParseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
         }
 
         private static ConfigFileSolution updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)
@@ -187,7 +223,7 @@ namespace VSIXProject1
             return configFileSolution;
         }
 
-        private static ConfigFileSolution generateDefaultConfigFileSolution()
+        private static ConfigFileSolution generateDefaultConfigFileDataSolution()
         {
             configFileSolution = new ConfigFileSolution();
             configFileSolution.name = solutionName;
@@ -214,7 +250,7 @@ namespace VSIXProject1
             return configFileSolution;
         }
 
-        private static ConfigFileGlobal generateDefaultConfigFileGlobal()
+        private static ConfigFileGlobal generateDefaultConfigFileDataGlobal()
         {
             configFileGlobal = new ConfigFileGlobal();
             configFileGlobal.name = "Global";

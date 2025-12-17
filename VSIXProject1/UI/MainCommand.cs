@@ -216,7 +216,7 @@ namespace VSIXProject1
 
         private static void GetConfigFileInfo()
         {
-            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(dte, serviceProvider, commitedProjState);
+            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(dte, serviceProvider, uiShell, errorListProvider, commitedProjState);
         }
 
         private static void CheckRulesFromConfigFile(bool isBuildCheck)

@@ -40,7 +40,7 @@ namespace VSIXProject1
             var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileGlobal?.framework_max_version ?? "-", ErrorLevel.Global);
             var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileSolution?.framework_max_version ?? "-", ErrorLevel.Solution);
 
-            MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxSolutionFrameworkVersionByTypes, ErrorLevel.Global);
+            MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxGlobalFrameworkVersionByTypes, ErrorLevel.Global);
             MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxSolutionFrameworkVersionByTypes, ErrorLevel.Solution);
 
             List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
@@ -179,7 +179,7 @@ namespace VSIXProject1
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
-            ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData.solutionName, errorListProvider);
+            ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData, errorListProvider);
 
             requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 

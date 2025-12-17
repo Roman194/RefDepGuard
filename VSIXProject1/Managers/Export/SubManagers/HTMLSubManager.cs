@@ -177,10 +177,12 @@ namespace VSIXProject1
 
         private static string GetProjectNode(string nodeId, string projectName, string projectTargetFrVersion, string projectMaxFrVersion)
         {
+
+
             if(projectMaxFrVersion == "")
-                return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion + "]\r\n";
+                return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion.Replace(";", "\r\n") + "]\r\n";
             else
-                return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion + "\r\n   " + projectMaxFrVersion + "]\r\n";
+                return nodeId + "[**" + projectName + "**\r\n" + "   " + projectTargetFrVersion.Replace(";", "\r\n") + "\r\n   " + projectMaxFrVersion + "]\r\n";
         }
 
         private static string GetProjectLink(string startNodeId, string endNodeId, string errorText)

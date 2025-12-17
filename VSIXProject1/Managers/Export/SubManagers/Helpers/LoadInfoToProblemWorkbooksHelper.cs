@@ -67,7 +67,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
 
-                projectsTable.Cells[5 + i, 7] = "параметр 'framework_max_version' содержит некорректную запись\r\nсвоего значения";
+                projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version' содержит некорректную запись\r\nсвоего значения";
                 projectsTable.Cells[5 + i, 8] = "Проверьте его на предмет отсутствия \r\nсинтаксических ошибок и соответствия \r\nшаблону файла конфигурации";
 
                 if (currentErrorLevel == "Global")
@@ -99,7 +99,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
 
-                projectsTable.Cells[5 + i, 7] = "параметр 'TargetFrameworkVersion'\r\nимеет версию'" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как\r\nмаксимально допустимой для него\r\nверсией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                projectsTable.Cells[5 + i, 7] = "Параметр 'TargetFrameworkVersion'\r\nимеет версию'" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как\r\nмаксимально допустимой для него\r\nверсией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 projectsTable.Cells[5 + i, 8] = "Измените версию проекта или модифицируйте конфигурацию Config-\r\nфайла";
 
                 if (currentErrorLevel == "Global")
@@ -212,6 +212,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
+            projectsTable.Columns[7].ColumnWidth = 37;
+            projectsTable.Columns[8].ColumnWidth = 38;
+
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];
             Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
 
@@ -224,6 +227,8 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
+            
         }
 
         public static void LoadInfoToRefDepGuardWarnings(Application excel, string solutionName, string currentDateTime, RefDepGuardWarnings refDepGuardWarnings){
@@ -239,7 +244,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
             projectsTable.Cells[4, 3] = "Проект";
             projectsTable.Cells[4, 4] = "Референс";
             projectsTable.Cells[4, 5] = "Тип предупреждения";
-            projectsTable.Cells[4, 6] = "Уровени предупреждения";
+            projectsTable.Cells[4, 6] = "Уровни\r\nпредупреждения";
             projectsTable.Cells[4, 7] = "Описание";
             projectsTable.Cells[4, 8] = "Необходимое действие";
             projectsTable.Cells[4, 9] = "Файл действия";
@@ -290,10 +295,10 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 string placeWhereProjectNotFound = "solution";
 
                 if (currentProjectMatchWarning.IsNoProjectInConfigFile)
-                    placeWhereProjectNotFound = "config-файле";
+                    placeWhereProjectNotFound = "config-\r\nфайле";
 
                 projectsTable.Cells[5 + i, 7] = "Рассматриваемый проект не обнаружен в " + placeWhereProjectNotFound;
-                projectsTable.Cells[5 + i, 8] = "Проверьте проект на корректность написания его имени\r\nв config-файле";
+                projectsTable.Cells[5 + i, 8] = "Проверьте проект на корректность\r\nнаписания его имени в config-файле";
                 projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
 
                 i++;
@@ -321,17 +326,18 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 switch (maxFrameworkVersionConflictValue.HighErrorLevel)
                 {
-                    case ErrorLevel.Global: currentErrorLevels += "Global"; highErrorLevelText = "глобального уровня"; break;
-                    case ErrorLevel.Solution: currentErrorLevels += "Solution"; highErrorLevelText = "уровня Solution"; break;
+                    case ErrorLevel.Global: currentErrorLevels += "Global"; highErrorLevelText = " глобального уровня"; break;
+                    case ErrorLevel.Solution: currentErrorLevels += "Solution"; highErrorLevelText = " уровня Solution"; break;
                 }
 
                 if (maxFrameworkVersionConflictValue.HighErrorLevel == maxFrameworkVersionConflictValue.LowErrorLevel)
-                    highErrorLevelText = ", указанное в супертипе\r\n'all' на том же уровне";
+                    highErrorLevelText = ", указанное в супертипе 'all' на том же уровне";
 
                 currentErrorLevels += " / ";
 
                 switch (maxFrameworkVersionConflictValue.LowErrorLevel)
                 {
+                    case ErrorLevel.Global: currentErrorLevels += "Global"; break;
                     case ErrorLevel.Solution: currentErrorLevels += "Solution"; lowErrorLevelText = "уровня Solution"; break;
                     case ErrorLevel.Project: 
                         currentErrorLevels += "Project"; 
@@ -341,8 +347,8 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevels;
                 projectsTable.Cells[5 + i, 7] = "Значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
-                    + "' параметра 'framework_max_version' " + lowErrorLevelText + "\r\nпревосходит значение '" + maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
-                    + "' одноимённого параметра " + highErrorLevelText;
+                    + "' параметра 'framework_max_version'\r\n" + lowErrorLevelText + " превосходит значение '" + maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
+                    + "' одноимённого параметра" + highErrorLevelText;
                 projectsTable.Cells[5 + i, 8] = "Устраните противоречие";
                 projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
 
@@ -361,9 +367,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 projectsTable.Cells[5 + i, 4] = maxFrameworkVersionReferenceConflictWarning.RefName;
                 projectsTable.Cells[5 + i, 5] = "framework_max_version reference conflict";
                 projectsTable.Cells[5 + i, 6] = "-";
-                projectsTable.Cells[5 + i, 7] = "значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
-                    + "' параметра 'framework_max_version' рассматриваемого\r\nпроекта приводит к потенциальному конфликту версий TargetFramework\r\n" +
-                    ", так как имеется референс на проект, имеющий большее\r\nзначение значение параметра 'framework_max_version'\r\n(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
+                projectsTable.Cells[5 + i, 7] = "Значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
+                    + "' параметра 'framework_max_version'\r\nрассматриваемого проекта приводит к\r\nпотенциальному конфликту версий TargetFramework" +
+                    ",\r\nтак как имеется референс на проект, имеющий\r\nбольшее значение значение параметра 'framework_max_version' (проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";
                 projectsTable.Cells[5 + i, 8] = "Устраните противоречие";
                 projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
@@ -391,8 +397,6 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 5] = "Reference Match";
 
-                
-
                 switch (referenceMatchWarning.HighReferenceLevel)
                 {
                     case ErrorLevel.Global: currentErrorLevels += "Global"; highReferenceLevelText = "глобального уровня"; break;
@@ -413,9 +417,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     warningAction = "Устраните дублирование правила";
 
                     if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = " является обязательным и\r\n";
+                        referenceTypeText = "\r\nявляется обязательным и";
                     else
-                        referenceTypeText = " является недопустимым и\r\n";
+                        referenceTypeText = "\r\nявляется недопустимым и";
                 }
                 else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
                 {
@@ -423,13 +427,13 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     warningAction = "Устраните противоречие в правиле";
 
                     if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = " является недопустимым и\r\n";
+                        referenceTypeText = "\r\nявляется недопустимым и";
                     else
-                        referenceTypeText = " является обязательным и\r\n";
+                        referenceTypeText = "\r\nявляется обязательным и";
                 }
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevels;
-                projectsTable.Cells[5 + i, 7] = "референс '" + referenceMatchWarning.ReferenceName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText;
+                projectsTable.Cells[5 + i, 7] = "Референс '" + referenceMatchWarning.ReferenceName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText;
                 projectsTable.Cells[5 + i, 8] = warningAction;
                 projectsTable.Cells[5 + i, 9] = documentName;
 
@@ -448,6 +452,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
+            projectsTable.Columns[7].ColumnWidth = 50;
+            projectsTable.Columns[8].ColumnWidth = 35;
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using VSIXProject1.Data;
+using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 
@@ -7,19 +8,19 @@ namespace VSIXProject1.Managers.CheckRules
 {
     public class ELPStoreManager
     {
-        public static void StoreErrorListProviderByValues(RefDepGuardFindedProblems refDepGuardFindedProblems, string solutionName, ErrorListProvider errorListProvider)
+        public static void StoreErrorListProviderByValues(RefDepGuardFindedProblems refDepGuardFindedProblems, ConfigFilesData configFilesData, ErrorListProvider errorListProvider)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardFindedProblems.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardFindedProblems.RefDepGuardWarnings;
 
-            if (errorListProvider != null)
+            if (errorListProvider != null && !configFilesData.isParseError)
                 errorListProvider.Tasks.Clear();
 
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
                 string currentText = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'";
 
-                StoreErrorTask(errorListProvider, currentText, solutionName + ".csproj", TaskErrorCategory.Warning);
+                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + ".csproj", TaskErrorCategory.Warning);
             }
 
             foreach(var currentProjectMatchWarning in refDepGuardWarnings.ProjectMatchWarningList)
@@ -31,12 +32,12 @@ namespace VSIXProject1.Managers.CheckRules
 
                 string currentText = "RefDepGuard Project match warning: проект '" + currentProjectMatchWarning.ProjName + "' не обнаружен в " + placeWhereProjectNotFound + ". Проверьте проект на корректность написания его имени в config-файле";
 
-                StoreErrorTask(errorListProvider, currentText, solutionName + "_config_guard.rdg", TaskErrorCategory.Warning);
+                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + "_config_guard.rdg", TaskErrorCategory.Warning);
             }
 
             foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string relevantProjectName = "";
                 string globalPrefix = "";
 
@@ -54,7 +55,7 @@ namespace VSIXProject1.Managers.CheckRules
 
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string ruleLevel = "";
 
 
@@ -73,7 +74,7 @@ namespace VSIXProject1.Managers.CheckRules
 
             foreach (ConfigFilePropertyNullError configFilePropertyNullError in refDepGuardErrors.ConfigPropertyNullErrorList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string relevantProjectName = "";
 
                 if (configFilePropertyNullError.IsGlobal)
@@ -91,7 +92,7 @@ namespace VSIXProject1.Managers.CheckRules
             {
                 string projectName = "";
                 string referenceLevelText = "";
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string matchErrorDescription = "";
 
                 if (referenceMatchError.IsProjNameMatchError)
@@ -148,7 +149,7 @@ namespace VSIXProject1.Managers.CheckRules
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
             { //Выделить в error случаи, когда рассматриваюся версии одного уровня? (случаи с all)
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string highErrorLevelText = "";
                 string lowErrorLevelText = "";
 
@@ -179,7 +180,7 @@ namespace VSIXProject1.Managers.CheckRules
 
             foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
 
                 string errorText = "RefDepGuard framework_max_version reference conflict warning: значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version' проекта " + maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
@@ -191,7 +192,7 @@ namespace VSIXProject1.Managers.CheckRules
 
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
             {
-                string documentName = solutionName + "_config_guard.rdg";
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string projectName = "";
                 string highReferenceLevelText = "";
                 string lowReferenceLevelText = "";
@@ -262,6 +263,15 @@ namespace VSIXProject1.Managers.CheckRules
             var currentText = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой";
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
             errorListProvider.Show();
+        }
+
+        public static void ShowUnsuccessfulConfigFileParseWarning(ErrorListProvider errorListProvider, string fileName)
+        {
+            if (errorListProvider != null)
+                errorListProvider.Tasks.Clear();
+
+            var currentText = "RefDepGuard warning: Не получилось спарсить данные из " + fileName + ". Правила из этого файла не учтены в проверке";
+            StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
         }
 
         private static void StoreErrorTask(ErrorListProvider errorListProvider, string currentText, string currentDocument, TaskErrorCategory currentTask)
