@@ -13,7 +13,7 @@ namespace VSIXProject1.Managers.CheckRules
             RefDepGuardErrors refDepGuardErrors = refDepGuardFindedProblems.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardFindedProblems.RefDepGuardWarnings;
 
-            if (errorListProvider != null && !configFilesData.isParseError)
+            if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
@@ -267,9 +267,6 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static void ShowUnsuccessfulConfigFileParseWarning(ErrorListProvider errorListProvider, string fileName)
         {
-            if (errorListProvider != null)
-                errorListProvider.Tasks.Clear();
-
             var currentText = "RefDepGuard warning: Не получилось спарсить данные из " + fileName + ". Правила из этого файла не учтены в проверке";
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
         }

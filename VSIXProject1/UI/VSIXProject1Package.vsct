@@ -66,15 +66,15 @@
 		
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetCurrentRefsId" priority="0x0100" type="Button">
         <Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
-        <Icon guid="guidImages" id="bmpPic1" />
+        <Icon guid="guidShowRefs" id="bmpShowRef" />
         <Strings>
-          <ButtonText>Показать все рефы</ButtonText>
+          <ButtonText>Показать все рефы решения</ButtonText>
         </Strings>
       </Button>
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetChangedRefsId" priority="0x0110" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
-			<Icon guid="guidImages" id="bmpPic2" />
+			<Icon guid="guidShowChanges" id="bmpShowCh" />
 			<Strings>
 				<ButtonText>Вывести изменения в рефах</ButtonText>
 			</Strings>
@@ -82,7 +82,7 @@
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentRefsId" priority="0x0120" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
-			<Icon guid="guidImages" id="bmpPicSearch" />
+			<Icon guid="guidCommitRefs" id="bmpCommitRef" />
 			<Strings>
 				<ButtonText>Зафиксировать версию рефов</ButtonText>
 			</Strings>
@@ -90,7 +90,7 @@
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ExportRefsToXLSXId" priority="0x0130" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
-			<Icon guid="guidImages" id="bmpPicX" />
+			<Icon guid="guidTableExport" id="bmpTableExport" />
 			<Strings>
 				<ButtonText>Экспорт в XLSX</ButtonText>
 			</Strings>
@@ -98,7 +98,7 @@
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ExportRefsToHTMLId" priority="0x0140" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
-			<Icon guid="guidImages" id="bmpPicArrows" />
+			<Icon guid="guidGraphExport" id="bmpGraphExport" />
 			<Strings>
 				<ButtonText>Экспорт в HTML</ButtonText>
 			</Strings>
@@ -113,6 +113,12 @@
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
       <Bitmap guid="guidImages" href="Resources\Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+		<Bitmap guid="guidShowRefs" href="Resources\ShowRefs_icon.png" usedList="bmpShowRef"/>
+		<Bitmap guid="guidShowChanges" href="Resources\ShowChanges_icon.png" usedList="bmpShowCh"/>
+		<Bitmap guid="guidCommitRefs" href="Resources\CommitRefs_icon.png" usedList="bmpCommitRef"/>
+		<Bitmap guid="guidUpdateConfigRules" href="Resources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
+		<Bitmap guid="guidTableExport" href="Resources\TableExport_icon.png" usedList="bmpTableExport"/>
+		<Bitmap guid="guidGraphExport" href="Resources\GraphExport_icon.png" usedList="bmpGraphExport"/>
     </Bitmaps>
   </Commands>
 
@@ -162,5 +168,30 @@
       <IDSymbol name="bmpPicArrows" value="5" />
       <IDSymbol name="bmpPicStrikethrough" value="6" />
     </GuidSymbol>
+
+	  <GuidSymbol name="guidShowRefs" value="{dceed754-0469-4e89-968e-668b81728f25}">
+		  <IDSymbol name="bmpShowRef" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidShowChanges" value="{dceed754-0469-4e89-968e-668b81728f27}">
+		  <IDSymbol name="bmpShowCh" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidCommitRefs" value="{dceed754-0469-4e89-968e-668b81728f29}">
+		  <IDSymbol name="bmpCommitRef" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidUpdateConfigRules" value="{dceed754-0469-4e89-968e-668b81728f31}">
+		  <IDSymbol name="bmpUpdateRules" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidTableExport" value="{dceed754-0469-4e89-968e-668b81728f35}">
+		  <IDSymbol name="bmpTableExport" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidGraphExport" value="{dceed754-0469-4e89-968e-668b81728f37}">
+		  <IDSymbol name="bmpGraphExport" value="1"/>
+	  </GuidSymbol>
+
   </Symbols>
 </CommandTable>

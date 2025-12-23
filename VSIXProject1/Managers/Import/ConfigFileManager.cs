@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
-using VSIXProject1.Managers.CheckRules;
+using VSIXProject1.Models;
 
 namespace VSIXProject1
 {
@@ -21,7 +21,8 @@ namespace VSIXProject1
         static ConfigFileGlobal configFileGlobal;
         static string solutionName;
         static string packageExtendedName;
-        static bool isParseError;
+        static FileParseError parseError;
+
 
         static Dictionary<string, ProjectState> commitedProjState;
 
@@ -36,7 +37,7 @@ namespace VSIXProject1
             errorListProvider = currentErrorListProvider;
 
             commitedProjState = currentCommitedProjState;
-            isParseError = false;
+            parseError = FileParseError.None;
 
             string dteSolutionFullName = dte.Solution.FullName;
             int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
@@ -58,7 +59,7 @@ namespace VSIXProject1
             GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
             GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, isParseError, solutionName, packageExtendedName);
+            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);
         }
 
         private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
@@ -135,10 +136,12 @@ namespace VSIXProject1
             }
             else
             {
-                isParseError = true;
-                //Перенести!
-                ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, isErrorGlobal ? "глобального файла конфигурации": "файла конфигурации конкретного solution");
-
+                //Случай, когда уже занесён Глобал и попал сюда ещё и Solution невозможен, так как всегда сначала парсится Solution, а затем Global
+                if (isErrorGlobal && parseError == FileParseError.Solution)
+                    parseError = FileParseError.All;
+                else
+                    parseError = isErrorGlobal ? FileParseError.Global : FileParseError.Solution;
+                
                 if (isErrorGlobal)//Даже если пользователь не хочет генерировать дефолт файл, то всё-равно внутри проги нужно сгенерировать дефолт конфигурационные данные
                     generateDefaultConfigFileDataGlobal();
                 else
@@ -169,7 +172,6 @@ namespace VSIXProject1
 
         public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
         {
-            isParseError = false;
             configFileSolution = currentConfigFilesData.configFileSolution;
             configFileGlobal = currentConfigFilesData.configFileGlobal; //???
 
@@ -191,7 +193,7 @@ namespace VSIXProject1
                 streamWriter.Close();
             }
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, isParseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
+            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
         }
 
         private static ConfigFileSolution updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)

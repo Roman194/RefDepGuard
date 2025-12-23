@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VSIXProject1.Models;
 
 namespace VSIXProject1.Data.ConfigFile
 {
@@ -10,17 +11,17 @@ namespace VSIXProject1.Data.ConfigFile
     {
         public ConfigFileSolution configFileSolution;
         public ConfigFileGlobal configFileGlobal;
-        public bool isParseError;
+        public FileParseError ParseError;
 
         public string solutionName;
         public string packageExtendedName;
 
 
-        public ConfigFilesData(ConfigFileSolution configFileSolution, ConfigFileGlobal configFileGlobal, bool isParseError, string solutionName, string packageExtendedName)
+        public ConfigFilesData(ConfigFileSolution configFileSolution, ConfigFileGlobal configFileGlobal, FileParseError parseError, string solutionName, string packageExtendedName)
         {
             this.configFileSolution = configFileSolution;
             this.configFileGlobal = configFileGlobal;
-            this.isParseError = isParseError;
+            ParseError = parseError;
             this.solutionName = solutionName; //Nam-ы парсятся не из конфиг-файла
             this.packageExtendedName = packageExtendedName;
         }

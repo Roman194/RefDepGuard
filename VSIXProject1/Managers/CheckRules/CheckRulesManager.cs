@@ -32,6 +32,7 @@ namespace VSIXProject1
             ConfigFileGlobal configFileGlobal = configFilesData.configFileGlobal;
             ConfigFileSolution configFileSolution = configFilesData.configFileSolution;
             string solutionName = configFilesData.solutionName;
+            FileParseError parseErrors = configFilesData.ParseError;
 
             ClearErrorAndWarningLists();
 
@@ -179,7 +180,17 @@ namespace VSIXProject1
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
+            //Вывод обнаруженных проблем по ограничениям конфиг-файлов
             ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData, errorListProvider);
+
+            if(parseErrors != FileParseError.None) //Вывод предупреждений о неудаче парсинга конфиг-файлов
+            {
+                if(parseErrors == FileParseError.Global || parseErrors == FileParseError.All)
+                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "глобального файла конфигурации");
+
+                if(parseErrors == FileParseError.Solution || parseErrors == FileParseError.All)
+                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "файла конфигурации конкретного solution");
+            }
 
             requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 
