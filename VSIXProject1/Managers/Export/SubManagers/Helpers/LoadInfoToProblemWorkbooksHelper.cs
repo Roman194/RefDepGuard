@@ -1,9 +1,12 @@
 ﻿using Microsoft.Office.Interop.Excel;
+using Microsoft.VisualStudio.Shell;
 using System.Drawing;
 using VSIXProject1.Data;
+using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
 using VSIXProject1.Models;
+using VSIXProject1.Models.FrameworkVersion;
 
 namespace VSIXProject1.Managers.Export.SubManagers
 {
@@ -304,7 +307,63 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
-            foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
+            foreach (MaxFrameworkVersionDeviantValueWarning maxFrameworkVersionDeviantValue in refDepGuardWarnings.MaxFrameworkVersionDeviantValueWarningList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = maxFrameworkVersionDeviantValue.WarningRelevantProjectName != "" ? maxFrameworkVersionDeviantValue.WarningRelevantProjectName : "-";
+                projectsTable.Cells[5 + i, 4] = "-";
+                projectsTable.Cells[5 + i, 5] = "framework_max_version deviant value";
+
+                string warningLevel = "";
+
+                switch (maxFrameworkVersionDeviantValue.WarningLevel)
+                {
+                    case ErrorLevel.Global: warningLevel = "Global";  break;
+                    case ErrorLevel.Solution: warningLevel = "Solution"; break;
+                    case ErrorLevel.Project: warningLevel = "Project"; break;
+                }
+
+                projectsTable.Cells[5 + i, 6] = warningLevel;
+                projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version' содержит значение\r\n'" + maxFrameworkVersionDeviantValue.DeviantValue + "', а должен содержать значение формата 'x.x' (1.2)";
+                projectsTable.Cells[5 + i, 8] = "Приведите значение к корректному формату";
+                projectsTable.Cells[5 + i, 9] = maxFrameworkVersionDeviantValue.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
+
+                i++;
+            }
+
+            foreach (var currentProjectNotFoundWarning in refDepGuardWarnings.ProjectNotFoundWarningList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = currentProjectNotFoundWarning.ProjName != "" ? currentProjectNotFoundWarning.ProjName : "-";
+                projectsTable.Cells[5 + i, 4] = currentProjectNotFoundWarning.ReferenceName;
+                projectsTable.Cells[5 + i, 5] = "Project not found";
+
+                string warningLevel = "";
+                string documentName = solutionName + "_config_guard.rdg";
+                switch (currentProjectNotFoundWarning.WarningLevel)
+                {
+                    case ErrorLevel.Global: warningLevel = "Global"; documentName = "global_config_guard.rdg";  break;
+                    case ErrorLevel.Solution: warningLevel = "Solution"; break;
+                    case ErrorLevel.Project: warningLevel = "Project"; break;
+                }
+
+                projectsTable.Cells[5 + i, 6] = warningLevel;
+                projectsTable.Cells[5 + i, 7] = "Данный проект указан в референс-правиле, но не\r\nобнаружен в Solution";
+                projectsTable.Cells[5 + i, 8] = "Проверьте правило на корректность\r\nнаписания имени проекта";
+                projectsTable.Cells[5 + i, 9] = documentName;
+
+                i++;
+            }
+
+                foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
             {
                 string currentErrorLevels = "";
                 string highErrorLevelText = "";

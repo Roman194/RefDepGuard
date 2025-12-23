@@ -46,6 +46,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Comparators\ContainsComparators\ProjectMatchWarningContainsComparer.cs" />
+    <Compile Include="Comparators\ContainsComparators\ProjectNotFoundContainsComparer.cs" />
     <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\CheckProjectsMatchSubManager.cs" />
     <Compile Include="Managers\ELPStoreManager.cs" />
@@ -58,13 +59,16 @@
     <Compile Include="Managers\Import\ConfigFileManager.cs" />
     <Compile Include="Models\ConfigFile\ConfigFilesData.cs" />
     <Compile Include="Models\FileParseError.cs" />
-    <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleErrors.cs" />
+    <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleProblems.cs" />
+    <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionDeviantValueWarning.cs" />
     <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionWarnings.cs" />
     <Compile Include="Models\ProjectMatchWarning.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardExportParameters.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardFindedProblems.cs" />
     <Compile Include="Managers\ExcecuteRefsManager.cs" />
+    <Compile Include="Models\Reference\ProjectNotFoundWarning.cs" />
     <Compile Include="Models\Reference\ReferenceRuleErrors.cs" />
+    <Compile Include="Models\Reference\ReferenceRuleWarnings.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

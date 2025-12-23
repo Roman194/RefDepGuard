@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Microsoft.VisualStudio.TextManager.Interop;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using VSIXProject1.Comparators.ContainsComparators;
+using VSIXProject1.Data;
 using VSIXProject1.Data.Reference;
 using VSIXProject1.Models.Reference;
 
@@ -12,6 +15,7 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
         static List<ReferenceError> refsErrorList = new List<ReferenceError>();
 
         static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
+        static List<ProjectNotFoundWarning> projectNotFoundWarningsList = new List<ProjectNotFoundWarning>();
 
         public static void ClearRefsErrorsAndWarnings()
         {
@@ -23,6 +27,9 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
 
             if (refsMatchWarningList != null)
                 refsMatchWarningList.Clear();
+
+            if(projectNotFoundWarningsList != null)
+                projectNotFoundWarningsList.Clear();
         }
 
         public static void CheckRulesOnMatchConflicts(
@@ -78,6 +85,45 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
 
             AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
             AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
+        }
+
+
+        public static Tuple<List<string>, List<string>> CheckReferencesOnProjectExisting(
+            List<string> currentRequiredReferences, List<string> currentUnacceptableReferences, Dictionary<string, ProjectState> currentCommitedProjState, 
+            ErrorLevel errorLevel, string projName = "")
+        {
+            currentRequiredReferences = CheckReferencesListOnProjectExisting(currentRequiredReferences, currentCommitedProjState, errorLevel, projName);
+            currentUnacceptableReferences = CheckReferencesListOnProjectExisting(currentUnacceptableReferences, currentCommitedProjState, errorLevel, projName);
+
+            return new Tuple<List<string>, List<string>>(currentRequiredReferences, currentUnacceptableReferences);
+        }
+
+        private static List<string> CheckReferencesListOnProjectExisting(
+            List<string> currentReferencesList, Dictionary<string, ProjectState> currentCommitedProjState, ErrorLevel errorLevel, string projName)
+        {
+            var incorrecltlyReferingRefs = new List<string>();
+
+            foreach (string reference in currentReferencesList)
+            {
+                if (!currentCommitedProjState.ContainsKey(reference))
+                {
+                    incorrecltlyReferingRefs.Add(reference);
+                }
+            }
+
+            foreach(string incorrRef in incorrecltlyReferingRefs)
+            {
+                currentReferencesList.Remove(incorrRef);
+
+                var currentPNFWarningInstance = new ProjectNotFoundWarning(incorrRef, errorLevel, projName);
+
+                if (!projectNotFoundWarningsList.Contains(currentPNFWarningInstance, new ProjectNotFoundContainsComparer()))
+                {
+                    projectNotFoundWarningsList.Add(currentPNFWarningInstance);
+                }
+            }
+
+            return currentReferencesList;
         }
 
         private static void AddReferenceMatchErrorsToList(ErrorLevel referenceLevel, string projName, bool isProjectNameMatchError, List<string> currentIntersect)
@@ -184,9 +230,9 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             return new ReferenceRuleErrors(refsErrorList, refsMatchErrorList);
         }
 
-        public static List<ReferenceMatchWarning> GetReferenceWarnings()
+        public static ReferenceRuleWarnings GetReferenceWarnings()
         {
-            return refsMatchWarningList;
+            return new ReferenceRuleWarnings(refsMatchWarningList, projectNotFoundWarningsList);
         }
     }
 }

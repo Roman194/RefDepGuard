@@ -12,12 +12,15 @@ using VSIXProject1.Data.Reference;
 using VSIXProject1.Managers.CheckRules;
 using VSIXProject1.Managers.CheckRules.SubManagers;
 using VSIXProject1.Models;
+using VSIXProject1.Models.FrameworkVersion;
 
 namespace VSIXProject1
 {
     public class CheckRulesManager
     {
-        static List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueList = new List<MaxFrameworkVersionDeviantValueError>();
+        static List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueErrorList = new List<MaxFrameworkVersionDeviantValueError>();
+        static List<MaxFrameworkVersionDeviantValueWarning> maxFrameworkVersionDeviantValueWarningList = new List<MaxFrameworkVersionDeviantValueWarning>();
+
         static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
 
         static RefDepGuardErrors refDepGuardErrors;
@@ -59,10 +62,6 @@ namespace VSIXProject1
             requiredReferencesList.AddRange(globalRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
             requiredReferencesList.AddRange(solutionRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
 
-            RefsRuleChecksSubManager.CheckRulesOnMatchConflicts(
-                solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences
-                );
-
             if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)//проверка на противоречие с global
                 MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
                     maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "", ErrorLevel.Solution, ErrorLevel.Global
@@ -71,6 +70,17 @@ namespace VSIXProject1
             //Проверка на наличие незафиксированных в конфиге и уже удалённых в solution проектов
             var projectMatchWarningList = new List<ProjectMatchWarning>();
             (configFilesData, projectMatchWarningList) = CheckProjectsMatchSubManager.CheckAndUpdateProjectsOnMatch(configFilesData, currentCommitedProjState, uIShell);
+
+            (globalRequiredReferences, globalUnacceptableReferences) = 
+                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(globalRequiredReferences, globalUnacceptableReferences, currentCommitedProjState, ErrorLevel.Global);
+
+            (solutionRequiredReferences, solutionUnacceptableReferences) = 
+                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(solutionRequiredReferences, solutionUnacceptableReferences, currentCommitedProjState, ErrorLevel.Solution);
+
+
+            RefsRuleChecksSubManager.CheckRulesOnMatchConflicts(
+                solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences
+                );
 
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//для каждого project
             {
@@ -97,6 +107,9 @@ namespace VSIXProject1
                     };
 
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
+
+                    (requiredReferences, unacceptableReferences) = 
+                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedProjState, ErrorLevel.Project, projName);
 
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
                         solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences,
@@ -156,27 +169,29 @@ namespace VSIXProject1
                 }
             }
 
-            var refsMatchWarningList = RefsRuleChecksSubManager.GetReferenceWarnings();//На текущий момент только тип RefsMatchWarning 
+            var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
-            var maxFrameworkRuleErrors = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleErrors();
+            var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
             var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
 
-            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorSortComparer());
+            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorSortComparer());//Сортируются только "ошибки"?
             refsRuleCheckErrors.RefsMatchErrorList.Sort(new ReferenceMatchErrorSortComparer());
             configPropertyNullErrorList.Sort(new ConfigFilePropertyNullErrorSortComparer());
-            maxFrameworkVersionDeviantValueList.Sort(new MaxFrameworkVersionDeviantValueSortComparer());
-            maxFrameworkRuleErrors.FrameworkVersionComparabilityErrorList.Sort(new FrameworkVersionComparabilityErrorSortComparer());
+            maxFrameworkVersionDeviantValueErrorList.Sort(new MaxFrameworkVersionDeviantValueSortComparer());
+            maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList.Sort(new FrameworkVersionComparabilityErrorSortComparer());
 
             refDepGuardErrors = new RefDepGuardErrors(
-                configPropertyNullErrorList, refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, maxFrameworkVersionDeviantValueList,
-                maxFrameworkRuleErrors.FrameworkVersionComparabilityErrorList
+                configPropertyNullErrorList, refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, maxFrameworkVersionDeviantValueErrorList,
+                maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList
                 );
             refDepGuardWarnings = new RefDepGuardWarnings(
-                refsMatchWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
-                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, projectMatchWarningList, 
-                maxFrameworkRuleErrors.UntypedWarningsList);
+                refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList,
+                maxFrameworkVersionDeviantValueWarningList,
+                maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
+                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, 
+                projectMatchWarningList, maxFrameworkRuleProblems.UntypedWarningsList);
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
@@ -202,8 +217,11 @@ namespace VSIXProject1
 
         private static void ClearErrorAndWarningLists()
         {
-            if (maxFrameworkVersionDeviantValueList != null)
-                maxFrameworkVersionDeviantValueList.Clear();
+            if (maxFrameworkVersionDeviantValueErrorList != null)
+                maxFrameworkVersionDeviantValueErrorList.Clear();
+
+            if (maxFrameworkVersionDeviantValueWarningList != null)
+                maxFrameworkVersionDeviantValueWarningList.Clear();
 
             if (requiredReferencesList != null)
                 requiredReferencesList.Clear();
@@ -224,8 +242,8 @@ namespace VSIXProject1
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
                 MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
 
-                if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                    maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                    maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
 
                 return new Dictionary<string, List<int>>();
             }
@@ -243,13 +261,14 @@ namespace VSIXProject1
 
                 var maxFrameworkVersionElementSplited = maxFrameworkVersion.Replace(" ", "").Split(':');
 
-                if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0])) //Если не указано название типа фреймворка
+                //Если не указано название типа фреймворка или/и в правой части нет ничего
+                if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0]) || String.IsNullOrEmpty(maxFrameworkVersionElementSplited[1]))
                 {
                     //Выкинуть ошибку о некорректном формате
                     MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, "");
 
-                    if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                    if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                        maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
 
                     return new Dictionary<string, List<int>>();
                 }
@@ -266,19 +285,31 @@ namespace VSIXProject1
                         MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
                         if (errorLevel == ErrorLevel.Project)
                         {
-                            maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                            maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
                         }
                         else
                         {
-                            if (!maxFrameworkVersionDeviantValueList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                                maxFrameworkVersionDeviantValueList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                            if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                                maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
                         }
 
                         return new Dictionary<string, List<int>>();
                     }
                     maxFrameworkVersionNumsList.Add(maxVersionCurrentNum);
                 }
+
+                if (maxFrameworkVersionNumsList.Count == 1)//Если числовое ограничение указано в формате без точки
+                {
+                    //добавить новую framework_max_version deviant value warning и незначащий ноль в конец
+
+                    maxFrameworkVersionNumsList.Add(0);
+                    maxFrameworkVersionDeviantValueWarningList.Add(new MaxFrameworkVersionDeviantValueWarning(errorLevel, projName, maxFrameworkVersionElementSplited[1]));
+                }
+
+
                 maxFrameworkDictionary.Add(maxFrameworkVersionElementSplited[0], maxFrameworkVersionNumsList);
+
+
             }
             return maxFrameworkDictionary;
         }

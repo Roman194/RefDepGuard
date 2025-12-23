@@ -372,9 +372,9 @@ namespace VSIXProject1.Managers.CheckRules
             return new MaxFrameworkVersionWarnings(maxFrameworkVersionConflictWarningsList, maxFrameworkVersionReferenceConflictWarningsList);
         }
 
-        public static MaxFrameworkRuleErrors GetMaxFrameworkRuleErrors()
+        public static MaxFrameworkRuleProblems GetMaxFrameworkRuleProblems()
         {
-            return new MaxFrameworkRuleErrors(frameworkVersionComparabilityErrorList, untypedWarningsList);
+            return new MaxFrameworkRuleProblems(frameworkVersionComparabilityErrorList, untypedWarningsList);
         }
 
         public static Dictionary<string, RequiredMaxFrVersion> GetRequiredMaxFrVersionsDict()

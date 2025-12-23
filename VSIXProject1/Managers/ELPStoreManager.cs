@@ -3,6 +3,7 @@ using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Data.Reference;
+using VSIXProject1.Models.FrameworkVersion;
 
 namespace VSIXProject1.Managers.CheckRules
 {
@@ -33,6 +34,29 @@ namespace VSIXProject1.Managers.CheckRules
                 string currentText = "RefDepGuard Project match warning: проект '" + currentProjectMatchWarning.ProjName + "' не обнаружен в " + placeWhereProjectNotFound + ". Проверьте проект на корректность написания его имени в config-файле";
 
                 StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + "_config_guard.rdg", TaskErrorCategory.Warning);
+            }
+
+            foreach(var currentProjectNotFoundWarning in refDepGuardWarnings.ProjectNotFoundWarningList)
+            {
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
+                string ruleLevel = "уровня Solution";
+
+                switch (currentProjectNotFoundWarning.WarningLevel)
+                {
+                    case ErrorLevel.Global: ruleLevel = "глобального уровня"; break;
+                    case ErrorLevel.Solution: ruleLevel = "уровня Solution"; break;
+                    case ErrorLevel.Project: ruleLevel = "в проекте '"+ currentProjectNotFoundWarning.ProjName + "' "; break;
+                }
+
+                if(currentProjectNotFoundWarning.WarningLevel == ErrorLevel.Global)
+                {
+                    documentName = "global_config_guard.rdg";
+                    ruleLevel = "глобального уровня";
+                }
+                
+                string currentText = "RefDepGuard Project not found warning: проект '" + currentProjectNotFoundWarning.ReferenceName + "', указанный в референс-правиле " + ruleLevel + ", не обнаружен в solution" + ". Проверьте правило на корректность написания в config-файле";
+
+                StoreErrorTask(errorListProvider, currentText, documentName, TaskErrorCategory.Warning);
             }
 
             foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
@@ -145,6 +169,23 @@ namespace VSIXProject1.Managers.CheckRules
                 string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
 
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
+            }
+
+            foreach (MaxFrameworkVersionDeviantValueWarning maxFrameworkVersionDeviantValue in refDepGuardWarnings.MaxFrameworkVersionDeviantValueWarningList)
+            {
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
+                string relevantProjectName = "";
+
+                switch (maxFrameworkVersionDeviantValue.WarningLevel)
+                {
+                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; relevantProjectName = "глобального Config-файла"; break;
+                    case ErrorLevel.Solution: relevantProjectName = "Config-файла уровня Solution"; break;
+                    case ErrorLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.WarningRelevantProjectName + "'"; break;
+                }
+
+                string errorText = "RefDepGuard framework_max_version deviant value warning: параметр 'framework_max_version' " + relevantProjectName + " содержит значение '"+ maxFrameworkVersionDeviantValue.DeviantValue +"', а должен содержать значение формата 'x.x' (1.2). Приведите значение к корректному формату";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
