@@ -64,7 +64,7 @@ namespace VSIXProject1
 
             if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)//проверка на противоречие с global
                 MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
-                    maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "", ErrorLevel.Solution, ErrorLevel.Global
+                    maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "-", ErrorLevel.Solution, ErrorLevel.Global
                     );
 
             //Проверка на наличие незафиксированных в конфиге и уже удалённых в solution проектов
@@ -96,7 +96,8 @@ namespace VSIXProject1
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
                     var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ErrorLevel.Project, projName);
-                    MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxFrameworkVersionByTypes, ErrorLevel.Project, projName);
+                    //На уровне Project не может быть противоречий одного уровня!!!
+                    //MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxFrameworkVersionByTypes, ErrorLevel.Project, projName);
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -112,8 +113,8 @@ namespace VSIXProject1
                         RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedProjState, ErrorLevel.Project, projName);
 
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
-                        solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences,
-                        globalUnacceptableReferences, requiredReferences, unacceptableReferences, projName);
+                        solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences, requiredReferences, 
+                        unacceptableReferences, projName, isConsiderRequiredReferences, isConsiderUnacceptableReferences);
 
                     RefsRuleChecksSubManager.CheckRulesForProjectReferences(projName, projReferences, requiredReferences, true);
                     RefsRuleChecksSubManager.CheckRulesForProjectReferences(projName, projReferences, unacceptableReferences, false);
@@ -164,12 +165,23 @@ namespace VSIXProject1
                             projFrameworkVersions, maxFrameworkVersionByTypes, projName, ErrorLevel.Project
                             );
                     }
+                }
+            }
 
+            //Для корректной проверки конфликтов рефов по макс версиям требуется предварительно собрать инфу обо всех проектах, их макс версиях и конфликтов между макс версиями
+            //Поэтому проверка вынесена в отдельный цикл
+            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)
+            {
+                var projName = currentProjState.Key;
+                var projReferences = currentProjState.Value.CurrentReferences;
+
+                if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)
+                {
                     MaxFrameworkRuleChecksSubManager.CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(projName, projReferences);
                 }
             }
 
-            var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
+                    var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();

@@ -33,7 +33,7 @@ namespace VSIXProject1.Managers.CheckRules
                 frameworkVersionComparabilityErrorList.Clear();
         }
 
-        public static void CheckMaxFrameworkVersionOneLevelConflict(Dictionary<string, List<int>> currentMaxFrameworkVersion, ErrorLevel ruleLevel, string projName = "-")
+        public static void CheckMaxFrameworkVersionOneLevelConflict(Dictionary<string, List<int>> currentMaxFrameworkVersion, ErrorLevel ruleLevel)
         {
             if (currentMaxFrameworkVersion.ContainsKey("all")) //Проверки на противоречия в правилах макс фреймворков одного уровня
             {
@@ -44,7 +44,7 @@ namespace VSIXProject1.Managers.CheckRules
                     if (currentMaxLowLevelFrameworkVersion.Key != "all")
                     {
                         List<int> maxCurrentTypeFrameworkVersionArray = currentMaxLowLevelFrameworkVersion.Value;
-                        CheckMaxFrameworkVersionCurrentConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, projName, ruleLevel, ruleLevel);
+                        CheckMaxFrameworkVersionCurrentConflict(maxAllTypeFrameworkVersionArray, maxCurrentTypeFrameworkVersionArray, "-", ruleLevel, ruleLevel);
                     }
                 }
             }
@@ -232,6 +232,7 @@ namespace VSIXProject1.Managers.CheckRules
                     
                 }
 
+                string currentMaxFrVersionType = currentProjFrameworkType;
                 List<int> currentMaxFrameworkVersionNums = new List<int>();
 
                 if (maxFrameworkVersion.ContainsKey(currentProjFrameworkType))
@@ -240,8 +241,12 @@ namespace VSIXProject1.Managers.CheckRules
                 }
                 else
                 { //Если не нашлось правила для типа из TargetFramework
-                    if (maxFrameworkVersion.ContainsKey("all"))//Проверить на наличие супертипа "all"
+                    if (maxFrameworkVersion.ContainsKey("all"))
+                    { //Проверить на наличие супертипа "all"
                         currentMaxFrameworkVersionNums = maxFrameworkVersion["all"];
+                        if (errorLevel != ErrorLevel.Project) 
+                            currentMaxFrVersionType = "all";
+                    }
                     else //Если и его нет, то попытаться найти ограничение на уровне выше
                     {
                         if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != null) //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
@@ -256,9 +261,9 @@ namespace VSIXProject1.Managers.CheckRules
 
                 //Загрузка данных об ограничениях на max_fr_version для текущего проекта
                 if (!requiredMaxFrVersionsDict.ContainsKey(projName))//Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
-                    requiredMaxFrVersionsDict.Add(projName, new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel));
+                    requiredMaxFrVersionsDict.Add(projName, new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType));
                 else
-                    requiredMaxFrVersionsDict[projName] = new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel);
+                    requiredMaxFrVersionsDict[projName] = new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType);
 
                 var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
 
@@ -333,26 +338,37 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static void CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(string projName, List<string> projReferences)
         {
-            if (requiredMaxFrVersionsDict.ContainsKey(projName)) //При проверке потенциального конфликта TargetFramework на текущий момент тип фреймворка не учитывается!
+            // Проверка конфликтов рефов по макс версиям не производится, если макс версия одного из текущих проектов "конфликтует" с какой-то глобальной или solution версией
+            // или если есть конфликт в макс версии global или solution или между ними
+            var projectError = maxFrameworkVersionConflictWarningsList.Find(value => value.ErrorRelevantProjectName == projName || value.ErrorRelevantProjectName == "-");
+
+            if (requiredMaxFrVersionsDict.ContainsKey(projName) && projectError == null)
             {
                 List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionText
-                    .Split('.')
-                    .ToList()
-                    .ConvertAll(value => Convert.ToInt32(value));
+                .Split('.')
+                .ToList()
+                .ConvertAll(value => Convert.ToInt32(value));
+
                 foreach (var projReference in projReferences)
                 {
+                    var referenceError = maxFrameworkVersionConflictWarningsList.Find(value => value.ErrorRelevantProjectName == projReference);
 
-                    if (requiredMaxFrVersionsDict.ContainsKey(projReference))
+                    if (requiredMaxFrVersionsDict.ContainsKey(projReference) && referenceError == null)
                     {
-                        List<int> currentRefMaxVersionNums = requiredMaxFrVersionsDict[projReference].VersionText
+                        //При проверке потенциального конфликта TargetFramework на текущий момент рассматриваются только ограничения одного типа!
+                        if (requiredMaxFrVersionsDict[projReference].ProjectTypeRule == requiredMaxFrVersionsDict[projName].ProjectTypeRule 
+                            || requiredMaxFrVersionsDict[projReference].ProjectTypeRule == "all" || requiredMaxFrVersionsDict[projName].ProjectTypeRule == "all")
+                        {
+                            List<int> currentRefMaxVersionNums = requiredMaxFrVersionsDict[projReference].VersionText
                             .Split('.')
                             .ToList()
                             .ConvertAll(value => Convert.ToInt32(value));
 
-                        CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, ErrorLevel.Undefined, ErrorLevel.Undefined, projReference);
-
+                            CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, ErrorLevel.Undefined, ErrorLevel.Undefined, projReference);
+                        }
                     }
                 }
+                
             }
         }
 

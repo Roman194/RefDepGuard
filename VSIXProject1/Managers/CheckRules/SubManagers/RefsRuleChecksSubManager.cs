@@ -52,13 +52,18 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             AddReferenceMatchErrorsToList(ErrorLevel.Solution, "", false, solutionReferencesIntersect);
             AddReferenceMatchErrorsToList(ErrorLevel.Global, "", false, globalReferencesIntersect);
 
-            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", false, solutionCrossLevelIntersects);
-            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", true, solutionStraightLevelIntersects);
+            //Выводим match warning только если нет match error
+            if(solutionReferencesIntersect.Count == 0 && globalReferencesIntersect.Count == 0)
+            {
+                AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", false, solutionCrossLevelIntersects);
+                AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", true, solutionStraightLevelIntersects);
+            }
         }
 
         public static void CheckProjectRulesOnMatchConflicts(
             List<string> solutionRequiredReferences, List<string> solutionUnacceptableReferences, List<string> globalRequiredReferences, 
-            List<string> globalUnacceptableReferences, List<string> requiredReferences, List<string> unacceptableReferences, string projName
+            List<string> globalUnacceptableReferences, List<string> requiredReferences, List<string> unacceptableReferences, string projName,
+            bool isRequiredHighLevelRefsConsidered, bool isUnacceptableHighLevelRefsConsidered
             )
         {
             List<string> projectReferencesIntersect = requiredReferences.Intersect(unacceptableReferences).ToList();
@@ -74,17 +79,43 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             List<string> projectUnacceptSolutionIntersect = unacceptableReferences.Intersect(solutionUnacceptableReferences).ToList();
 
             List<List<string>> projectGlobalCrossLevelIntersects = new List<List<string>>() { projectReqAndGlobalUnacceptIntersect, projectUnacceptAndGlobalReqIntersect };
-            List<List<string>> projectSoluionCrossLevelIntesects = new List<List<string>>() { projectReqAndSolutionUnacceptIntersect, projectUnacceptAndSolutionReqIntersect };
+            List<List<string>> projectSolutionCrossLevelIntesects = new List<List<string>>() { projectReqAndSolutionUnacceptIntersect, projectUnacceptAndSolutionReqIntersect };
             List<List<string>> projectGlobalStraightLevelIntersects = new List<List<string>>() { projectUnacceptGlobalIntersect, projectReqGlobalIntersect };
             List<List<string>> projectSolutionStraightLevelIntersects = new List<List<string>>() { projectUnacceptSolutionIntersect, projectReqSolutionIntersect };
 
+            if(!isRequiredHighLevelRefsConsidered)
+            {
+                projectGlobalCrossLevelIntersects.Remove(projectUnacceptAndGlobalReqIntersect);
+                projectSolutionCrossLevelIntesects.Remove(projectUnacceptAndSolutionReqIntersect);
+                projectGlobalStraightLevelIntersects.Remove(projectReqGlobalIntersect);
+                projectSolutionStraightLevelIntersects.Remove(projectReqSolutionIntersect);
+            }
+
+            if (!isUnacceptableHighLevelRefsConsidered)
+            {
+                projectGlobalCrossLevelIntersects.Remove(projectReqAndGlobalUnacceptIntersect);
+                projectSolutionCrossLevelIntesects.Remove(projectReqAndSolutionUnacceptIntersect);
+                projectGlobalStraightLevelIntersects.Remove(projectUnacceptGlobalIntersect);
+                projectSolutionStraightLevelIntersects.Remove(projectUnacceptSolutionIntersect);
+            }
+
             AddReferenceMatchErrorsToList(ErrorLevel.Project, projName, false, projectReferencesIntersect);
+            
+            //В зависимости от параметров учёта global и solution правил выводятся те или иные match warning
+            if(!isRequiredHighLevelRefsConsidered && !isUnacceptableHighLevelRefsConsidered && projectReferencesIntersect.Count == 0)
+            {
+                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Global) != null)
+                {
+                    AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
+                    AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
+                }
 
-            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
-            AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, false, projectSoluionCrossLevelIntesects);
-
-            AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
-            AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
+                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Solution) != null)
+                {
+                    AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, false, projectSolutionCrossLevelIntesects);
+                    AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
+                }
+            }
         }
 
 
@@ -163,6 +194,8 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
                     {
                         if (fileReference == projName) //Для Project рефов не допускается совпадение рефа и его проекта. Это "замыкание на себя"
                         {
+                            refsMatchWarningList.RemoveAll(value => value.ProjectName == projName); //Удалить все Match Warning для замыкающегося проекта
+
                             refsMatchErrorList.Add(
                                 new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, true)
                                 );

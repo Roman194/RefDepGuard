@@ -102,7 +102,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
 
-                projectsTable.Cells[5 + i, 7] = "Параметр 'TargetFrameworkVersion'\r\nимеет версию'" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как\r\nмаксимально допустимой для него\r\nверсией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                projectsTable.Cells[5 + i, 7] = "Параметр 'TargetFrameworkVersion'\r\nимеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как\r\nмаксимально допустимой для него\r\nверсией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 projectsTable.Cells[5 + i, 8] = "Измените версию проекта или модифицируйте конфигурацию Config-\r\nфайла";
 
                 if (currentErrorLevel == "Global")
@@ -328,8 +328,8 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 }
 
                 projectsTable.Cells[5 + i, 6] = warningLevel;
-                projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version' содержит значение\r\n'" + maxFrameworkVersionDeviantValue.DeviantValue + "', а должен содержать значение формата 'x.x' (1.2)";
-                projectsTable.Cells[5 + i, 8] = "Приведите значение к корректному формату";
+                projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version' содержит\r\nзначение '" + maxFrameworkVersionDeviantValue.DeviantValue + "', а должен содержать значение с точкой (формата 'x.x')";
+                projectsTable.Cells[5 + i, 8] = "Приведите значение к корректному\r\nформату";
                 projectsTable.Cells[5 + i, 9] = maxFrameworkVersionDeviantValue.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
 
                 i++;

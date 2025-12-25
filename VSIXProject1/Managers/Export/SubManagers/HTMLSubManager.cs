@@ -59,7 +59,7 @@ namespace VSIXProject1
             foreach (var currentProject in commitedProjectsState) //Сначала задаём сами ноды (проекты)
             {
                 var currentProjectName = currentProject.Key;
-                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project);
+                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project, "");
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersions;
 
                 var currentProjectMaxFrVersionString = "";
@@ -88,7 +88,7 @@ namespace VSIXProject1
                 outputMermaidCode += GetProjectNode(nodeId, currentProjectName, currentProjectTargetFrVersion, currentProjectMaxFrVersionString);
                 projectNameToNodeIdCompare.Add(currentProjectName, nodeId);
 
-                var projectError = projectComparabilityError.Find(value => value.ErrorRelevantProjectName == currentProjectName);
+                var projectError = projectComparabilityError.Find(value => value.ErrorRelevantProjectName == currentProjectName);//Проверить работает ли на Global-Solution противоречиях!!!
                 if (projectError != null)
                 {
                     outputMermaidCode += SetErrorProjectStyle(nodeId);

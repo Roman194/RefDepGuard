@@ -10,11 +10,13 @@ namespace VSIXProject1.Data.FrameworkVersion
     {
         public string VersionText;
         public ErrorLevel ErrorLevel;
+        public string ProjectTypeRule;
 
-        public RequiredMaxFrVersion(string versionText, ErrorLevel errorLevel)
+        public RequiredMaxFrVersion(string versionText, ErrorLevel errorLevel, string projectTypeRule)
         {
             VersionText = versionText;
             ErrorLevel = errorLevel;
+            ProjectTypeRule = projectTypeRule;
         }
 
     }

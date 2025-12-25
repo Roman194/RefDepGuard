@@ -183,7 +183,7 @@ namespace VSIXProject1.Managers.CheckRules
                     case ErrorLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.WarningRelevantProjectName + "'"; break;
                 }
 
-                string errorText = "RefDepGuard framework_max_version deviant value warning: параметр 'framework_max_version' " + relevantProjectName + " содержит значение '"+ maxFrameworkVersionDeviantValue.DeviantValue +"', а должен содержать значение формата 'x.x' (1.2). Приведите значение к корректному формату";
+                string errorText = "RefDepGuard framework_max_version deviant value warning: параметр 'framework_max_version' " + relevantProjectName + " содержит значение '"+ maxFrameworkVersionDeviantValue.DeviantValue +"', а должен содержать значение с точкой (формата 'x.x'). Приведите значение к корректному формату";
 
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
