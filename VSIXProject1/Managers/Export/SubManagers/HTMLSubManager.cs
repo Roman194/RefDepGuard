@@ -59,13 +59,16 @@ namespace VSIXProject1
             foreach (var currentProject in commitedProjectsState) //Сначала задаём сами ноды (проекты)
             {
                 var currentProjectName = currentProject.Key;
-                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project, "");
+                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project, "", false);
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersions;
 
                 var currentProjectMaxFrVersionString = "";
 
+                var nodeId = "node_" + currentNodeNum;
+                var warningProjectStylesCode = "";
+
                 if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
-                    maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
+                    maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null) //????
                 {
                     currentProjectMaxFrVersionString = "?";
                 }
@@ -81,12 +84,16 @@ namespace VSIXProject1
                             case ErrorLevel.Global: currentProjectMaxFrVersionString += " G"; break;
                             case ErrorLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
                         }
+
+                        if(currentProjectMaxFrVersion.IsConflictWarningRelevantForThisProject)
+                            warningProjectStylesCode += SetWarningProjectStyle(nodeId);
+
                     }
                 }
 
-                var nodeId = "node_" + currentNodeNum;
                 outputMermaidCode += GetProjectNode(nodeId, currentProjectName, currentProjectTargetFrVersion, currentProjectMaxFrVersionString);
                 projectNameToNodeIdCompare.Add(currentProjectName, nodeId);
+                outputMermaidCode += warningProjectStylesCode;
 
                 var projectError = projectComparabilityError.Find(value => value.ErrorRelevantProjectName == currentProjectName);//Проверить работает ли на Global-Solution противоречиях!!!
                 if (projectError != null)
@@ -212,5 +219,11 @@ namespace VSIXProject1
         {
             return "style " + nodeId + " stroke:red,stroke-width:2px, color: red;\r\n";
         }
+
+        private static string SetWarningProjectStyle(string nodeId)
+        {
+            return "style " + nodeId + " stroke:orange,stroke-width:2px, color: orange;\r\n";
+        }
+
     }
 }

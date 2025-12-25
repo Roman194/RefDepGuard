@@ -259,11 +259,15 @@ namespace VSIXProject1.Managers.CheckRules
                 var maxFrameworkVersionArrayLength = currentMaxFrameworkVersionNums.Count;
                 var maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
 
+                var isConflictWarningRelevantForProject = maxFrameworkVersionConflictWarningsList.Find(value => 
+                    value.LowErrorLevel == errorLevel && (value.ErrorRelevantProjectName == projName || value.ErrorRelevantProjectName == "-")
+                    ) != null ? true : false;
+
                 //Загрузка данных об ограничениях на max_fr_version для текущего проекта
                 if (!requiredMaxFrVersionsDict.ContainsKey(projName))//Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
-                    requiredMaxFrVersionsDict.Add(projName, new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType));
+                    requiredMaxFrVersionsDict.Add(projName, new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject));
                 else
-                    requiredMaxFrVersionsDict[projName] = new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType);
+                    requiredMaxFrVersionsDict[projName] = new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject);
 
                 var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
 
