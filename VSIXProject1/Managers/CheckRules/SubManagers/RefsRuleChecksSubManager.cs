@@ -85,32 +85,32 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
 
             if(!isRequiredHighLevelRefsConsidered)
             {
-                projectGlobalCrossLevelIntersects.Remove(projectUnacceptAndGlobalReqIntersect);
-                projectSolutionCrossLevelIntesects.Remove(projectUnacceptAndSolutionReqIntersect);
-                projectGlobalStraightLevelIntersects.Remove(projectReqGlobalIntersect);
-                projectSolutionStraightLevelIntersects.Remove(projectReqSolutionIntersect);
+                projectGlobalCrossLevelIntersects[1].Clear();
+                projectSolutionCrossLevelIntesects[1].Clear();
+                projectGlobalStraightLevelIntersects[1].Clear();
+                projectSolutionStraightLevelIntersects[1].Clear();
             }
 
             if (!isUnacceptableHighLevelRefsConsidered)
             {
-                projectGlobalCrossLevelIntersects.Remove(projectReqAndGlobalUnacceptIntersect);
-                projectSolutionCrossLevelIntesects.Remove(projectReqAndSolutionUnacceptIntersect);
-                projectGlobalStraightLevelIntersects.Remove(projectUnacceptGlobalIntersect);
-                projectSolutionStraightLevelIntersects.Remove(projectUnacceptSolutionIntersect);
+                projectGlobalCrossLevelIntersects[0].Clear();
+                projectSolutionCrossLevelIntesects[0].Clear();
+                projectGlobalStraightLevelIntersects[0].Clear();
+                projectSolutionStraightLevelIntersects[0].Clear();
             }
 
             AddReferenceMatchErrorsToList(ErrorLevel.Project, projName, false, projectReferencesIntersect);
             
             //В зависимости от параметров учёта global и solution правил выводятся те или иные match warning
-            if(!isRequiredHighLevelRefsConsidered && !isUnacceptableHighLevelRefsConsidered && projectReferencesIntersect.Count == 0)
+            if((isRequiredHighLevelRefsConsidered || isUnacceptableHighLevelRefsConsidered) && projectReferencesIntersect.Count == 0)
             {
-                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Global) != null)
+                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Global) == null)
                 {
                     AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
                     AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
                 }
 
-                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Solution) != null)
+                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Solution) == null)
                 {
                     AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, false, projectSolutionCrossLevelIntesects);
                     AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
