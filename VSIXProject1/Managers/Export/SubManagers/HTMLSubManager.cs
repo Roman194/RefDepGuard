@@ -68,7 +68,7 @@ namespace VSIXProject1
                 var warningProjectStylesCode = "";
 
                 if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
-                    maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null) //????
+                    maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
                 {
                     currentProjectMaxFrVersionString = "?";
                 }
@@ -95,7 +95,7 @@ namespace VSIXProject1
                 projectNameToNodeIdCompare.Add(currentProjectName, nodeId);
                 outputMermaidCode += warningProjectStylesCode;
 
-                var projectError = projectComparabilityError.Find(value => value.ErrorRelevantProjectName == currentProjectName);//Проверить работает ли на Global-Solution противоречиях!!!
+                var projectError = projectComparabilityError.Find(value => value.ErrorRelevantProjectName == currentProjectName);
                 if (projectError != null)
                 {
                     outputMermaidCode += SetErrorProjectStyle(nodeId);

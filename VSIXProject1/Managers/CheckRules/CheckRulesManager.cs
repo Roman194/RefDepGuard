@@ -18,15 +18,15 @@ namespace VSIXProject1
 {
     public class CheckRulesManager
     {
-        static List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueErrorList = new List<MaxFrameworkVersionDeviantValueError>();
-        static List<MaxFrameworkVersionDeviantValueWarning> maxFrameworkVersionDeviantValueWarningList = new List<MaxFrameworkVersionDeviantValueWarning>();
+        private static List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueErrorList = new List<MaxFrameworkVersionDeviantValueError>();
+        private static List<MaxFrameworkVersionDeviantValueWarning> maxFrameworkVersionDeviantValueWarningList = new List<MaxFrameworkVersionDeviantValueWarning>();
 
-        static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
+        private static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
 
-        static RefDepGuardErrors refDepGuardErrors;
-        static RefDepGuardWarnings refDepGuardWarnings;
-        static RequiredParameters requiredExportParameters;
-        static RefDepGuardFindedProblems refDepGuardFindedProblems;
+        private static RefDepGuardErrors refDepGuardErrors;
+        private static RefDepGuardWarnings refDepGuardWarnings;
+        private static RequiredParameters requiredExportParameters;
+        private static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
         public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckRulesFromConfigFiles(
             ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell
@@ -181,7 +181,7 @@ namespace VSIXProject1
                 }
             }
 
-                    var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
+            var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
@@ -313,18 +313,13 @@ namespace VSIXProject1
                 if (maxFrameworkVersionNumsList.Count == 1)//Если числовое ограничение указано в формате без точки
                 {
                     //добавить новую framework_max_version deviant value warning и незначащий ноль в конец
-
                     maxFrameworkVersionNumsList.Add(0);
                     maxFrameworkVersionDeviantValueWarningList.Add(new MaxFrameworkVersionDeviantValueWarning(errorLevel, projName, maxFrameworkVersionElementSplited[1]));
                 }
 
-
                 maxFrameworkDictionary.Add(maxFrameworkVersionElementSplited[0], maxFrameworkVersionNumsList);
-
-
             }
             return maxFrameworkDictionary;
         }
-
     }
 }

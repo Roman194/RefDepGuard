@@ -6,7 +6,7 @@ namespace VSIXProject1.Managers.CheckRules
 {
     public class NotNullChecksSubManager
     {
-        static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
+        private static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
 
         public static void ClearConfigPropertyNullErrorList()
         {

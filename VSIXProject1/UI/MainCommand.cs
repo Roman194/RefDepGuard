@@ -174,8 +174,12 @@ namespace VSIXProject1
 
             if (isExtentionInitialized)
             {
+                GetConfigFileInfo();//Добавил обнову правил для принудительной фиксации!!! (временно или постоянно)
                 CommitReferencesAndCheckRules(false);
-                MessageManager.ShowMessageBox(serviceProvider, "Референсы успешно зафиксированы", "RefDepGuard");
+                MessageManager.ShowMessageBox(
+                    serviceProvider, 
+                    isSuccessfulCheckingRules? "Референсы успешно зафиксированы": "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами", 
+                    "RefDepGuard");
             }
             else
                 NotInitializedYetMessage();

@@ -13,18 +13,18 @@ namespace VSIXProject1
 {
     public class ConfigFileManager
     {
-        static IServiceProvider serviceProvider;
-        static IVsUIShell uiShell;
-        static ErrorListProvider errorListProvider;
+        private static IServiceProvider serviceProvider;
+        private static IVsUIShell uiShell;
+        //private static ErrorListProvider errorListProvider;
 
-        static ConfigFileSolution configFileSolution;
-        static ConfigFileGlobal configFileGlobal;
-        static string solutionName;
-        static string packageExtendedName;
-        static FileParseError parseError;
+        private static ConfigFileSolution configFileSolution;
+        private static ConfigFileGlobal configFileGlobal;
+        private static string solutionName;
+        private static string packageExtendedName;
+        private static FileParseError parseError;
 
 
-        static Dictionary<string, ProjectState> commitedProjState;
+        private static Dictionary<string, ProjectState> commitedProjState;
 
         public static ConfigFilesData GetInfoFromConfigFiles(
             DTE dte, IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, ErrorListProvider currentErrorListProvider, Dictionary<string, ProjectState> currentCommitedProjState
@@ -34,7 +34,7 @@ namespace VSIXProject1
 
             serviceProvider = currentServiceProvider;
             uiShell = currentUiShell;
-            errorListProvider = currentErrorListProvider;
+            //errorListProvider = currentErrorListProvider;
 
             commitedProjState = currentCommitedProjState;
             parseError = FileParseError.None;
@@ -60,6 +60,32 @@ namespace VSIXProject1
             GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
 
             return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);
+        }
+
+        public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
+        {
+            configFileSolution = currentConfigFilesData.configFileSolution;
+            configFileGlobal = currentConfigFilesData.configFileGlobal; //???
+
+            using (FileStream fileStream = File.Create(packageExtendedName + "\\" + solutionName + "_config_guard.rdg"))
+            {
+                StreamWriter streamWriter = new StreamWriter(fileStream);
+                string json;
+
+                if (isProjectAdding)
+                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByAddingProjects(differProjectsList), Formatting.Indented);
+                else
+                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByRemovingProjects(differProjectsList), Formatting.Indented);
+
+                streamWriter.Write(json);
+
+                streamWriter.Flush();
+                fileStream.Flush();
+
+                streamWriter.Close();
+            }
+
+            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
         }
 
         private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
@@ -170,49 +196,11 @@ namespace VSIXProject1
             }
         }
 
-        public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
-        {
-            configFileSolution = currentConfigFilesData.configFileSolution;
-            configFileGlobal = currentConfigFilesData.configFileGlobal; //???
-
-            using (FileStream fileStream = File.Create(packageExtendedName + "\\" + solutionName + "_config_guard.rdg"))
-            {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
-                string json;
-
-                if(isProjectAdding)
-                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByAddingProjects(differProjectsList), Formatting.Indented);
-                else
-                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByRemovingProjects(differProjectsList), Formatting.Indented);
-
-                streamWriter.Write(json);
-
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
-            }
-
-            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
-        }
-
         private static ConfigFileSolution updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)
         {
             foreach (var projectName in addedProjectsList)
-            {
-                ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
-                configFileProjectRefsConsidering.required = true;
-                configFileProjectRefsConsidering.unacceptable = true;
-
-                ConfigFileProject fileProject = new ConfigFileProject();
-                fileProject.framework_max_version = "-";
-                fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
-                fileProject.required_references = new List<string>();
-                fileProject.unacceptable_references = new List<string>();
-
-                configFileSolution.projects.Add(projectName, fileProject);
-            }
-
+                configFileSolution.projects.Add(projectName, GenerateDefaultConfigFileProject());
+            
             return configFileSolution;
         }
 
@@ -235,19 +223,7 @@ namespace VSIXProject1
             configFileSolution.projects = new Dictionary<string, ConfigFileProject>();
 
             foreach (var projectName in commitedProjState.Keys)
-            {
-                ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
-                configFileProjectRefsConsidering.required = true;
-                configFileProjectRefsConsidering.unacceptable = true;
-
-                ConfigFileProject fileProject = new ConfigFileProject();
-                fileProject.framework_max_version = "-";
-                fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
-                fileProject.required_references = new List<string>();
-                fileProject.unacceptable_references = new List<string>();
-
-                configFileSolution.projects.Add(projectName, fileProject);
-            }
+                configFileSolution.projects.Add(projectName, GenerateDefaultConfigFileProject());
 
             return configFileSolution;
         }
@@ -261,6 +237,21 @@ namespace VSIXProject1
             configFileGlobal.global_unacceptable_references = new List<string>();
 
             return configFileGlobal;
+        }
+
+        private static ConfigFileProject GenerateDefaultConfigFileProject()
+        {
+            ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
+            configFileProjectRefsConsidering.required = true;
+            configFileProjectRefsConsidering.unacceptable = true;
+
+            ConfigFileProject fileProject = new ConfigFileProject();
+            fileProject.framework_max_version = "-";
+            fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
+            fileProject.required_references = new List<string>();
+            fileProject.unacceptable_references = new List<string>();
+
+            return fileProject;
         }
 
         private static void RestoreInfoToRollbackFile(string currentConfigGuardFile, string currentConfigGuardRollbackFile)

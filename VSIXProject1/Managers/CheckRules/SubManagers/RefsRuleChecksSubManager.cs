@@ -11,11 +11,11 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
 {
     public class RefsRuleChecksSubManager
     {
-        static List<ReferenceMatchError> refsMatchErrorList = new List<ReferenceMatchError>();
-        static List<ReferenceError> refsErrorList = new List<ReferenceError>();
+        private static List<ReferenceMatchError> refsMatchErrorList = new List<ReferenceMatchError>();
+        private static List<ReferenceError> refsErrorList = new List<ReferenceError>();
 
-        static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
-        static List<ProjectNotFoundWarning> projectNotFoundWarningsList = new List<ProjectNotFoundWarning>();
+        private static List<ReferenceMatchWarning> refsMatchWarningList = new List<ReferenceMatchWarning>();
+        private static List<ProjectNotFoundWarning> projectNotFoundWarningsList = new List<ProjectNotFoundWarning>();
 
         public static void ClearRefsErrorsAndWarnings()
         {
@@ -118,7 +118,6 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             }
         }
 
-
         public static Tuple<List<string>, List<string>> CheckReferencesOnProjectExisting(
             List<string> currentRequiredReferences, List<string> currentUnacceptableReferences, Dictionary<string, ProjectState> currentCommitedProjState, 
             ErrorLevel errorLevel, string projName = "")
@@ -127,6 +126,75 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             currentUnacceptableReferences = CheckReferencesListOnProjectExisting(currentUnacceptableReferences, currentCommitedProjState, errorLevel, projName);
 
             return new Tuple<List<string>, List<string>>(currentRequiredReferences, currentUnacceptableReferences);
+        }
+
+        public static void CheckRulesForProjectReferences(string projName, List<string> projReferences, List<string> configFileReferences, bool isReferenceRequired)
+        {
+            if (configFileReferences != null)
+            {
+                foreach (string fileReference in configFileReferences)
+                {
+                    if ((isReferenceRequired && !projReferences.Contains(fileReference)) ||
+                        (!isReferenceRequired && projReferences.Contains(fileReference)))
+                    {
+                        if (fileReference == projName) //Для Project рефов не допускается совпадение рефа и его проекта. Это "замыкание на себя"
+                        {
+                            refsMatchWarningList.RemoveAll(value => value.ProjectName == projName); //Удалить все Match Warning для замыкающегося проекта
+
+                            refsMatchErrorList.Add(
+                                new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, true)
+                                );
+
+                            continue;
+                        }
+
+                        //Если реф с таким же названием содежится в MatchError, то пофиг уже на Level: важнеее устранить конфликт рефов, чем вывести по уровню
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
+                            continue;
+
+                        refsErrorList.Add(
+                            new ReferenceError(fileReference, projName, isReferenceRequired, ErrorLevel.Project)
+                            );
+                    }
+                }
+            }
+        }
+
+        public static void CheckRulesForSolutionOrGlobalReferences(
+            string projName, List<string> projReferences, List<string> currentReferences, ErrorLevel referenceLevel,
+            bool isReferenceRequired, List<List<string>> generalReferences
+            )
+        {
+            if (currentReferences != null)
+            {
+                foreach (string currentReference in currentReferences)
+                {
+                    if ((isReferenceRequired && !projReferences.Contains(currentReference)) ||
+                        (!isReferenceRequired && projReferences.Contains(currentReference)))
+                    {
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceLevel, currentReference, "", false), new ReferenceMatchErrorComparer()))
+                            continue;
+
+                        if (IsRuleConflict(currentReference, referenceLevel, generalReferences))
+                            continue;
+
+                        if (isReferenceRequired && currentReference == projName)
+                            continue;
+
+                        refsErrorList.Add(new ReferenceError(currentReference, projName, isReferenceRequired, referenceLevel));
+                    }
+                }
+            }
+        }
+        
+        public static ReferenceRuleErrors GetReferenceErrors()
+        {
+            return new ReferenceRuleErrors(refsErrorList, refsMatchErrorList);
+        }
+
+        public static ReferenceRuleWarnings GetReferenceWarnings()
+        {
+            return new ReferenceRuleWarnings(refsMatchWarningList, projectNotFoundWarningsList);
         }
 
         private static List<string> CheckReferencesListOnProjectExisting(
@@ -183,65 +251,6 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             }
         }
 
-        public static void CheckRulesForProjectReferences(string projName, List<string> projReferences, List<string> configFileReferences, bool isReferenceRequired)
-        {
-            if (configFileReferences != null)
-            {
-                foreach (string fileReference in configFileReferences)
-                {
-                    if ((isReferenceRequired && !projReferences.Contains(fileReference)) ||
-                        (!isReferenceRequired && projReferences.Contains(fileReference)))
-                    {
-                        if (fileReference == projName) //Для Project рефов не допускается совпадение рефа и его проекта. Это "замыкание на себя"
-                        {
-                            refsMatchWarningList.RemoveAll(value => value.ProjectName == projName); //Удалить все Match Warning для замыкающегося проекта
-
-                            refsMatchErrorList.Add(
-                                new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, true)
-                                );
-
-                            continue;
-                        }
-
-                        //Если реф с таким же названием содежится в MatchError, то пофиг уже на Level: важнеее устранить конфликт рефов, чем вывести по уровню
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
-                            continue;
-
-                        refsErrorList.Add(
-                            new ReferenceError(fileReference, projName, isReferenceRequired, ErrorLevel.Project)
-                            );
-                    }
-                }
-            }
-        }
-
-        public static void CheckRulesForSolutionOrGlobalReferences(
-            string projName, List<string> projReferences, List<string> currentReferences, ErrorLevel referenceLevel, 
-            bool isReferenceRequired, List<List<string>> generalReferences
-            )
-        {
-            if (currentReferences != null)
-            {
-                foreach (string currentReference in currentReferences)
-                {
-                    if ((isReferenceRequired && !projReferences.Contains(currentReference)) ||
-                        (!isReferenceRequired && projReferences.Contains(currentReference)))
-                    {
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceLevel, currentReference, "", false), new ReferenceMatchErrorComparer()))
-                            continue;
-
-                        if (IsRuleConflict(currentReference, referenceLevel, generalReferences))
-                            continue;
-
-                        if (isReferenceRequired && currentReference == projName)
-                            continue;
-
-                        refsErrorList.Add(new ReferenceError(currentReference, projName, isReferenceRequired, referenceLevel));
-                    }
-                }
-            }
-        }
-
         //Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
         private static bool IsRuleConflict(string currentReference, ErrorLevel referenceType, List<List<string>> generalReferences)
         {
@@ -256,16 +265,6 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             }
 
             return false;
-        }
-
-        public static ReferenceRuleErrors GetReferenceErrors()
-        {
-            return new ReferenceRuleErrors(refsErrorList, refsMatchErrorList);
-        }
-
-        public static ReferenceRuleWarnings GetReferenceWarnings()
-        {
-            return new ReferenceRuleWarnings(refsMatchWarningList, projectNotFoundWarningsList);
         }
     }
 }

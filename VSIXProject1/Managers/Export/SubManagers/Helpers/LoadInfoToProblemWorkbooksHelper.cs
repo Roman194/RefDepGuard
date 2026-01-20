@@ -1,5 +1,6 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio.Shell;
+using System;
 using System.Drawing;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
@@ -11,35 +12,15 @@ using VSIXProject1.Models.FrameworkVersion;
 namespace VSIXProject1.Managers.Export.SubManagers
 {
     public class LoadInfoToProblemWorkbooksHelper
-    { // Сделать общий метод над двумя?
+    {
         public static void LoadInfoToRefRepGuardErrors(Application excel, string solutionName, string currentDateTime, RefDepGuardErrors refDepGuardErrors)
         {
             Worksheet projectsTable = (Worksheet)excel.Worksheets[3];
             projectsTable.Name = "RefDepGuard errors";
 
-            projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
-            projectsTable.Cells[3, 2] = currentDateTime;
-            projectsTable.Cells[2, 2].Font.Bold = projectsTable.Cells[3, 2].Font.Bold = true;
+            Range unionRangeSolutionWithTime, unionRangeTableTitle;
 
-            projectsTable.Cells[4, 2] = "№";
-            projectsTable.Cells[4, 3] = "Проект";
-            projectsTable.Cells[4, 4] = "Референс";
-            projectsTable.Cells[4, 5] = "Тип ошибки";
-            projectsTable.Cells[4, 6] = "Уровень ошибки";
-            projectsTable.Cells[4, 7] = "Описание";
-            projectsTable.Cells[4, 8] = "Необходимое действие";
-            projectsTable.Cells[4, 9] = "Файл действия";
-
-            Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 9]];
-            Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 9]];
-            Range unionRangeSolutionWithTime = projectsTable.Range[unionRangeSolutionName, unionRangeGenerateTime];
-
-            Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[4, 9]];
-
-            unionRangeSolutionName.Merge();
-            unionRangeGenerateTime.Merge();
-
-            unionRangeTableTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
+            (projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle) = SetProblemsTableHat(projectsTable, solutionName, currentDateTime, true);
 
             int i = 0;
 
@@ -215,23 +196,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
-            projectsTable.Columns[7].ColumnWidth = 37;
-            projectsTable.Columns[8].ColumnWidth = 38;
-
-            Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];
-            Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
-
-            unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
-            unionRangeAllTable.EntireColumn.AutoFit();
-            unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
-
-            unionRangeNumWithTitle.HorizontalAlignment = XlHAlign.xlHAlignCenter;
-            unionRangeNumWithTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
-
-            unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
-            unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
-
-            
+            projectsTable = SetProblemsFullTableStyle(projectsTable, i, unionRangeTableTitle, unionRangeSolutionWithTime, true);
         }
 
         public static void LoadInfoToRefDepGuardWarnings(Application excel, string solutionName, string currentDateTime, RefDepGuardWarnings refDepGuardWarnings){
@@ -239,29 +204,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
             Worksheet projectsTable = (Worksheet)excel.Worksheets[4];
             projectsTable.Name = "RefDepGuard warnings";
 
-            projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
-            projectsTable.Cells[3, 2] = currentDateTime;
-            projectsTable.Cells[2, 2].Font.Bold = projectsTable.Cells[3, 2].Font.Bold = true;
+            Range unionRangeSolutionWithTime, unionRangeTableTitle;
 
-            projectsTable.Cells[4, 2] = "№";
-            projectsTable.Cells[4, 3] = "Проект";
-            projectsTable.Cells[4, 4] = "Референс";
-            projectsTable.Cells[4, 5] = "Тип предупреждения";
-            projectsTable.Cells[4, 6] = "Уровни\r\nпредупреждения";
-            projectsTable.Cells[4, 7] = "Описание";
-            projectsTable.Cells[4, 8] = "Необходимое действие";
-            projectsTable.Cells[4, 9] = "Файл действия";
-
-            Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 9]];
-            Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 9]];
-            Range unionRangeSolutionWithTime = projectsTable.Range[unionRangeSolutionName, unionRangeGenerateTime];
-
-            Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[4, 9]];
-
-            unionRangeSolutionName.Merge();
-            unionRangeGenerateTime.Merge();
-
-            unionRangeTableTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
+            (projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle) = SetProblemsTableHat(projectsTable, solutionName, currentDateTime, false);
 
             int i = 0;
 
@@ -476,9 +421,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     warningAction = "Устраните дублирование правила";
 
                     if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = "\r\nявляется обязательным и";
+                        referenceTypeText = "является\r\nобязательным и";
                     else
-                        referenceTypeText = "\r\nявляется недопустимым и";
+                        referenceTypeText = "является\r\nнедопустимым и";
                 }
                 else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
                 {
@@ -486,9 +431,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     warningAction = "Устраните противоречие в правиле";
 
                     if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = "\r\nявляется недопустимым и";
+                        referenceTypeText = "является\r\nнедопустимым и";
                     else
-                        referenceTypeText = "\r\nявляется обязательным и";
+                        referenceTypeText = "является\r\nобязательным и";
                 }
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevels;
@@ -499,6 +444,39 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
+            projectsTable = SetProblemsFullTableStyle(projectsTable, i, unionRangeTableTitle, unionRangeSolutionWithTime, false);
+        }
+
+        private static Tuple<Worksheet, Range, Range> SetProblemsTableHat(Worksheet projectsTable, string solutionName, string currentDateTime, bool isErrorsTable)
+        {
+            projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
+            projectsTable.Cells[3, 2] = currentDateTime;
+            projectsTable.Cells[2, 2].Font.Bold = projectsTable.Cells[3, 2].Font.Bold = true;
+
+            projectsTable.Cells[4, 2] = "№";
+            projectsTable.Cells[4, 3] = "Проект";
+            projectsTable.Cells[4, 4] = "Референс";
+            projectsTable.Cells[4, 5] = (isErrorsTable)? "Тип ошибки": "Тип предупреждения";
+            projectsTable.Cells[4, 6] = (isErrorsTable)? "Уровень ошибки": "Уровни предупреждения";
+            projectsTable.Cells[4, 7] = "Описание";
+            projectsTable.Cells[4, 8] = "Необходимое действие";
+            projectsTable.Cells[4, 9] = "Файл действия";
+
+            Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 9]];
+            Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 9]];
+            Range unionRangeSolutionWithTime = projectsTable.Range[unionRangeSolutionName, unionRangeGenerateTime];
+            Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[4, 9]];
+
+            unionRangeSolutionName.Merge();
+            unionRangeGenerateTime.Merge();
+
+            unionRangeTableTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
+
+            return new Tuple<Worksheet, Range, Range>(projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle);
+        }
+
+        private static Worksheet SetProblemsFullTableStyle(Worksheet projectsTable, int i, Range unionRangeTableTitle, Range unionRangeSolutionWithTime, bool isErrorsTable)
+        {
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];
             Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
 
@@ -512,8 +490,13 @@ namespace VSIXProject1.Managers.Export.SubManagers
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
 
-            projectsTable.Columns[7].ColumnWidth = 50;
-            projectsTable.Columns[8].ColumnWidth = 35;
+            if (!isErrorsTable)
+            {
+                projectsTable.Columns[7].ColumnWidth = 50;
+                projectsTable.Columns[8].ColumnWidth = 38;
+            }
+            
+            return projectsTable;
         }
     }
 }
