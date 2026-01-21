@@ -7,6 +7,7 @@ using System.ComponentModel.Design;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Managers.CheckRules;
+using VSIXProject1.Models;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
 
@@ -200,7 +201,8 @@ namespace VSIXProject1
                 ELPStoreManager.ShowUnsuccessfulCheckingRulesWarning(errorListProvider);
                 isSuccessfulCheckingRules = false;
             }
-                
+
+            ShowProblemsWithConfigFiles();
         }
 
         private static void CommitCurrentReferences()
@@ -235,6 +237,21 @@ namespace VSIXProject1
             {
                 if(isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //В случае если buildCheck и обнаружены ошибки
                     dte.ExecuteCommand("Build.Cancel"); //Отмена билда
+            }
+        }
+
+        private static void ShowProblemsWithConfigFiles()
+        {
+            //Вывод обнаруженных проблем по ограничениям конфиг-файлов
+            FileParseError parseErrors = configFilesData.ParseError;
+
+            if (parseErrors != FileParseError.None) //Вывод предупреждений о неудаче парсинга конфиг-файлов
+            {
+                if (parseErrors == FileParseError.Global || parseErrors == FileParseError.All)
+                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "глобального файла конфигурации");
+
+                if (parseErrors == FileParseError.Solution || parseErrors == FileParseError.All)
+                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "файла конфигурации конкретного solution");
             }
         }
 

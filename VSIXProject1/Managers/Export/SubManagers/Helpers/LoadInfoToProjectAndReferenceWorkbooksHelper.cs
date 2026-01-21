@@ -109,27 +109,27 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 currentMaxFrVersionCellRange.NumberFormat = "@";
 
                 //Проверить при ошибке на уровнях выше Project
-                if (maxFrVersionDeviantValuesList.Contains(new MaxFrameworkVersionDeviantValueError(ErrorLevel.Global, currentProjectName), new MaxFrameworkVersionDeviantValueExportContainsComparer()))
-                    projectsTable.Cells[6 + i, 5] = "?";
+                if (requiredMaxFrVersions.ContainsKey(currentProjectName))
+                {
+                    var currentMaxFrVersionRule = requiredMaxFrVersions[currentProjectName];
+                    var ruleLevelString = "";
+                    switch (currentMaxFrVersionRule.ErrorLevel)
+                    {
+                        case ErrorLevel.Global: ruleLevelString = "[G]"; break;
+                        case ErrorLevel.Solution: ruleLevelString = "[S]"; break;
+                    }
+                    projectsTable.Cells[6 + i, 5] = currentMaxFrVersionRule.VersionText + ruleLevelString;
+
+                    if (frameworkVersionComparabilityErrorsList.Contains(new FrameworkVersionComparabilityError(ErrorLevel.Global, "", "", currentProjectName), new FrameworkVersionComparabilityErrorExportContainsComparer()))
+                        projectsTable.Cells[6 + i, 5].Font.Color = 0x062CCE;
+                }
                 else
                 {
-                    if (requiredMaxFrVersions.ContainsKey(currentProjectName))
-                    {
-                        var currentMaxFrVersionRule = requiredMaxFrVersions[currentProjectName];
-                        var ruleLevelString = "";
-                        switch (currentMaxFrVersionRule.ErrorLevel)
-                        {
-                            case ErrorLevel.Global: ruleLevelString = "[G]"; break;
-                            case ErrorLevel.Solution: ruleLevelString = "[S]"; break;
-                        }
-                        projectsTable.Cells[6 + i, 5] = currentMaxFrVersionRule.VersionText + ruleLevelString;
-
-                        if (frameworkVersionComparabilityErrorsList.Contains(new FrameworkVersionComparabilityError(ErrorLevel.Global, "", "", currentProjectName), new FrameworkVersionComparabilityErrorExportContainsComparer()))
-                            projectsTable.Cells[6 + i, 5].Font.Color = 0x062CCE;
-                    }
+                    if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
+                        maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
+                        projectsTable.Cells[6 + i, 5] = "?";
                     else
                         projectsTable.Cells[6 + i, 5] = "-";
-
                 }
 
                 projectsTable.Cells[6 + i, 6] = currentPorjectRefs.Count;

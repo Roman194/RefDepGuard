@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.OLE.Interop;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Collections.Generic;
@@ -35,7 +34,6 @@ namespace VSIXProject1
             ConfigFileGlobal configFileGlobal = configFilesData.configFileGlobal;
             ConfigFileSolution configFileSolution = configFilesData.configFileSolution;
             string solutionName = configFilesData.solutionName;
-            FileParseError parseErrors = configFilesData.ParseError;
 
             ClearErrorAndWarningLists();
 
@@ -208,17 +206,7 @@ namespace VSIXProject1
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
-            //Вывод обнаруженных проблем по ограничениям конфиг-файлов
             ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData, errorListProvider);
-
-            if(parseErrors != FileParseError.None) //Вывод предупреждений о неудаче парсинга конфиг-файлов
-            {
-                if(parseErrors == FileParseError.Global || parseErrors == FileParseError.All)
-                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "глобального файла конфигурации");
-
-                if(parseErrors == FileParseError.Solution || parseErrors == FileParseError.All)
-                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "файла конфигурации конкретного solution");
-            }
 
             requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
 
@@ -255,7 +243,8 @@ namespace VSIXProject1
             if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project && projTypes.Count == 1)
             {
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
-                MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
+                //TODO: перекинуть на новый тип ошибки framework_max_version template illegal usage error!!!
+                MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
 
                 if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
                     maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
@@ -296,7 +285,7 @@ namespace VSIXProject1
                 if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0]) || String.IsNullOrEmpty(maxFrameworkVersionElementSplited[1]))
                 {
                     //Выкинуть ошибку о некорректном формате
-                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, "");
+                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, "", false);
 
                     if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
                         maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
@@ -306,8 +295,8 @@ namespace VSIXProject1
 
                 //Если при TargetFrameworks п-ль указал тип проекта, которого нет в TF или не супертип all, то выдать ошибку
                 if(errorLevel == ErrorLevel.Project && (!projTypes.Contains(maxFrameworkVersionElementSplited[0]) && maxFrameworkVersionElementSplited[0] != "all"))
-                { //Надо задать на это + где projTypes == 1 новый вид ошибок?
-                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
+                { //Надо задать на это + где projTypes == 1 новый вид ошибок? (framework_max_version template illegal usage error)
+                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
 
                     if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
                         maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
@@ -324,7 +313,7 @@ namespace VSIXProject1
                     if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Попытка парсинга очередного числа вресии макс фреймворка
                     {
                         //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
-                        MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
+                        MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
                         if (errorLevel == ErrorLevel.Project)
                         {
                             maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
@@ -347,6 +336,14 @@ namespace VSIXProject1
                     maxFrameworkVersionDeviantValueWarningList.Add(new MaxFrameworkVersionDeviantValueWarning(errorLevel, projName, maxFrameworkVersionElementSplited[1]));
                 }
 
+                if (maxFrameworkDictionary.ContainsKey(maxFrameworkVersionElementSplited[0])) //Если обнаружен повтор в типах проекта одного шаблона ограничения
+                { //Выдать ошибку о некорректном значении ограничения
+                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, true);
+
+                    if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                        maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                    break;
+                }
                 maxFrameworkDictionary.Add(maxFrameworkVersionElementSplited[0], maxFrameworkVersionNumsList);
             }
             return maxFrameworkDictionary;

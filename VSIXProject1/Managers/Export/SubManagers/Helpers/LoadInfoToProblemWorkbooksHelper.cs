@@ -32,6 +32,8 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
 
                 string errorRelevantProjectName = maxFrameworkVersionDeviantValue.ErrorRelevantProjectName;
+                string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ? "\r\nсодержит один и тот же тип проекта в\r\nшаблоне более одного раза" : " содержит некорректную запись\r\nсвоего значения";
+
                 if (errorRelevantProjectName == "")
                     errorRelevantProjectName = "-";
 
@@ -51,7 +53,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
 
-                projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version' содержит некорректную запись\r\nсвоего значения";
+                projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version'" + errorType;
                 projectsTable.Cells[5 + i, 8] = "Проверьте его на предмет отсутствия \r\nсинтаксических ошибок и соответствия \r\nшаблону файла конфигурации";
 
                 if (currentErrorLevel == "Global")

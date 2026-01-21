@@ -64,6 +64,7 @@ namespace VSIXProject1.Managers.CheckRules
                 string documentName = configFilesData.solutionName + "_config_guard.rdg";
                 string relevantProjectName = "";
                 string globalPrefix = "";
+                string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ? " содержит один и тот же тип проекта в шаблоне более одного раза" : " содержит некорректную запись своего значения";
 
                 switch (maxFrameworkVersionDeviantValue.ErrorLevel)
                 {
@@ -72,7 +73,7 @@ namespace VSIXProject1.Managers.CheckRules
                     case ErrorLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
                 }
 
-                string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " + relevantProjectName + " содержит некорректную запись своего значения. Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
+                string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " + relevantProjectName + errorType + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
 
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }

@@ -66,29 +66,28 @@ namespace VSIXProject1
 
                 var nodeId = "node_" + currentNodeNum;
                 var warningProjectStylesCode = "";
-
-                if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
-                    maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
+                
+                if (requiredExportParameters.ContainsKey(currentProjectName))
                 {
-                    currentProjectMaxFrVersionString = "?";
+                    currentProjectMaxFrVersion = requiredExportParameters[currentProjectName];
+                    currentProjectMaxFrVersionString = "Max: " + currentProjectMaxFrVersion.VersionText;
+
+                    switch (currentProjectMaxFrVersion.ErrorLevel)
+                    {
+                        case ErrorLevel.Global: currentProjectMaxFrVersionString += " G"; break;
+                        case ErrorLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
+                    }
+
+                    if(currentProjectMaxFrVersion.IsConflictWarningRelevantForThisProject)
+                        warningProjectStylesCode += SetWarningProjectStyle(nodeId);
+
                 }
                 else
                 {
-                    if (requiredExportParameters.ContainsKey(currentProjectName))
-                    {
-                        currentProjectMaxFrVersion = requiredExportParameters[currentProjectName];
-                        currentProjectMaxFrVersionString = "Max: " + currentProjectMaxFrVersion.VersionText;
-
-                        switch (currentProjectMaxFrVersion.ErrorLevel)
-                        {
-                            case ErrorLevel.Global: currentProjectMaxFrVersionString += " G"; break;
-                            case ErrorLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
-                        }
-
-                        if(currentProjectMaxFrVersion.IsConflictWarningRelevantForThisProject)
-                            warningProjectStylesCode += SetWarningProjectStyle(nodeId);
-
-                    }
+                    if (maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == currentProjectName) != null ||
+                        maxFrVersionDeviantValuesList.Find(value => value.ErrorRelevantProjectName == "") != null)
+                        currentProjectMaxFrVersionString = "?";
+                        
                 }
 
                 outputMermaidCode += GetProjectNode(nodeId, currentProjectName, currentProjectTargetFrVersion, currentProjectMaxFrVersionString);
