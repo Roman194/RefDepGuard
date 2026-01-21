@@ -83,7 +83,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
             {
                 string currentProjectName = currentProject.Key;
                 List<string> currentPorjectRefs = currentProject.Value.CurrentReferences;
-                string targetFramework = currentProject.Value.CurrentFrameworkVersions;
+                string targetFramework = currentProject.Value.CurrentFrameworkVersionsString;
                 List<string> requiredRefsErrors = refsErrorList
                     .Where(value => value.IsReferenceRequired && value.ErrorRelevantProjectName == currentProjectName)
                     .Select(value => value.ReferenceName)

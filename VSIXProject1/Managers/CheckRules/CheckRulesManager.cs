@@ -95,7 +95,8 @@ namespace VSIXProject1
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
-                    var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ErrorLevel.Project, projName);
+                    Dictionary<string, List<int>> projTypes = currentCommitedProjState[projName].CurrentFrameworkVersions;
+                    var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ErrorLevel.Project, projName, projTypes.Keys.ToList());
                     //На уровне Project не может быть противоречий одного уровня!!!
                     //MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxFrameworkVersionByTypes, ErrorLevel.Project, projName);
 
@@ -244,14 +245,16 @@ namespace VSIXProject1
             CheckProjectsMatchSubManager.ClearErrorLists();
         }
 
-        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ErrorLevel errorLevel, string projName = "")
+        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ErrorLevel errorLevel, string projName = "", List<string> projTypes = null)
         {
+            projTypes = projTypes ?? new List<string>();
+
             if (currentMaxFrameworkVersion == "-")
                 return new Dictionary<string, List<int>>();
 
-            if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project)
+            if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project && projTypes.Count == 1)
             {
-                //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка)
+                //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
                 MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
 
                 if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
@@ -260,17 +263,33 @@ namespace VSIXProject1
                 return new Dictionary<string, List<int>>();
             }
 
+            if (!currentMaxFrameworkVersion.Contains(':')) //Приведение всех ограничений к шаблону
+            {
+                if (errorLevel == ErrorLevel.Project) //Если встречается ограничение на проект, то надо подставить тип этого проекта (или несколько типов)!!!
+                {
+                    if (projTypes.Count == 1) //И получается, что на проектном уровне всё же используется шаблон различных огр-ий, но только если у нас TargetFrameworks!
+                        currentMaxFrameworkVersion = projTypes.FirstOrDefault() + ":" + currentMaxFrameworkVersion;
+                    else
+                    {
+                        foreach (var projType in projTypes)
+                        {
+                            currentMaxFrameworkVersion += projType + ":" + currentMaxFrameworkVersion;
+
+                            if (projTypes.IndexOf(projType) != projTypes.Count - 1)
+                                currentMaxFrameworkVersion += "; ";
+                        }
+                    }
+                }
+
+                else
+                    currentMaxFrameworkVersion = "all:" + currentMaxFrameworkVersion;
+            }
+
             var currentMaxFrameworkVersionArray = currentMaxFrameworkVersion.Split(';');
             var maxFrameworkDictionary = new Dictionary<string, List<int>>();
 
-            foreach (string maxFrameworkVersionElement in currentMaxFrameworkVersionArray) //Для каждого из ограничений
+            foreach (string maxFrameworkVersion in currentMaxFrameworkVersionArray) //Для каждого из ограничений
             {
-                string maxFrameworkVersion = maxFrameworkVersionElement;
-                if (!maxFrameworkVersion.Contains(':'))
-                {
-                    maxFrameworkVersion = "all:" + maxFrameworkVersion;
-                }
-
                 var maxFrameworkVersionElementSplited = maxFrameworkVersion.Replace(" ", "").Split(':');
 
                 //Если не указано название типа фреймворка или/и в правой части нет ничего
@@ -278,6 +297,17 @@ namespace VSIXProject1
                 {
                     //Выкинуть ошибку о некорректном формате
                     MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, "");
+
+                    if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                        maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
+
+                    return new Dictionary<string, List<int>>();
+                }
+
+                //Если при TargetFrameworks п-ль указал тип проекта, которого нет в TF или не супертип all, то выдать ошибку
+                if(errorLevel == ErrorLevel.Project && (!projTypes.Contains(maxFrameworkVersionElementSplited[0]) && maxFrameworkVersionElementSplited[0] != "all"))
+                { //Надо задать на это + где projTypes == 1 новый вид ошибок?
+                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName);
 
                     if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
                         maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);

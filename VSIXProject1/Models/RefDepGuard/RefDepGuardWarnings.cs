@@ -38,8 +38,9 @@ namespace VSIXProject1.Data
 
         public bool IsEmpty()
         {
-            if (RefsMatchWarningList.Count == 0 && ProjectNotFoundWarningList.Count == 0 && MaxFrameworkVersionConflictWarningsList.Count == 0 
-                && MaxFrameworkVersionReferenceConflictWarningsList.Count == 0 && ProjectMatchWarningList.Count == 0 && UntypedWarningsList.Count == 0)
+            if (RefsMatchWarningList.Count == 0 && ProjectNotFoundWarningList.Count == 0 && MaxFrameworkVersionDeviantValueWarningList.Count == 0 
+                && MaxFrameworkVersionConflictWarningsList.Count == 0 && MaxFrameworkVersionReferenceConflictWarningsList.Count == 0 && 
+                ProjectMatchWarningList.Count == 0 && UntypedWarningsList.Count == 0)
                 return true;
             else 
                 return false;

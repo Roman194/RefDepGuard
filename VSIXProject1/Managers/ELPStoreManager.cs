@@ -301,7 +301,7 @@ namespace VSIXProject1.Managers.CheckRules
             if (errorListProvider != null)
                 errorListProvider.Tasks.Clear();
 
-            var currentText = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам во время загрузки solution, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой";
+            var currentText = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой";
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
             errorListProvider.Show();
         }

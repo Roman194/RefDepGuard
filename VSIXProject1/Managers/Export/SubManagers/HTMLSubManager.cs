@@ -60,7 +60,7 @@ namespace VSIXProject1
             {
                 var currentProjectName = currentProject.Key;
                 var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project, "", false);
-                var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersions;
+                var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersionsString;
 
                 var currentProjectMaxFrVersionString = "";
 

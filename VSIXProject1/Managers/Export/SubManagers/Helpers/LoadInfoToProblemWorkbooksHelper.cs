@@ -421,9 +421,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     warningAction = "Устраните дублирование правила";
 
                     if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = "является\r\nобязательным и";
+                        referenceTypeText = " является\r\nобязательным и";
                     else
-                        referenceTypeText = "является\r\nнедопустимым и";
+                        referenceTypeText = " является\r\nнедопустимым и";
                 }
                 else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
                 {

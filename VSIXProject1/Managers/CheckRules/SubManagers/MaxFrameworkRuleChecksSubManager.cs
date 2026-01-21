@@ -75,7 +75,7 @@ namespace VSIXProject1.Managers.CheckRules
                     }
                     else
                     {
-                        if (maxLowLevelFrameworkVersion.ContainsKey("all")) //если снизу супертип "all", то сравнить все вышестоящие с ним
+                        if (maxLowLevelFrameworkVersion.ContainsKey("all")) //если снизу (solution) супертип "all", то сравнить все вышестоящие с ним
                         {
                             foreach (var currentMaxHighLevelFrameworkVersion in maxHighLevelFrameworkVersion)
                             {
@@ -89,61 +89,29 @@ namespace VSIXProject1.Managers.CheckRules
         }
 
         public static void CheckProjectTargetFrameworkVersion(
-            string currentProjectSupportedFrameworks, Dictionary<string, List<int>> maxFrameworkVersion,
+            Dictionary<string, List<int>> currentProjectSupportedFrameworks, Dictionary<string, List<int>> maxFrameworkVersion,
             string projName, ErrorLevel errorLevel, Dictionary<string, List<int>> reserveMaxFrameworkVersion = null)
         {
-            if (String.IsNullOrEmpty(currentProjectSupportedFrameworks))
+            
+            if (currentProjectSupportedFrameworks.Count == 0)
             {
-                //Если вообще не получилось спарсить строку с таргетами, то нельзя допускать попытку проверки + соотв. warning
+                //Если не найдены какие-либо TargetFrameworks, то не проверяем + соотв. warning
                 untypedWarningsList.Add(projName);
                 return;
             }
 
-            //В случае если строка идёт из TargetFrameworks (Maui и пр.) нужно предварительное деление по ";"
-            //Нужно проверить каждый из таргетов на предмет противоречия макс версии.
-            //Если версии таргетов и их макс ограничения совпадают (как в Maui), то у них будет одна общая ошибка (при превышении макс версии)
-            var currentProjectSupportedFrameworksArray = currentProjectSupportedFrameworks.Split(';');
-
-            foreach (string currentProjectFramework in currentProjectSupportedFrameworksArray)
+            foreach (string currentProjectFramework in currentProjectSupportedFrameworks.Keys) //Для каждого из TragetFrameowrk(-s)
             {
-                //Предварительный сплит на тире!!! Пример: net5.0-windows1.2
 
-                var currentProjFrameworkArray = currentProjectFramework.Split('-');
-
-                //Формирование списка из цифр версии фреймворка и определение его типа
-                var currentProjFrameworkVersionArray = currentProjFrameworkArray[0].Split('.'); //Не все TargetFramework содержат точки! Пример: net45 - Не должно быть проблемой
-                var currentProjFrameworkVersionArrayLength = currentProjFrameworkVersionArray.Length;
-
-                var currentProjFrameworkMatch = Regex.Match(currentProjFrameworkVersionArray[0], @"^([a-zA-Z]+)(\d+)$");
-                var currentProjFrameworkType = "-";
-
-                if (currentProjFrameworkMatch.Success)
-                {
-                    currentProjFrameworkType = currentProjFrameworkMatch.Groups[1].Value;
-                    currentProjFrameworkVersionArray[0] = currentProjFrameworkMatch.Groups[2].Value;
-
-                    switch (currentProjFrameworkType)
-                    {
-                        case "v":
-                            currentProjFrameworkType = "netf";
-                            break; //В случае если встретился старый .net framework проект с TargetFrameworkVersion
-                        case "net":
-                            currentProjFrameworkType = currentProjFrameworkVersionArrayLength < 2 ? "netf" : "net";
-                            break;
-                            //Т.к. .NET и .NET Framework имеют одно название типа, то для фреймворка в проге условно введён тип "netf"!
-                    }
-
-                    if (currentProjFrameworkType == "netf" && currentProjFrameworkVersionArrayLength < 2)//Т.к. у нового стиля netf версия записывается без точек и обычный split на неё не действует
-                        currentProjFrameworkVersionArray = SplitStrByEachNum(currentProjFrameworkVersionArray[0]);
-
-                }
-
-                string currentMaxFrVersionType = currentProjFrameworkType;
+                string currentMaxFrVersionType = currentProjectFramework;
                 List<int> currentMaxFrameworkVersionNums = new List<int>();
 
-                if (maxFrameworkVersion.ContainsKey(currentProjFrameworkType))
+                List<int> currentProjFrameworkVersionArray = currentProjectSupportedFrameworks[currentProjectFramework];
+                int currentProjFrameworkVersionArrayLength = currentProjFrameworkVersionArray.Count;
+
+                if (maxFrameworkVersion.ContainsKey(currentProjectFramework))
                 {
-                    currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjFrameworkType];
+                    currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjectFramework];
                 }
                 else
                 { //Если не нашлось правила для типа из TargetFramework
@@ -156,7 +124,7 @@ namespace VSIXProject1.Managers.CheckRules
                     else //Если и его нет, то попытаться найти ограничение на уровне выше
                     {
                         if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != null) //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
-                            CheckProjectTargetFrameworkVersion(currentProjectFramework, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
+                            CheckProjectTargetFrameworkVersion(currentProjectSupportedFrameworks, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
 
                         return;//равносильно "-"
                     }
@@ -180,21 +148,14 @@ namespace VSIXProject1.Managers.CheckRules
                 int i = 0;
                 for (i = 0; i < minLengthValue; i++)
                 {
-                    int currentProjCurrentNum;
+                    int currentProjCurrentNum = currentProjFrameworkVersionArray[i];
                     int maxVersionCurrentNum = Convert.ToInt32(currentMaxFrameworkVersionNums[i]);
-                    if (!Int32.TryParse(currentProjFrameworkVersionArray[i], out currentProjCurrentNum))
-                    {
-                        //предупреждение без типа о том, что не удалось спарсить название проекта и проверка версии фреймворка не получилась
-                        untypedWarningsList.Add(projName);
-                        return;
-                    }
+                    
 
                     if (currentProjCurrentNum > maxVersionCurrentNum)
                     {
                         //Ошибка, когда "TargetFramework" оказался больше чем максимально допустимый
-
-                        var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.ToList());
-
+                        var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
 
                         var currentFrameworkVersionComparabilityError =
                             new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName);
@@ -220,17 +181,11 @@ namespace VSIXProject1.Managers.CheckRules
                 {
                     for (int j = minLengthValue; j < currentProjFrameworkVersionArrayLength; j++)
                     {
-                        int currentProjVersionCurrentNum;
-
-                        if (!Int32.TryParse(currentProjFrameworkVersionArray[j], out currentProjVersionCurrentNum))
-                        {
-                            untypedWarningsList.Add(projName);
-                            break;
-                        }
+                        int currentProjVersionCurrentNum = currentProjFrameworkVersionArray[j];
 
                         if (currentProjVersionCurrentNum > 0)
                         {
-                            var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.ToList());
+                            var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
 
                             var currentFrameworkVersionComparabilityError =
                                 new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName);
@@ -388,17 +343,6 @@ namespace VSIXProject1.Managers.CheckRules
             }
 
             return outputString;
-        }
-
-        private static string[] SplitStrByEachNum(string currentString)
-        {
-            int currentStringLength = currentString.Length;
-            string[] resultString = new string[currentStringLength];
-
-            for (int i = 0; i < currentStringLength; i++)
-                resultString[i] = currentString[i].ToString();
-            
-            return resultString;
         }
     }
 }
