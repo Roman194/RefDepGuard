@@ -153,7 +153,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="UI\Resources\CommitRefs_icon.png" />
+    <Content Include="UI\Resources\CommitSolState_icon.png" />
     <Content Include="UI\Resources\GraphExport_icon.png" />
     <Content Include="UI\Resources\ShowChanges_icon.png" />
     <Content Include="UI\Resources\Command1.png" />

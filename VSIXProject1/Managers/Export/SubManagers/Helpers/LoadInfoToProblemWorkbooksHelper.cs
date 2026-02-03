@@ -198,6 +198,12 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
+            if (i == 0)
+            {
+                projectsTable = SetMessageOnZeroFindedWorkbookProblems(projectsTable, true);
+                i = 1;
+            }
+
             projectsTable = SetProblemsFullTableStyle(projectsTable, i, unionRangeTableTitle, unionRangeSolutionWithTime, true);
         }
 
@@ -446,6 +452,12 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
+            if(i == 0)
+            {
+                projectsTable = SetMessageOnZeroFindedWorkbookProblems(projectsTable, false);
+                i = 1;
+            }
+
             projectsTable = SetProblemsFullTableStyle(projectsTable, i, unionRangeTableTitle, unionRangeSolutionWithTime, false);
         }
 
@@ -475,6 +487,17 @@ namespace VSIXProject1.Managers.Export.SubManagers
             unionRangeTableTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
 
             return new Tuple<Worksheet, Range, Range>(projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle);
+        }
+
+        private static Worksheet SetMessageOnZeroFindedWorkbookProblems(Worksheet projectsTable, bool isErrorsTable)
+        {
+            projectsTable.Cells[5, 2] = (isErrorsTable ? "Ошибки" : "Предупреждения") + " на момент экспорта не обнаружены";
+
+            Range unionRangeOnEmptyText = projectsTable.Range[projectsTable.Cells[5, 2], projectsTable.Cells[5, 9]];
+            unionRangeOnEmptyText.Merge();
+            unionRangeOnEmptyText.HorizontalAlignment = XlVAlign.xlVAlignCenter;
+
+            return projectsTable;
         }
 
         private static Worksheet SetProblemsFullTableStyle(Worksheet projectsTable, int i, Range unionRangeTableTitle, Range unionRangeSolutionWithTime, bool isErrorsTable)

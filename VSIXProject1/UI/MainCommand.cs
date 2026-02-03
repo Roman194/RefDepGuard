@@ -23,7 +23,7 @@ namespace VSIXProject1
         /// </summary>
         public const int GetCurrentRefsId = 0x0100;
         public const int GetChangedRefsId = 0x0110;
-        public const int CommitCurrentRefsId = 0x0120;
+        public const int CommitCurrentSolStateId = 0x0120;
         public const int ExportRefsToXLSXId = 0x0130;
         public const int ExportRefsToHTMLId = 0x0140;
 
@@ -62,19 +62,19 @@ namespace VSIXProject1
 
             var getCurrentRefsCommandID = new CommandID(CommandSet, GetCurrentRefsId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
-            var commitCurrentRefsMenuCommandID = new CommandID(CommandSet, CommitCurrentRefsId);
+            var commitCurrentSolStateMenuCommandID = new CommandID(CommandSet, CommitCurrentSolStateId);
             var exportCurrentRefsToXLSXMenuCommandID = new CommandID(CommandSet, ExportRefsToXLSXId);
             var exportCurrentRefsToHTMLMenuCommandID = new CommandID(CommandSet, ExportRefsToHTMLId);
 
             var getCurrentRefsMenuItem = new MenuCommand(this.ExecuteCurrentRefs, getCurrentRefsCommandID);
             var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteRefsChanges, getChangedRefsMenuCommandID);
-            var commitCurrentRefsMenuItem = new MenuCommand(this.ForceCommitCurrentReferences, commitCurrentRefsMenuCommandID);
+            var commitCurrentSolStateMenuItem = new MenuCommand(this.ForceCommitCurrentSolutionState, commitCurrentSolStateMenuCommandID);
             var exportCurrentRefsToXLSXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXLSXMenuCommandID);
             var exportCurrentRefsToHTMLMenuItem = new MenuCommand(this.ExportRefsToHTML, exportCurrentRefsToHTMLMenuCommandID);
 
             commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
-            commandService.AddCommand(commitCurrentRefsMenuItem);
+            commandService.AddCommand(commitCurrentSolStateMenuItem);
             commandService.AddCommand(exportCurrentRefsToXLSXMenuItem);
             commandService.AddCommand(exportCurrentRefsToHTMLMenuItem);
 
@@ -125,7 +125,7 @@ namespace VSIXProject1
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
         {
-            CommitReferencesAndCheckRules(true);
+            UpdateSolutionState(true);
         }
 
         private static async void onSolutionOpened()
@@ -133,10 +133,7 @@ namespace VSIXProject1
             isExtentionInitialized = false;
             await Task.Delay(10000);
 
-            CommitCurrentReferences();
-            GetConfigFileInfo();//Загрузка данных из конфиг файлов производится только при загрузке/открытии нового solution
-            CommitReferencesAndCheckRules(false);//Повторный коммит не производится, так как при загрзуке он уже произведён до этого
-
+            UpdateSolutionState(false);
             isExtentionInitialized = true;
         }
 
@@ -169,27 +166,27 @@ namespace VSIXProject1
                 NotInitializedYetMessage();
         }
 
-        private void ForceCommitCurrentReferences(object sender, EventArgs e)
+        private void ForceCommitCurrentSolutionState(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             if (isExtentionInitialized)
             {
-                GetConfigFileInfo();//Добавил обнову правил для принудительной фиксации!!! (временно или постоянно)
-                CommitReferencesAndCheckRules(false);
+                UpdateSolutionState(false);
                 MessageManager.ShowMessageBox(
                     serviceProvider, 
                     isSuccessfulCheckingRules? "Референсы успешно зафиксированы": "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами", 
-                    "RefDepGuard");
+                    "RefDepGuard"
+                    );
             }
             else
                 NotInitializedYetMessage();
         }
 
-        private static void CommitReferencesAndCheckRules(bool isBuildCheck)
+        private static void UpdateSolutionState(bool isBuildCheck)
         {
-            if(isExtentionInitialized) // ЕСли расширение инициализировано, то функция была вызвана не из загрузки Solution, а значит коммита ещё не было
-                CommitCurrentReferences();
+            CommitCurrentReferences();
+            GetConfigFileInfo();
 
             if (IsReferencesAddedCorrectly())
             {

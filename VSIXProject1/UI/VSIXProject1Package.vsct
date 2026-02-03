@@ -80,11 +80,11 @@
 			</Strings>
 		</Button>
 
-		<Button guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentRefsId" priority="0x0120" type="Button">
+		<Button guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentSolStateId" priority="0x0120" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
-			<Icon guid="guidCommitRefs" id="bmpCommitRef" />
+			<Icon guid="guidCommitSolState" id="bmpCommitSolState" />
 			<Strings>
-				<ButtonText>Зафиксировать версию рефов</ButtonText>
+				<ButtonText>Зафиксировать текущую версию решения</ButtonText>
 			</Strings>
 		</Button>
 
@@ -115,7 +115,7 @@
       <Bitmap guid="guidImages" href="Resources\Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
 		<Bitmap guid="guidShowRefs" href="Resources\ShowRefs_icon.png" usedList="bmpShowRef"/>
 		<Bitmap guid="guidShowChanges" href="Resources\ShowChanges_icon.png" usedList="bmpShowCh"/>
-		<Bitmap guid="guidCommitRefs" href="Resources\CommitRefs_icon.png" usedList="bmpCommitRef"/>
+		<Bitmap guid="guidCommitSolState" href="Resources\CommitSolState_icon.png" usedList="bmpCommitSolState"/>
 		<Bitmap guid="guidUpdateConfigRules" href="Resources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
 		<Bitmap guid="guidTableExport" href="Resources\TableExport_icon.png" usedList="bmpTableExport"/>
 		<Bitmap guid="guidGraphExport" href="Resources\GraphExport_icon.png" usedList="bmpGraphExport"/>
@@ -131,7 +131,7 @@
 		  editor="guidVSStd97"
 		  key1="E" mod1="Alt">
 	  </KeyBinding>
-	  <KeyBinding guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentRefsId"
+	  <KeyBinding guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentSolStateId"
 		  editor="guidVSStd97"
 		  key1="C" mod1="Alt">
 	  </KeyBinding>
@@ -155,7 +155,7 @@
       <IDSymbol name="MyMenuGroup" value="0x1020" />
       <IDSymbol name="GetCurrentRefsId" value="0x0100" />
 	    <IDSymbol name="GetChangedRefsId" value="0x0110"/>
-		<IDSymbol name="CommitCurrentRefsId" value="0x0120"/>
+		<IDSymbol name="CommitCurrentSolStateId" value="0x0120"/>
 		<IDSymbol name="ExportRefsToXLSXId" value="0x0130"/>
 		<IDSymbol name="ExportRefsToHTMLId" value="0x0140"/>
     </GuidSymbol>
@@ -177,8 +177,8 @@
 		  <IDSymbol name="bmpShowCh" value="1"/>
 	  </GuidSymbol>
 
-	  <GuidSymbol name="guidCommitRefs" value="{dceed754-0469-4e89-968e-668b81728f29}">
-		  <IDSymbol name="bmpCommitRef" value="1"/>
+	  <GuidSymbol name="guidCommitSolState" value="{dceed754-0469-4e89-968e-668b81728f29}">
+		  <IDSymbol name="bmpCommitSolState" value="1"/>
 	  </GuidSymbol>
 
 	  <GuidSymbol name="guidUpdateConfigRules" value="{dceed754-0469-4e89-968e-668b81728f31}">
