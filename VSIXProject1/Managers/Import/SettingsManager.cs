@@ -17,20 +17,22 @@ namespace VSIXProject1.Managers.Import
     internal class SettingsManager
     {
         private static UsingSolutionsDTO usingSolutions;
+        private static string UsingSolutionsExtendedName;
+        private static string SolutionName;
 
         //Посмотреть как оптимизировать с ConfigFileManager
         public static bool CheckIfSolutionIsFamiliarToExt(DTE dte, IVsUIShell uiShell)
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
 
-            string usingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg_settings\\using_solutions.rdg";
-            string solutionName = SolutionNameManager.GetSolutionName();
+            UsingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg_settings\\using_solutions.rdg";
+            SolutionName = SolutionNameManager.GetSolutionName();
 
-            if (File.Exists(usingSolutionsExtendedName))
+            if (File.Exists(UsingSolutionsExtendedName))
             {
                 try
                 {
-                    using (FileStream fileStream = new FileStream(usingSolutionsExtendedName, FileMode.Open))
+                    using (FileStream fileStream = new FileStream(UsingSolutionsExtendedName, FileMode.Open))
                     {
                         StreamReader sr = new StreamReader(fileStream);
 
@@ -41,12 +43,16 @@ namespace VSIXProject1.Managers.Import
                          usingSolutions = JsonConvert.DeserializeObject<UsingSolutionsDTO>(currentFileContent);
                     }
 
-                    var findedSolution = usingSolutions.Solutions.ToList().Find(solution => solution == solutionName);
+                    var findedSolution = usingSolutions.using_solutions.Find(solution => solution == SolutionName);
 
                     if (findedSolution != null)
                     {
                         return true; //Solution найден в настройках, для него используется расширение 
                     }
+
+                    findedSolution = usingSolutions.ignoring_solutions.Find(solution => solution == SolutionName);
+                    if (findedSolution != null)
+                        return false;
                     
                 }
                 catch (Exception)
@@ -55,10 +61,20 @@ namespace VSIXProject1.Managers.Import
                 }
             }
 
-            return ShowNotFamiliarMessageAndMakeFamiliarIfNeeded(uiShell, usingSolutionsExtendedName, solutionName); //В противном случае спрашиваем у пользователя нужно ли ему использовать в solution расширение
+            return ShowUnfamiliarMessageAndMakeFamiliar(uiShell, UsingSolutionsExtendedName, SolutionName); //В противном случае спрашиваем у пользователя нужно ли ему использовать в solution расширение
         }
 
-        private static bool ShowNotFamiliarMessageAndMakeFamiliarIfNeeded(IVsUIShell uiShell, string usingSolutionsExtendedName, string solutionName)
+        public static bool UpdateSettingsByMakingSolutionFamiliar()
+        {
+            usingSolutions.ignoring_solutions.Remove(SolutionName);
+            usingSolutions.using_solutions.Add(SolutionName);
+
+            CreateOrRewriteUsingSolutionsFile(UsingSolutionsExtendedName);
+
+            return true;
+        }
+
+        private static bool ShowUnfamiliarMessageAndMakeFamiliar(IVsUIShell uiShell, string usingSolutionsExtendedName, string solutionName)
         {
             bool userAction = MessageManager.ShowYesNoPrompt(
                 uiShell,
@@ -66,28 +82,25 @@ namespace VSIXProject1.Managers.Import
                 "RefDepGuard: Первая загрузка решения"
                 );
 
-            if (userAction) //Если да, то записываем расширение в файл
-            {
-                if (usingSolutions == null)
-                {
-                    usingSolutions = GenerateDefaultUsingSolutionFile();
-                }
+            if (usingSolutions == null)
+                usingSolutions = GenerateDefaultUsingSolutionFile();
 
-                usingSolutions.Solutions.Add(solutionName);
+            if (userAction)
+                usingSolutions.using_solutions.Add(solutionName);
+            else
+                usingSolutions.ignoring_solutions.Add(solutionName);
 
-                CreateOrRewriteUsingSolutionsFile(usingSolutionsExtendedName);
+            CreateOrRewriteUsingSolutionsFile(usingSolutionsExtendedName);
 
-                return true;
-            }
-
-            return false; //Если нет, то и ничего генерировать не будем
+            return userAction;
         }
 
         private static UsingSolutionsDTO GenerateDefaultUsingSolutionFile()
         {
             var usingSolutions = new UsingSolutionsDTO();
-            usingSolutions.Name = "Using_solutions";
-            usingSolutions.Solutions = new List<string>();
+            usingSolutions.name = "Using_solutions";
+            usingSolutions.using_solutions = new List<string>();
+            usingSolutions.ignoring_solutions = new List<string>();
             return usingSolutions;
         }
 

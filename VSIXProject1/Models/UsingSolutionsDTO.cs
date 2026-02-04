@@ -8,8 +8,8 @@ namespace VSIXProject1.Models
 {
     public class UsingSolutionsDTO
     {
-        public string Name;
-        public List<string> Solutions;
-
+        public string name;
+        public List<string> using_solutions;
+        public List<string> ignoring_solutions;
     }
 }

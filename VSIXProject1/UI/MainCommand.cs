@@ -28,6 +28,7 @@ namespace VSIXProject1
         public const int CommitCurrentSolStateId = 0x0120;
         public const int ExportRefsToXLSXId = 0x0130;
         public const int ExportRefsToHTMLId = 0x0140;
+        public const int ActivateExtId = 0x0150;
 
         /// <summary>
         /// Command menu group (command set GUID).
@@ -53,6 +54,11 @@ namespace VSIXProject1
         private static RefDepGuardExportParameters refDepGuardExportParameters;
 
         private static OleMenuCommand getCurrentRefsMenuItem;
+        private static OleMenuCommand getChangedRefsMenuItem;
+        private static OleMenuCommand commitCurrentSolStateMenuItem;
+        private static OleMenuCommand exportCurrentRefsToXLSXMenuItem;
+        private static OleMenuCommand exportCurrentRefsToHTMLMenuItem;
+        private static OleMenuCommand activateExtMenuItem;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainCommand"/> class.
@@ -71,34 +77,23 @@ namespace VSIXProject1
             var commitCurrentSolStateMenuCommandID = new CommandID(CommandSet, CommitCurrentSolStateId);
             var exportCurrentRefsToXLSXMenuCommandID = new CommandID(CommandSet, ExportRefsToXLSXId);
             var exportCurrentRefsToHTMLMenuCommandID = new CommandID(CommandSet, ExportRefsToHTMLId);
+            var activateExtMenuCommandID = new CommandID(CommandSet, ActivateExtId);
 
-            getCurrentRefsMenuItem = new OleMenuCommand(this.ExecuteCurrentRefs, null, this.ExecuteCurrentRefsQueryStatus, getCurrentRefsCommandID);
-            var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteRefsChanges, getChangedRefsMenuCommandID);
-            var commitCurrentSolStateMenuItem = new MenuCommand(this.ForceCommitCurrentSolutionState, commitCurrentSolStateMenuCommandID);
-            var exportCurrentRefsToXLSXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXLSXMenuCommandID);
-            var exportCurrentRefsToHTMLMenuItem = new MenuCommand(this.ExportRefsToHTML, exportCurrentRefsToHTMLMenuCommandID);
+            getCurrentRefsMenuItem = new OleMenuCommand(this.ExecuteCurrentRefs, null, this.GetCurrentRefsQueryStatus, getCurrentRefsCommandID);
+            getChangedRefsMenuItem = new OleMenuCommand(this.ExcecuteRefsChanges, null, this.ExtActivationQueryStatus, getChangedRefsMenuCommandID);
+            commitCurrentSolStateMenuItem = new OleMenuCommand(this.ForceCommitCurrentSolutionState, null, this.ExtActivationQueryStatus, commitCurrentSolStateMenuCommandID);
+            exportCurrentRefsToXLSXMenuItem = new OleMenuCommand(this.ExportRefsToXSLX, null, this.ExtActivationQueryStatus, exportCurrentRefsToXLSXMenuCommandID);
+            exportCurrentRefsToHTMLMenuItem = new OleMenuCommand(this.ExportRefsToHTML, null, this.ExtActivationQueryStatus, exportCurrentRefsToHTMLMenuCommandID);
+            activateExtMenuItem = new OleMenuCommand(this.ActivateExtention, null, this.ExtActivationQueryStatus, activateExtMenuCommandID);
 
             commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentSolStateMenuItem);
             commandService.AddCommand(exportCurrentRefsToXLSXMenuItem);
             commandService.AddCommand(exportCurrentRefsToHTMLMenuItem);
+            commandService.AddCommand(activateExtMenuItem);
 
             onSolutionOpened();
-        }
-
-        private void ExecuteCurrentRefsQueryStatus(object sender, EventArgs e)
-        {
-            if (isSolutionFamiliar)
-            {
-                getCurrentRefsMenuItem.Visible = true;
-                getCurrentRefsMenuItem.Enabled = true;
-            }
-            else
-            {
-                getCurrentRefsMenuItem.Visible = false;
-                getCurrentRefsMenuItem.Enabled = false;
-            }
         }
 
         /// <summary>
@@ -143,9 +138,63 @@ namespace VSIXProject1
             uiShell = (IVsUIShell)await package.GetServiceAsync(typeof(SVsUIShell));
         }
 
-        private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
+        private void GetCurrentRefsQueryStatus(object sender, EventArgs e)
         {
-            UpdateSolutionState(true);
+            if (isSolutionFamiliar)
+            {
+                getCurrentRefsMenuItem.Visible = true;
+                getCurrentRefsMenuItem.Enabled = true;
+            }
+            else
+            {
+                getCurrentRefsMenuItem.Visible = false;
+                getCurrentRefsMenuItem.Enabled = false;
+            }
+        }
+
+        private void ExtActivationQueryStatus(object sender, EventArgs e)
+        {
+            if (isSolutionFamiliar)
+            {
+                getChangedRefsMenuItem.Visible = true;
+                commitCurrentSolStateMenuItem.Visible = true;
+                exportCurrentRefsToXLSXMenuItem.Visible = true;
+                exportCurrentRefsToHTMLMenuItem.Visible = true;
+                activateExtMenuItem.Visible = false;
+
+                getChangedRefsMenuItem.Enabled = true;
+                commitCurrentSolStateMenuItem.Enabled = true;
+                exportCurrentRefsToXLSXMenuItem.Enabled = true;
+                exportCurrentRefsToHTMLMenuItem.Enabled = true;
+                activateExtMenuItem.Enabled = false;
+            }
+            else
+            {
+                getChangedRefsMenuItem.Visible = false;
+                commitCurrentSolStateMenuItem.Visible = false;
+                exportCurrentRefsToXLSXMenuItem.Visible = false;
+                exportCurrentRefsToHTMLMenuItem.Visible = false;
+                activateExtMenuItem.Visible = true;
+
+                getChangedRefsMenuItem.Enabled = false;
+                commitCurrentSolStateMenuItem.Enabled = false;
+                exportCurrentRefsToXLSXMenuItem.Enabled = false;
+                exportCurrentRefsToHTMLMenuItem.Enabled = false;
+                activateExtMenuItem.Enabled = true;
+            }
+        }
+
+        private void ActivateExtention(object sender, EventArgs e)
+        {
+            isSolutionFamiliar = SettingsManager.UpdateSettingsByMakingSolutionFamiliar();
+            isExtentionInitialized = true;
+            UpdateSolutionState(false);
+
+            MessageManager.ShowMessageBox(
+                    serviceProvider,
+                    isSuccessfulCheckingRules ? "Расширение успешно активировано" : "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами",
+                    "RefDepGuard"
+            );
         }
 
         private static async void onSolutionOpened()
@@ -154,13 +203,26 @@ namespace VSIXProject1
             await Task.Delay(10000);
 
             CheckSolutionSettings();
-            UpdateSolutionState(false);
-            isExtentionInitialized = true;
+            if (isSolutionFamiliar)
+            {
+                UpdateSolutionState(false);
+                isExtentionInitialized = true;
+            }
+            else
+            {
+                ELPStoreManager.ClearErrorListProvider(errorListProvider);
+            }
         }
 
         private static void CheckSolutionSettings()
         {
             isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(dte, uiShell);
+        }
+
+        private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
+        {
+            if (isSolutionFamiliar)
+                UpdateSolutionState(true);
         }
 
         private static void BeforeSolutionClosed()

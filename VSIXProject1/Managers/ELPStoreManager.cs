@@ -14,8 +14,7 @@ namespace VSIXProject1.Managers.CheckRules
             RefDepGuardErrors refDepGuardErrors = refDepGuardFindedProblems.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardFindedProblems.RefDepGuardWarnings;
 
-            if (errorListProvider != null)
-                errorListProvider.Tasks.Clear();
+            ClearErrorListProvider(errorListProvider);
 
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
@@ -290,6 +289,12 @@ namespace VSIXProject1.Managers.CheckRules
                 errorListProvider.Show();
         }
 
+        public static void ClearErrorListProvider(ErrorListProvider errorListProvider)
+        {
+            if (errorListProvider != null)
+                errorListProvider.Tasks.Clear();
+        }
+
         public static void ShowNoProblemsFindedMessage(ErrorListProvider errorListProvider)
         {
             var currentText = "RefDepGuard: проблемы не обнаружены";
@@ -299,8 +304,7 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static void ShowUnsuccessfulCheckingRulesWarning(ErrorListProvider errorListProvider)
         {
-            if (errorListProvider != null)
-                errorListProvider.Tasks.Clear();
+            ClearErrorListProvider(errorListProvider);
 
             var currentText = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой";
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);

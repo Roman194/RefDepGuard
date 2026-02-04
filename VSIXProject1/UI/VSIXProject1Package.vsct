@@ -77,6 +77,7 @@
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetChangedRefsId" priority="0x0110" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
 			<Icon guid="guidShowChanges" id="bmpShowCh" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
 				<ButtonText>Вывести изменения в рефах</ButtonText>
 			</Strings>
@@ -85,6 +86,7 @@
 		<Button guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentSolStateId" priority="0x0120" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
 			<Icon guid="guidCommitSolState" id="bmpCommitSolState" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
 				<ButtonText>Зафиксировать текущую версию решения</ButtonText>
 			</Strings>
@@ -93,6 +95,7 @@
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ExportRefsToXLSXId" priority="0x0130" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
 			<Icon guid="guidTableExport" id="bmpTableExport" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
 				<ButtonText>Экспорт в XLSX</ButtonText>
 			</Strings>
@@ -101,8 +104,18 @@
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ExportRefsToHTMLId" priority="0x0140" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
 			<Icon guid="guidGraphExport" id="bmpGraphExport" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
 				<ButtonText>Экспорт в HTML</ButtonText>
+			</Strings>
+		</Button>
+
+		<Button guid="guidVSIXProject1PackageCmdSet" id="ActivateExtId" priority="0x0150" type="Button">
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Icon guid="guidActivateExt" id="bmpActivateExt" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
+			<Strings>
+				<ButtonText>Активировать расширение</ButtonText>
 			</Strings>
 		</Button>
     </Buttons>
@@ -121,6 +134,7 @@
 		<Bitmap guid="guidUpdateConfigRules" href="Resources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
 		<Bitmap guid="guidTableExport" href="Resources\TableExport_icon.png" usedList="bmpTableExport"/>
 		<Bitmap guid="guidGraphExport" href="Resources\GraphExport_icon.png" usedList="bmpGraphExport"/>
+		<Bitmap guid="guidActivateExt" href="Resources\GraphExport_icon.png" usedList="bmpActivateExt"/>
     </Bitmaps>
   </Commands>
 
@@ -162,6 +176,7 @@
 		<IDSymbol name="CommitCurrentSolStateId" value="0x0120"/>
 		<IDSymbol name="ExportRefsToXLSXId" value="0x0130"/>
 		<IDSymbol name="ExportRefsToHTMLId" value="0x0140"/>
+		<IDSymbol name="ActivateExtId" value="0x0150"/>
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{dceed754-0469-4e89-968e-668b81728f33}" >
@@ -195,6 +210,10 @@
 
 	  <GuidSymbol name="guidGraphExport" value="{dceed754-0469-4e89-968e-668b81728f37}">
 		  <IDSymbol name="bmpGraphExport" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidActivateExt" value="{dceed754-0469-4e89-968e-668b81728f39}">
+		  <IDSymbol name="bmpActivateExt" value="1"/>
 	  </GuidSymbol>
 
   </Symbols>
