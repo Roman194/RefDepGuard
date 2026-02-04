@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
@@ -7,6 +8,7 @@ using System.ComponentModel.Design;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Managers.CheckRules;
+using VSIXProject1.Managers.Import;
 using VSIXProject1.Models;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
@@ -41,12 +43,16 @@ namespace VSIXProject1
         private static DTE dte;
         private static ErrorListProvider errorListProvider;
         private static Excel.Application excel = new Excel.Application();
+
         private static bool isExtentionInitialized = false;
         private static bool isSuccessfulCheckingRules = true;
+        private static bool isSolutionFamiliar = true;
 
         private static Dictionary<string, ProjectState> commitedProjState = new Dictionary<string, ProjectState>();
         private static ConfigFilesData configFilesData;
         private static RefDepGuardExportParameters refDepGuardExportParameters;
+
+        private static OleMenuCommand getCurrentRefsMenuItem;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainCommand"/> class.
@@ -66,7 +72,7 @@ namespace VSIXProject1
             var exportCurrentRefsToXLSXMenuCommandID = new CommandID(CommandSet, ExportRefsToXLSXId);
             var exportCurrentRefsToHTMLMenuCommandID = new CommandID(CommandSet, ExportRefsToHTMLId);
 
-            var getCurrentRefsMenuItem = new MenuCommand(this.ExecuteCurrentRefs, getCurrentRefsCommandID);
+            getCurrentRefsMenuItem = new OleMenuCommand(this.ExecuteCurrentRefs, null, this.ExecuteCurrentRefsQueryStatus, getCurrentRefsCommandID);
             var getChangedRefsMenuItem = new MenuCommand(this.ExcecuteRefsChanges, getChangedRefsMenuCommandID);
             var commitCurrentSolStateMenuItem = new MenuCommand(this.ForceCommitCurrentSolutionState, commitCurrentSolStateMenuCommandID);
             var exportCurrentRefsToXLSXMenuItem = new MenuCommand(this.ExportRefsToXSLX, exportCurrentRefsToXLSXMenuCommandID);
@@ -79,6 +85,20 @@ namespace VSIXProject1
             commandService.AddCommand(exportCurrentRefsToHTMLMenuItem);
 
             onSolutionOpened();
+        }
+
+        private void ExecuteCurrentRefsQueryStatus(object sender, EventArgs e)
+        {
+            if (isSolutionFamiliar)
+            {
+                getCurrentRefsMenuItem.Visible = true;
+                getCurrentRefsMenuItem.Enabled = true;
+            }
+            else
+            {
+                getCurrentRefsMenuItem.Visible = false;
+                getCurrentRefsMenuItem.Enabled = false;
+            }
         }
 
         /// <summary>
@@ -133,8 +153,14 @@ namespace VSIXProject1
             isExtentionInitialized = false;
             await Task.Delay(10000);
 
+            CheckSolutionSettings();
             UpdateSolutionState(false);
             isExtentionInitialized = true;
+        }
+
+        private static void CheckSolutionSettings()
+        {
+            isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(dte, uiShell);
         }
 
         private static void BeforeSolutionClosed()
@@ -219,7 +245,7 @@ namespace VSIXProject1
 
         private static void GetConfigFileInfo()
         {
-            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(dte, serviceProvider, uiShell, errorListProvider, commitedProjState);
+            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
         }
 
         private static void CheckRulesFromConfigFile(bool isBuildCheck)

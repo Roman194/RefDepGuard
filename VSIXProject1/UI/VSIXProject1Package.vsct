@@ -66,7 +66,9 @@
 		
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetCurrentRefsId" priority="0x0100" type="Button">
         <Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+		
         <Icon guid="guidShowRefs" id="bmpShowRef" />
+		<CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
           <ButtonText>Показать все рефы решения</ButtonText>
         </Strings>
@@ -121,6 +123,8 @@
 		<Bitmap guid="guidGraphExport" href="Resources\GraphExport_icon.png" usedList="bmpGraphExport"/>
     </Bitmaps>
   </Commands>
+
+	
 
   <KeyBindings>
 	  <KeyBinding guid="guidVSIXProject1PackageCmdSet" id="GetCurrentRefsId"

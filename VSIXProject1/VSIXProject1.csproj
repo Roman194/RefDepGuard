@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Comparators\ContainsComparators\ProjectMatchWarningContainsComparer.cs" />
     <Compile Include="Comparators\ContainsComparators\ProjectNotFoundContainsComparer.cs" />
+    <Compile Include="Managers\Applied\SolutionNameManager.cs" />
     <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\CheckProjectsMatchSubManager.cs" />
     <Compile Include="Managers\ELPStoreManager.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProblemWorkbooksHelper.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProjectAndReferenceWorkbooksHelper.cs" />
     <Compile Include="Managers\Import\ConfigFileManager.cs" />
+    <Compile Include="Managers\Import\SettingsManager.cs" />
     <Compile Include="Models\ConfigFile\ConfigFilesData.cs" />
     <Compile Include="Models\FileParseError.cs" />
     <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleProblems.cs" />
@@ -69,6 +71,7 @@
     <Compile Include="Models\Reference\ProjectNotFoundWarning.cs" />
     <Compile Include="Models\Reference\ReferenceRuleErrors.cs" />
     <Compile Include="Models\Reference\ReferenceRuleWarnings.cs" />
+    <Compile Include="Models\UsingSolutionsDTO.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

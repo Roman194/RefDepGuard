@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
+using VSIXProject1.Managers.Applied;
 using VSIXProject1.Models;
 
 namespace VSIXProject1
@@ -15,7 +16,6 @@ namespace VSIXProject1
     {
         private static IServiceProvider serviceProvider;
         private static IVsUIShell uiShell;
-        //private static ErrorListProvider errorListProvider;
 
         private static ConfigFileSolution configFileSolution;
         private static ConfigFileGlobal configFileGlobal;
@@ -27,25 +27,19 @@ namespace VSIXProject1
         private static Dictionary<string, ProjectState> commitedProjState;
 
         public static ConfigFilesData GetInfoFromConfigFiles(
-            DTE dte, IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, ErrorListProvider currentErrorListProvider, Dictionary<string, ProjectState> currentCommitedProjState
-            )
+            IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, Dictionary<string, ProjectState> currentCommitedProjState)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             serviceProvider = currentServiceProvider;
             uiShell = currentUiShell;
-            //errorListProvider = currentErrorListProvider;
 
             commitedProjState = currentCommitedProjState;
             parseError = FileParseError.None;
-
-            string dteSolutionFullName = dte.Solution.FullName;
-            int lastDotIndex = dteSolutionFullName.LastIndexOf('.');
-            int lastSlashIndex = dteSolutionFullName.LastIndexOf('\\');
-            string solutionExtendedName = dteSolutionFullName.Substring(0, lastDotIndex);
-            packageExtendedName = dteSolutionFullName.Substring(0, lastSlashIndex);
-
-            solutionName = dteSolutionFullName.Substring(lastSlashIndex + 1, lastDotIndex - lastSlashIndex - 1);
+            
+            packageExtendedName = SolutionNameManager.GetPackageName();
+            solutionName = SolutionNameManager.GetSolutionName();
+            string solutionExtendedName = SolutionNameManager.GetSolutionExtendedName();
 
             string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
             string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";
@@ -105,14 +99,14 @@ namespace VSIXProject1
                     {
                         StreamReader sr = new StreamReader(fileStream);
 
-                        string currentFileConetnt = sr.ReadToEnd();
-                        if (String.IsNullOrEmpty(currentFileConetnt))
+                        string currentFileContent = sr.ReadToEnd();
+                        if (String.IsNullOrEmpty(currentFileContent))
                             throw new Exception();
 
                         if (configFileServiceInfo.IsGlobal)
-                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(currentFileConetnt);
+                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(currentFileContent);
                         else
-                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(currentFileConetnt);
+                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(currentFileContent);
                     }
                 }
                 catch (Exception)
