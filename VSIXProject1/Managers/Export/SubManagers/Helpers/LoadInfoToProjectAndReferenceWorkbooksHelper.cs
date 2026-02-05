@@ -12,14 +12,17 @@ namespace VSIXProject1.Managers.Export.SubManagers
 {
     public class LoadInfoToProjectAndReferenceWorkbooksHelper
     {
+        //Посмотреть что можно оптимизировать в визуальной настройке по аналогии с ProblemsHelper
         public static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
+            RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
             Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersions = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
 
             List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorsList = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
+            List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList;
 
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[1];
@@ -29,21 +32,14 @@ namespace VSIXProject1.Managers.Export.SubManagers
             projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
             projectsTable.Cells[3, 2] = currentDateTime;
             projectsTable.Cells[2, 2].Font.Bold = projectsTable.Cells[3, 2].Font.Bold = true;
-
             projectsTable.Cells[4, 2] = "№";
-
             projectsTable.Cells[4, 3] = "Проект";
-
             projectsTable.Cells[4, 4] = "Целевая рабочая\nсреда";
             projectsTable.Cells[4, 5] = "Макс. допустимая\nверсия";
-
             projectsTable.Cells[4, 6] = "Всего референсов";
-
             projectsTable.Cells[5, 6] = projectsTable.Cells[5, 8] = projectsTable.Cells[5, 10] = "Кол-во";
             projectsTable.Cells[5, 7] = projectsTable.Cells[5, 9] = projectsTable.Cells[5, 11] = "Названия";
-
             projectsTable.Cells[4, 8] = "Не обнаружено обязательных референсов";
-
             projectsTable.Cells[4, 10] = "Обнаружено недопустимых референсов";
 
             projectsTable.Columns[4].ColumnWidth = 17;
@@ -120,8 +116,14 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     }
                     projectsTable.Cells[6 + i, 5] = currentMaxFrVersionRule.VersionText + ruleLevelString;
 
+                    //Переделать!
                     if (frameworkVersionComparabilityErrorsList.Contains(new FrameworkVersionComparabilityError(ErrorLevel.Global, "", "", currentProjectName), new FrameworkVersionComparabilityErrorExportContainsComparer()))
                         projectsTable.Cells[6 + i, 5].Font.Color = 0x062CCE;
+                    else
+                    {
+                        if(maxFrameworkVersionConflictWarningsList.Find(warning => warning.WarningRelevantProjectName == currentProjectName) != null)
+                            projectsTable.Cells[6 + i, 5].Font.Color = 0x00C0FF; //Текст #FFC000
+                    }
                 }
                 else
                 {
@@ -178,8 +180,10 @@ namespace VSIXProject1.Managers.Export.SubManagers
             Range unionRangeRequiredRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 8], projectsTable.Cells[projectsCount + 5, 8]];
             Range unionRangeUnacceptableRefsErrorsCount = projectsTable.Range[projectsTable.Cells[6, 10], projectsTable.Cells[projectsCount + 5, 10]];
 
+            unionRangeAllTable.Font.Name = "Calibri";
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
             unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
             unionRangeSolutionNameAndGenerateTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeNumWithTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
@@ -204,6 +208,10 @@ namespace VSIXProject1.Managers.Export.SubManagers
         {
             List<ReferenceError> refsErrorList = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.RefsErrorList;
             List<RequiredReference> requiredReferences = refDepGuardExportParameters.RequiredParametersData.RequiredReferences;
+            List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = 
+                refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
+
+            bool isPotentialVersionConflict = false;
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[2];
             projectsTable.Name = "Выборка по референсам";
@@ -244,9 +252,34 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                     projectsTable.Cells[5 + i, 5] = "-";
 
+                    //Выделения типа связи расставлены в порядке обратном порядку приоритезации
+                    RequiredReference requiredReference = requiredReferences
+                        .Where(value => value.ReferenceName == projectReference && (value.RelevantProject == projectName || value.RelevantProject == ""))
+                        .FirstOrDefault(); //Должно найтись не более одного такого значения
+
+                    if (requiredReference != null)
+                    {
+                        projectsTable.Cells[5 + i, 5] = "Обязательный";
+                        projectsTable.Cells[5 + i, 5].Interior.Color = 0xCEEFC6;
+                        projectsTable.Cells[5 + i, 5].Font.Color = 0x006100;
+                    }
+
+                    MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReference = maxFrameworkVersionReferenceConflictWarningsList
+                        .Where(value => value.RefName ==  projectReference && value.ProjName == projectName)
+                        .FirstOrDefault();
+
+                    if (maxFrameworkVersionReference != null) //фон #f7e392 текст #8b6400
+                    {
+                        projectsTable.Cells[5 + i, 5] = "Потенциальный\r\nконфликт версий";
+                        projectsTable.Cells[5 + i, 5].Interior.Color = 0x92e3f7;
+                        projectsTable.Cells[5 + i, 5].Font.Color = 0x00648b;
+
+                        isPotentialVersionConflict = true;
+                    }
+
                     ReferenceError referenceError = refsErrorList
                         .Where(value => value.ErrorRelevantProjectName == projectName && value.ReferenceName == projectReference && value.IsReferenceRequired == false)
-                        .FirstOrDefault(); //Должно найтись не более одного такого значения
+                        .FirstOrDefault();
 
                     if (referenceError != null)
                     {
@@ -256,17 +289,6 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                     }
 
-                    RequiredReference requiredReference = requiredReferences
-                        .Where(value => value.ReferenceName == projectReference && (value.RelevantProject == projectName || value.RelevantProject == ""))
-                        .FirstOrDefault();
-
-                    if (requiredReference != null)
-                    {
-                        projectsTable.Cells[5 + i, 5] = "Обязательный";
-                        projectsTable.Cells[5 + i, 5].Interior.Color = 0xCEEFC6;
-                        projectsTable.Cells[5 + i, 5].Font.Color = 0x006100;
-                    }
-
                     i++;
                 }
             }
@@ -274,6 +296,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 5]];
             Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
 
+            unionRangeAllTable.Font.Name = "Calibri";
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
             unionRangeAllTable.EntireColumn.AutoFit();
             unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
@@ -283,6 +306,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
+            if (isPotentialVersionConflict)
+                projectsTable.Columns[5].ColumnWidth = 16;
         }
 
         private static string GetProjectsString(List<String> projectNames)

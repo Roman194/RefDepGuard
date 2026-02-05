@@ -12,15 +12,15 @@ namespace VSIXProject1.Data.FrameworkVersion
         public ErrorLevel LowErrorLevel;
         public string HighLevelMaxFrameVersion;
         public string LowLevelMaxFrameVersion;
-        public string ErrorRelevantProjectName;
+        public string WarningRelevantProjectName;
         
-        public MaxFrameworkVersionConflictWarning(ErrorLevel highErrorLevel, ErrorLevel lowErrorLevel, string highLevelMaxFrameVersion, string lowLevelMaxFrameVersion, string errorRelevantProjectName)
+        public MaxFrameworkVersionConflictWarning(ErrorLevel highErrorLevel, ErrorLevel lowErrorLevel, string highLevelMaxFrameVersion, string lowLevelMaxFrameVersion, string warningRelevantProjectName)
         {
             HighErrorLevel = highErrorLevel;
             LowErrorLevel = lowErrorLevel;
             HighLevelMaxFrameVersion = highLevelMaxFrameVersion;
             LowLevelMaxFrameVersion = lowLevelMaxFrameVersion;
-            ErrorRelevantProjectName = errorRelevantProjectName;
+            WarningRelevantProjectName = warningRelevantProjectName;
         }
     }
 }

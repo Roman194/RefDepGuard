@@ -11,7 +11,7 @@ namespace VSIXProject1.Comparators
     {
         public bool Equals(MaxFrameworkVersionConflictWarning x, MaxFrameworkVersionConflictWarning y)
         {
-            return x.HighErrorLevel == y.HighErrorLevel && x.LowErrorLevel == y.LowErrorLevel && x.ErrorRelevantProjectName == y.ErrorRelevantProjectName;
+            return x.HighErrorLevel == y.HighErrorLevel && x.LowErrorLevel == y.LowErrorLevel && x.WarningRelevantProjectName == y.WarningRelevantProjectName;
         }
 
         public int GetHashCode(MaxFrameworkVersionConflictWarning obj)
@@ -21,7 +21,7 @@ namespace VSIXProject1.Comparators
                 int hash = 17;
                 hash = hash * 23 + obj.HighErrorLevel.GetHashCode();
                 hash = hash * 23 + obj.LowErrorLevel.GetHashCode();
-                hash = hash * 23 + (obj.ErrorRelevantProjectName?.GetHashCode() ?? 0);
+                hash = hash * 23 + (obj.WarningRelevantProjectName?.GetHashCode() ?? 0);
                 return hash;
             }
         }

@@ -329,7 +329,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 string errorRelevantProjectName = "-";
                 if (maxFrameworkVersionConflictValue.LowErrorLevel == ErrorLevel.Project)
-                    errorRelevantProjectName = maxFrameworkVersionConflictValue.ErrorRelevantProjectName;
+                    errorRelevantProjectName = maxFrameworkVersionConflictValue.WarningRelevantProjectName;
 
                 projectsTable.Cells[5 + i, 3] = errorRelevantProjectName;
                 projectsTable.Cells[5 + i, 4] = "-";
@@ -505,6 +505,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];
             Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + 4, 2]];
 
+            unionRangeAllTable.Font.Name = "Calibri";
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
             unionRangeAllTable.EntireColumn.AutoFit();
             unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);

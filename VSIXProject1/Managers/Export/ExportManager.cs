@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,8 @@ namespace VSIXProject1
 {
     public class ExportManager
     {
+        private static string currentReportDirectory;
+
         public static string LoadReferencesDataToReport(
             Application excel, ConfigFilesData configFilesData, string reportType, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters
@@ -26,7 +29,7 @@ namespace VSIXProject1
 
             try
             {
-                string currentReportDirectory = configFilesData.packageExtendedName + "\\reports\\"+ reportType +"\\" + currentDateTime;
+                currentReportDirectory = configFilesData.packageExtendedName + "\\reports\\"+ reportType +"\\" + currentDateTime;
                 Directory.CreateDirectory(currentReportDirectory);
 
                 switch (reportType)
@@ -47,6 +50,17 @@ namespace VSIXProject1
             }
 
             return loadError;
+        }
+
+        public static bool OpenCurrentReportDirectory()
+        {
+            if(currentReportDirectory != null)
+            {
+                Process.Start(currentReportDirectory);
+                return true;
+            }
+
+            return false;
         }
     }
 }

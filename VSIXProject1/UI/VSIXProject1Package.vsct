@@ -46,9 +46,17 @@
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
     <Groups>
-      <Group guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" priority="0x0600">
-        <Parent guid="guidVSIXProject1PackageCmdSet" id="ExtentionMenu"/>
-      </Group>
+		<Group guid="guidVSIXProject1PackageCmdSet" id="MenuExcecuteGroup" priority="0x0600">
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="ExtentionMenu"/>
+		</Group>
+
+		<Group guid="guidVSIXProject1PackageCmdSet" id="MenuCommitStateGroup" priority="0x0700">
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="ExtentionMenu"/>
+		</Group>
+
+		<Group guid="guidVSIXProject1PackageCmdSet" id="MenuExportGroup" priority="0x0800">
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="ExtentionMenu"/>
+		</Group>
     </Groups>
 
     <!--Buttons section. IDM_VS_MENU_TOOLS-->
@@ -65,7 +73,7 @@
 
 		
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetCurrentRefsId" priority="0x0100" type="Button">
-        <Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+        <Parent guid="guidVSIXProject1PackageCmdSet" id="MenuExcecuteGroup" />
 		
         <Icon guid="guidShowRefs" id="bmpShowRef" />
 		<CommandFlag>DynamicVisibility</CommandFlag>
@@ -75,7 +83,7 @@
       </Button>
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetChangedRefsId" priority="0x0110" type="Button">
-			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuExcecuteGroup" />
 			<Icon guid="guidShowChanges" id="bmpShowCh" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
@@ -84,7 +92,7 @@
 		</Button>
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="CommitCurrentSolStateId" priority="0x0120" type="Button">
-			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuCommitStateGroup" />
 			<Icon guid="guidCommitSolState" id="bmpCommitSolState" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
@@ -93,7 +101,7 @@
 		</Button>
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ExportRefsToXLSXId" priority="0x0130" type="Button">
-			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuExportGroup" />
 			<Icon guid="guidTableExport" id="bmpTableExport" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
@@ -102,16 +110,17 @@
 		</Button>
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ExportRefsToHTMLId" priority="0x0140" type="Button">
-			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuExportGroup" />
 			<Icon guid="guidGraphExport" id="bmpGraphExport" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
 				<ButtonText>Экспорт в HTML</ButtonText>
 			</Strings>
 		</Button>
+		
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="ActivateExtId" priority="0x0150" type="Button">
-			<Parent guid="guidVSIXProject1PackageCmdSet" id="MyMenuGroup" />
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuCommitStateGroup" />
 			<Icon guid="guidActivateExt" id="bmpActivateExt" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
@@ -170,7 +179,9 @@
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidVSIXProject1PackageCmdSet" value="{c19eaee0-a475-4f4d-821f-194a1447a90d}">
 		<IDSymbol name="ExtentionMenu" value="0x1021"/>
-      <IDSymbol name="MyMenuGroup" value="0x1020" />
+	  <IDSymbol name="MenuExcecuteGroup" value="0x1022" />
+      <IDSymbol name="MenuCommitStateGroup" value="0x1023" />
+	  <IDSymbol name="MenuExportGroup" value="0x1024" />
       <IDSymbol name="GetCurrentRefsId" value="0x0100" />
 	    <IDSymbol name="GetChangedRefsId" value="0x0110"/>
 		<IDSymbol name="CommitCurrentSolStateId" value="0x0120"/>

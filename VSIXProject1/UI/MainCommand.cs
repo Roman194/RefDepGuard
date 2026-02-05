@@ -192,7 +192,7 @@ namespace VSIXProject1
 
             MessageManager.ShowMessageBox(
                     serviceProvider,
-                    isSuccessfulCheckingRules ? "Расширение успешно активировано" : "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами",
+                    isSuccessfulCheckingRules ? "Расширение успешно активировано" : "Ошибка фиксации состояния решения:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами",
                     "RefDepGuard"
             );
         }
@@ -372,13 +372,13 @@ namespace VSIXProject1
                 {
                     case "table_type":
                         reportTitleText = "Экспорт в XLSX";
-                        reportSuccessText = "Экспорт в эксель завершён";
+                        reportSuccessText = "Экспорт в эксель завершён. Открыть папку со сгенерированным отчётом?";
                         reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.solutionName + "_references_report.xlsx' не открыт в Excel";
                         break;
 
                     case "graph_type":
                         reportTitleText = "Экспорт в HTML";
-                        reportSuccessText = "Графический экспорт завершён";
+                        reportSuccessText = "Графический экспорт завершён. Открыть папку со сгенерированным отчётом?";
                         reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом";
                         break;
                 }
@@ -386,7 +386,12 @@ namespace VSIXProject1
                 var loadError = ExportManager.LoadReferencesDataToReport(excel, configFilesData, reportType, commitedProjState, refDepGuardExportParameters);
 
                 if (loadError == "")
-                    MessageManager.ShowMessageBox(this.package, reportSuccessText, reportTitleText);
+                {
+                    if(MessageManager.ShowYesNoPrompt(uiShell, reportSuccessText, reportTitleText)) //Если пользователь согласен
+                    {
+                        ExportManager.OpenCurrentReportDirectory(); //то открываем ему папку с текущим экспортом
+                    }
+                }
                 else
                     MessageManager.ShowMessageBox(this.package, reportUnsuccessText + "\r\nТекст ошибки: " + loadError, reportTitleText);
             }

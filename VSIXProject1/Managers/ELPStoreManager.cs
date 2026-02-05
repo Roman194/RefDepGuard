@@ -209,7 +209,7 @@ namespace VSIXProject1.Managers.CheckRules
                 switch (maxFrameworkVersionConflictValue.LowErrorLevel)
                 {
                     case ErrorLevel.Solution: lowErrorLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Project: lowErrorLevelText = "в проекте '" + maxFrameworkVersionConflictValue.ErrorRelevantProjectName + "'"; break;
+                    case ErrorLevel.Project: lowErrorLevelText = "в проекте '" + maxFrameworkVersionConflictValue.WarningRelevantProjectName + "'"; break;
                 }
 
                 string errorText = "RefDepGuard framework_max_version conflict warning: значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion

@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ using System.IO;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Managers.Applied;
+using VSIXProject1.Managers.Import;
 using VSIXProject1.Models;
 
 namespace VSIXProject1
@@ -77,12 +79,14 @@ namespace VSIXProject1
                 fileStream.Flush();
 
                 streamWriter.Close();
+
+                CacheManager.UpdateConfigFilesBackup(json, false);
             }
 
             return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
         }
 
-        private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
+        private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo, bool isSecondAttempt = false)
         {
             FileErrorMessage fileErrorMessage;
 
@@ -107,52 +111,87 @@ namespace VSIXProject1
                             configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(currentFileContent);
                         else
                             configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(currentFileContent);
+
+                        //Предполагается, что к текущему моменту настройки с ошибками JSON-синтаксиса уже будут в catch, а Null value parameters можно уже и бэкапить
+                        CacheManager.UpdateConfigFilesBackup(currentFileContent, configFileServiceInfo.IsGlobal); 
                     }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    showConfigFileParseErrorMessageAndCreateFileIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal);
+                    showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
                 }
             }
             else
             {
-                showConfigFileNotFoundErrorMessage(fileErrorMessage.FileNotFoundErrorMessage, configFileServiceInfo.IsGlobal);
-                CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+                var backupFileInfo = showConfigFileNotFoundErrorMessage(fileErrorMessage.FileNotFoundErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
+
+                if(backupFileInfo != "")
+                    CopyInfoFromBackupToConfigFile(configFileServiceInfo, backupFileInfo);
+                else
+                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
         }
 
-        private static void showConfigFileNotFoundErrorMessage(string errorReason, bool isErrorGlobal)
+        private static string showConfigFileNotFoundErrorMessage(string errorReason, bool isErrorGlobal, bool isSecondAttempt)
         {
             string solutionNameInfo = "";
+            string backupFileInfo = "";
 
             if (!isErrorGlobal)
                 solutionNameInfo = " для solution '" + solutionName + "'";
+
+            if (!isSecondAttempt)
+                backupFileInfo = CacheManager.GetInfoFromBackupFile(isErrorGlobal);
+            
+            var actionAnnounc = backupFileInfo != "" ? "Файл конфигурации будет сгенерирован по последнему сохранению" : "Шаблон файла конфигурации будет сгенерирован расширением";
 
             MessageManager.ShowMessageBox(
                     serviceProvider,
-                    errorReason + solutionNameInfo + ".\r\n Шаблон файла конфигурации будет сгенерирован расширением",
+                    errorReason + solutionNameInfo + ".\r\n " + actionAnnounc,
                     "RefDepGuard Error: Ошибка загрузки файла конфигурации"
             );
+
+            return backupFileInfo;
         }
 
-        private static void showConfigFileParseErrorMessageAndCreateFileIfNeeded(ConfigFileServiceInfo configFileServiceInfo, string errorReason, bool isErrorGlobal)
+        private static void showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(ConfigFileServiceInfo configFileServiceInfo, string errorReason, bool isErrorGlobal, bool isSecondAttempt)
         {
             bool rollbackAction = true;
             string solutionNameInfo = "";
+            string backupFileInfo = "";
 
             if (!isErrorGlobal)
                 solutionNameInfo = " для solution '" + solutionName + "'";
 
-            rollbackAction = MessageManager.ShowYesNoPrompt(
-                uiShell,
-                errorReason + solutionNameInfo + ".\r\nСгенерирвать для вас стандартный шаблон файла конфигурации?\r\nВсё содержимое файла конфигурации будет перенесено в Rollback-файл",
-                "RefDepGuard Error: Ошибка загрузки файла конфигурации"
-                );
+            if (!isSecondAttempt)
+            {
+                backupFileInfo = CacheManager.GetInfoFromBackupFile(isErrorGlobal);
+
+                var offeredOption = backupFileInfo != "" ? "Загрузить для вас последнее успешно сохранённое содержимое файла конфигурации?" : "Сгенерирвать для вас стандартный шаблон файла конфигурации?";
+
+                rollbackAction = MessageManager.ShowYesNoPrompt(
+                    uiShell,
+                    errorReason + solutionNameInfo + ".\r\n" + offeredOption + "\r\nВсё текущее содержимое файла конфигурации будет перенесено в Rollback-файл",
+                    "RefDepGuard Error: Ошибка загрузки файла конфигурации"
+                    );
+            }
+            else
+            {
+                MessageManager.ShowMessageBox(serviceProvider,
+                    "Не удалось загрузить последние сохранённые данные.\r\nШаблон файла конфигурации будет сгенерирован расширением", 
+                    "RefDepGuard Error: Ошибка загрузки файла конфигурации");
+            }
+
 
             if (rollbackAction)
             {
-                RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
-                CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+                if(!isSecondAttempt)
+                    RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
+
+                if (backupFileInfo != "")
+                    CopyInfoFromBackupToConfigFile(configFileServiceInfo, backupFileInfo);
+                else
+                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
             else
             {
@@ -161,12 +200,29 @@ namespace VSIXProject1
                     parseError = FileParseError.All;
                 else
                     parseError = isErrorGlobal ? FileParseError.Global : FileParseError.Solution;
-                
-                if (isErrorGlobal)//Даже если пользователь не хочет генерировать дефолт файл, то всё-равно внутри проги нужно сгенерировать дефолт конфигурационные данные
+
+                if (isErrorGlobal)//Если пользователь не хочет "откатывать" файл, то всё-равно внутри проги нужно сгенерировать дефолт конфигурационные данные
                     generateDefaultConfigFileDataGlobal();
                 else
                     generateDefaultConfigFileDataSolution();
             }    
+        }
+
+        private static void CopyInfoFromBackupToConfigFile(ConfigFileServiceInfo configFileServiceInfo, string backupFileInfo) //Оптимизировать!
+        {
+            using (FileStream fileStream = File.Create(configFileServiceInfo.SolutionConfigGuardFile))
+            {
+                StreamWriter streamWriter = new StreamWriter(fileStream);
+                
+                streamWriter.Write(backupFileInfo);
+
+                streamWriter.Flush();
+                fileStream.Flush();
+
+                streamWriter.Close();
+            }
+
+            GetCurrentConfigFileInfo(configFileServiceInfo, true); //Second attempt to read config file
         }
 
         private static void CreateNewConfigFile(string currentConfigGuardFile, bool isGlobal)
@@ -187,6 +243,8 @@ namespace VSIXProject1
                 fileStream.Flush();
 
                 streamWriter.Close();
+
+                CacheManager.UpdateConfigFilesBackup(json, isGlobal);
             }
         }
 

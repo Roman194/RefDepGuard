@@ -25,7 +25,7 @@ namespace VSIXProject1.Managers.Import
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
 
-            UsingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg_settings\\using_solutions.rdg";
+            UsingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_settings\\using_solutions.rdg";
             SolutionName = SolutionNameManager.GetSolutionName();
 
             if (File.Exists(UsingSolutionsExtendedName))
@@ -106,11 +106,16 @@ namespace VSIXProject1.Managers.Import
 
         private static void CreateOrRewriteUsingSolutionsFile(string usingSolutionsExtendedName) //Переиспользовать с ConfigFile?
         {
-            string usingSolutionsDirectory = usingSolutionsExtendedName.Substring(0, usingSolutionsExtendedName.LastIndexOf('\\'));
+            string rdgStuffDirectory = usingSolutionsExtendedName.Substring(0, usingSolutionsExtendedName.LastIndexOf('\\', 
+                usingSolutionsExtendedName.LastIndexOf('\\') - 1));
 
-            var dirInfo = new DirectoryInfo(usingSolutionsDirectory);
+            var dirInfo = new DirectoryInfo(rdgStuffDirectory);
             dirInfo.Create();
             dirInfo.Attributes |= FileAttributes.Hidden;
+
+            string rdgSettingsDirectory = usingSolutionsExtendedName.Substring(0, usingSolutionsExtendedName.LastIndexOf('\\'));
+            var dirSettingsInfo = new DirectoryInfo(rdgSettingsDirectory);
+            dirSettingsInfo.Create();
 
             using (FileStream fileStream = File.Create(usingSolutionsExtendedName))
             {

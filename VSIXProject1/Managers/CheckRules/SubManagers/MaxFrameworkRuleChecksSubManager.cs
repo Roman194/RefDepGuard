@@ -134,7 +134,7 @@ namespace VSIXProject1.Managers.CheckRules
                 var maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
 
                 var isConflictWarningRelevantForProject = maxFrameworkVersionConflictWarningsList.Find(value =>
-                    value.LowErrorLevel == errorLevel && (value.ErrorRelevantProjectName == projName || value.ErrorRelevantProjectName == "-")
+                    value.LowErrorLevel == errorLevel && (value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-")
                     ) != null ? true : false;
 
                 //Загрузка данных об ограничениях на max_fr_version для текущего проекта
@@ -205,7 +205,7 @@ namespace VSIXProject1.Managers.CheckRules
         {
             // Проверка конфликтов рефов по макс версиям не производится, если макс версия одного из текущих проектов "конфликтует" с какой-то глобальной или solution версией
             // или если есть конфликт в макс версии global или solution или между ними
-            var projectError = maxFrameworkVersionConflictWarningsList.Find(value => value.ErrorRelevantProjectName == projName || value.ErrorRelevantProjectName == "-");
+            var projectError = maxFrameworkVersionConflictWarningsList.Find(value => value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-");
 
             if (requiredMaxFrVersionsDict.ContainsKey(projName) && projectError == null)
             {
@@ -216,7 +216,7 @@ namespace VSIXProject1.Managers.CheckRules
 
                 foreach (var projReference in projReferences)
                 {
-                    var referenceError = maxFrameworkVersionConflictWarningsList.Find(value => value.ErrorRelevantProjectName == projReference);
+                    var referenceError = maxFrameworkVersionConflictWarningsList.Find(value => value.WarningRelevantProjectName == projReference);
 
                     if (requiredMaxFrVersionsDict.ContainsKey(projReference) && referenceError == null)
                     {
