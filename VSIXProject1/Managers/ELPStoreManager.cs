@@ -77,6 +77,16 @@ namespace VSIXProject1.Managers.CheckRules
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
+            foreach (MaxFrameworkVersionIllegalTemplateUsageError maxFrameworkVersionIllegalTemplateUsageError in refDepGuardErrors.MaxFrameworkVersionIllegalTemplateUsageErrorList)
+            {
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
+                string errorText = "RefDepGuard framework_max_version illegal template usage error: в параметре 'framework_max_version' проекта '" +
+                    maxFrameworkVersionIllegalTemplateUsageError.ProjName + "' обнаружено использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM). " +
+                    "Исправьте значение параметра на допустимое";
+
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
+            }
+
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string documentName = configFilesData.solutionName + "_config_guard.rdg";
@@ -229,6 +239,25 @@ namespace VSIXProject1.Managers.CheckRules
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + "). Устраните противоречие";
 
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
+            }
+
+            foreach (MaxFrameworkVersionTFMNotFoundWarning maxFrameworkVersionTFMNotFoundWarning in refDepGuardWarnings.MaxFrameworkVersionTFMNotFoundWarningList)
+            {
+                string documentName = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : configFilesData.solutionName + "_config_guard.rdg";
+
+                string warningLevel = "";
+
+                switch (maxFrameworkVersionTFMNotFoundWarning.WarningLevel)
+                {
+                    case ErrorLevel.Global : warningLevel = "глобальный уровень"; break;
+                    case ErrorLevel.Solution: warningLevel = "уровень решения"; break;
+                    case ErrorLevel.Project: warningLevel = "уровень проекта '" + maxFrameworkVersionTFMNotFoundWarning.ProjName + "'"; break;
+                }
+
+                string warningText = "RefDepGuard framework_max_version TFM not found warning: Не найден TargetFramework, имеющий значение '" + 
+                    maxFrameworkVersionTFMNotFoundWarning.TFMName +"' ("+ warningLevel +"). Проверьте указанную строку max_framework_version на предмет соответствия существующим TFM";
+
+                StoreErrorTask(errorListProvider, warningText, documentName, TaskErrorCategory.Warning);
             }
 
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)

@@ -18,7 +18,9 @@ namespace VSIXProject1
     public class CheckRulesManager
     {
         private static List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueErrorList = new List<MaxFrameworkVersionDeviantValueError>();
+        private static List<MaxFrameworkVersionIllegalTemplateUsageError> maxFrameworkVersionIllegalTemplateUsageErrorsList = new List<MaxFrameworkVersionIllegalTemplateUsageError>();
         private static List<MaxFrameworkVersionDeviantValueWarning> maxFrameworkVersionDeviantValueWarningList = new List<MaxFrameworkVersionDeviantValueWarning>();
+        private static List<MaxFrameworkVersionTFMNotFoundWarning> maxFrameworkVersionTFMNotFoundWarningList = new List<MaxFrameworkVersionTFMNotFoundWarning>();
 
         private static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
 
@@ -195,13 +197,14 @@ namespace VSIXProject1
 
             refDepGuardErrors = new RefDepGuardErrors(
                 configPropertyNullErrorList, refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, maxFrameworkVersionDeviantValueErrorList,
-                maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList
-                );
+                maxFrameworkVersionIllegalTemplateUsageErrorsList, maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList);
+
             refDepGuardWarnings = new RefDepGuardWarnings(
                 refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList,
                 maxFrameworkVersionDeviantValueWarningList,
                 maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
                 maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, 
+                maxFrameworkVersionTFMNotFoundWarningList,
                 projectMatchWarningList, maxFrameworkRuleProblems.UntypedWarningsList);
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
@@ -224,6 +227,9 @@ namespace VSIXProject1
             if (maxFrameworkVersionDeviantValueWarningList != null)
                 maxFrameworkVersionDeviantValueWarningList.Clear();
 
+            if(maxFrameworkVersionTFMNotFoundWarningList != null)
+                maxFrameworkVersionTFMNotFoundWarningList.Clear();
+
             if (requiredReferencesList != null)
                 requiredReferencesList.Clear();
 
@@ -243,11 +249,9 @@ namespace VSIXProject1
             if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project && projTypes.Count == 1)
             {
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
-                //TODO: перекинуть на новый тип ошибки framework_max_version template illegal usage error!!!
-                MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
-
-                if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                    maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                //TODO: перекинуть на новый тип ошибки framework_max_version illegal template usage error!!!
+                if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
+                    maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName));
 
                 return new Dictionary<string, List<int>>();
             }
@@ -294,14 +298,25 @@ namespace VSIXProject1
                 }
 
                 //Если при TargetFrameworks п-ль указал тип проекта, которого нет в TF или не супертип all, то выдать ошибку
-                if(errorLevel == ErrorLevel.Project && (!projTypes.Contains(maxFrameworkVersionElementSplited[0]) && maxFrameworkVersionElementSplited[0] != "all"))
+                //?????? вроде как all уже недопустим на project уровне ) && maxFrameworkVersionElementSplited[0] != "all")
+                if (errorLevel == ErrorLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]))
                 { //Надо задать на это + где projTypes == 1 новый вид ошибок? (framework_max_version template illegal usage error)
-                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
-
-                    if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
+                    
+                    if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
+                        maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName));
 
                     return new Dictionary<string, List<int>>();
+                }
+
+                //Проверка на то, что обнаруженный TFM существует. Иначе добавляется варнинг и TFM в словарь не добавляется
+                if (!TFMSample.PossibleTargetFrameworkMonikiers().Contains(maxFrameworkVersionElementSplited[0])){
+                    if(maxFrameworkVersionTFMNotFoundWarningList.Find(warning =>  //Как лучше, так или с компаратором?
+                            warning.TFMName == maxFrameworkVersionElementSplited[0] && 
+                            warning.WarningLevel == errorLevel && 
+                            warning.ProjName == projName) == null)
+                        maxFrameworkVersionTFMNotFoundWarningList.Add(new MaxFrameworkVersionTFMNotFoundWarning(maxFrameworkVersionElementSplited[0], errorLevel, projName));
+
+                    continue;
                 }
 
                 var maxFrameworkVersionNumbers = maxFrameworkVersionElementSplited[1].Split('.');

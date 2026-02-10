@@ -47,6 +47,7 @@
   <ItemGroup>
     <Compile Include="Comparators\ContainsComparators\ProjectMatchWarningContainsComparer.cs" />
     <Compile Include="Comparators\ContainsComparators\ProjectNotFoundContainsComparer.cs" />
+    <Compile Include="Data\TFMSample.cs" />
     <Compile Include="Managers\Applied\SolutionNameManager.cs" />
     <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\CheckProjectsMatchSubManager.cs" />
@@ -64,6 +65,8 @@
     <Compile Include="Models\FileParseError.cs" />
     <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleProblems.cs" />
     <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionDeviantValueWarning.cs" />
+    <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionIllegalTemplateUsageError.cs" />
+    <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionTFMNotFoundWarning.cs" />
     <Compile Include="Models\FrameworkVersion\MaxFrameworkVersionWarnings.cs" />
     <Compile Include="Models\ProjectMatchWarning.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardExportParameters.cs" />

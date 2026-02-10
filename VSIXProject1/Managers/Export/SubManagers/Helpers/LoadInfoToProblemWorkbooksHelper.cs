@@ -64,6 +64,25 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 i++;
             }
 
+            foreach (MaxFrameworkVersionIllegalTemplateUsageError maxFrameworkVersionIllegalTemplateUsageError in refDepGuardErrors.MaxFrameworkVersionIllegalTemplateUsageErrorList)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = maxFrameworkVersionIllegalTemplateUsageError.ProjName;
+                projectsTable.Cells[5 + i, 4] = "-";
+                projectsTable.Cells[5 + i, 5] = "framework_max_version illegal template usage";
+                projectsTable.Cells[5 + i, 6] = "Project";
+                projectsTable.Cells[5 + i, 7] = "в параметре 'framework_max_version'\r\nпроекта '" +
+                    maxFrameworkVersionIllegalTemplateUsageError.ProjName + "' обнаружено использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM)";
+                projectsTable.Cells[5 + i, 8] = "Исправьте значение параметра на допустимое";
+                projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
+
+                i++;
+            }
+
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 if (i == 0)
@@ -385,6 +404,36 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";
                 projectsTable.Cells[5 + i, 8] = "Устраните противоречие";
                 projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
+
+                i++;
+            }
+
+            foreach (MaxFrameworkVersionTFMNotFoundWarning maxFrameworkVersionTFMNotFoundWarning in refDepGuardWarnings.MaxFrameworkVersionTFMNotFoundWarningList)
+            {
+                string currentProjName = maxFrameworkVersionTFMNotFoundWarning.ProjName;
+
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = currentProjName != "" ? currentProjName : "-";
+                projectsTable.Cells[5 + i, 4] = "-";
+                projectsTable.Cells[5 + i, 5] = "framework_max_version TFM not found";
+                
+                string warningLevel = "";
+
+                switch (maxFrameworkVersionTFMNotFoundWarning.WarningLevel)
+                {
+                    case ErrorLevel.Global: warningLevel = "Global"; break;
+                    case ErrorLevel.Solution: warningLevel = "Solution"; break;
+                    case ErrorLevel.Project: warningLevel = "Project"; break;
+                }
+
+                projectsTable.Cells[5 + i, 6] = warningLevel;
+                projectsTable.Cells[5 + i, 7] = "Не найден TargetFramework, имеющий значение\r\n'" + maxFrameworkVersionTFMNotFoundWarning.TFMName;
+                projectsTable.Cells[5 + i, 8] = "Проверьте указанную в\r\n'max_framework_version' строку на предмет соответствия существующим TFM";
+                projectsTable.Cells[5 + i, 9] = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
 
                 i++;
             }
