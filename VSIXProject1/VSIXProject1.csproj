@@ -56,7 +56,7 @@
     <Compile Include="Managers\CheckRules\SubManagers\MaxFrameworkRuleChecksSubManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\NotNullChecksSubManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\RefsRuleChecksSubManager.cs" />
-    <Compile Include="Managers\CommitManager.cs" />
+    <Compile Include="Managers\CurrentStateManager.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProblemWorkbooksHelper.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProjectAndReferenceWorkbooksHelper.cs" />
     <Compile Include="Managers\Import\CacheManager.cs" />

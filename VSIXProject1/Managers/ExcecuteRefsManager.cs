@@ -2,55 +2,66 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Text;
 using System.Linq;
+using System.Windows.Forms;
 using VSIXProject1.Data;
+using VSIXProject1.Managers.CheckRules.SubManagers;
 
 namespace VSIXProject1
 {
     public class ExcecuteRefsManager
     {
-        public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider) //Сделать общий над двумя методами?
+        public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             string message = "";
             string title = "Связи между проектами на текущий момент";
-            bool isNoReferences = true;
 
-            EnvDTE.Solution solution = dte.Solution;
+            var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
-            foreach (EnvDTE.Project project in solution.Projects)
+            if (currentReferencesState.Count == 0)
+                message = "На текущий момент в Solution не обнаружены референсы";
+            else
             {
-                message += ("Рефы в проекте: " + project.Name + "\r\n");
-                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
-                if (vSProject != null)
+                ExcecuteMessageWithTransitRefs(currentReferencesState);
+
+                foreach (var currentReferencesKeyValues in currentReferencesState)
                 {
-                    var refsList = new List<string>();
+                    string currentProject = currentReferencesKeyValues.Key;
+                    List<string> currentReferences = currentReferencesKeyValues.Value;
 
-                    foreach (VSLangProj.Reference vRef in vSProject.References)
+                    message += (currentProject + "\r\n");
+
+                    foreach (var currRef in currentReferences)
                     {
-                        if (vRef.SourceProject != null)
-                        {
-                            refsList.Add(vRef.Name);
-                            message += ("   " + vRef.Name + "\r\n");
-                        }
+                        if (currentReferences.Last() != currRef)
+                            message += ("   ├─" + currRef + "\r\n");
+                        else
+                            message += ("   └─" + currRef + "\r\n");
                     }
 
-                    if (refsList.Count == 0)
-                        message += ("   -" + "\r\n");
-                    else
-                    {
-                        if (isNoReferences)
-                            isNoReferences = false;
-                    }
-                    
+                    if (currentReferences.Count == 0)
+                        message += ("   ─\r\n");
                 }
             }
 
-            if (isNoReferences)
-                message += "На текущий момент в Solution не обнаружены референсы";
-
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
+
+        private static void ExcecuteMessageWithTransitRefs(Dictionary<string, List<string>> currentReferencesState)
+        {
+            var maxRefsCount = currentReferencesState.Values.Max(x => x.Count);
+            var maxRefsProject = currentReferencesState.First(project => project.Value.Count == maxRefsCount);
+
+            var maxRefsProjectState = new ProjectState(new Dictionary<string, List<int>>(), "", maxRefsProject.Value);
+
+            var maxProjectTransitRefs = TransitRefsDetectSubManager.CheckCurrentProjectOnTransitReferencesSeparetely(maxRefsProject.Key, maxRefsProjectState);
+
+
+        }
+
+         
 
         public static void ExcecuteChangedRefs(DTE dte, IServiceProvider serviceProvider, Dictionary<string, ProjectState> commitedProjState)
         {
@@ -62,91 +73,77 @@ namespace VSIXProject1
             string message = "С момента последней проверки рефов произошли следующие изменения:\r\n";
             string title = "Изменения в рефах";
 
-            EnvDTE.Solution solution = dte.Solution;
+            var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
-            foreach (EnvDTE.Project project in solution.Projects)
+            foreach (var currentReferencesKeyValues in currentReferencesState)
             {
-                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
-                if (vSProject != null)
+                string currentProject = currentReferencesKeyValues.Key;
+                List<string> currentReferences = currentReferencesKeyValues.Value;
+
+                //Если проект был добавлен посе коммита, то просто инициализируем его коммит-рефы как пустые
+                var vsCommitedProjRefsList = commitedProjState.ContainsKey(currentProject) ? commitedProjState[currentProject].CurrentReferences : new List<string>();
+                var vsCommitedProjRefsHashSet = new HashSet<string>(vsCommitedProjRefsList);
+                var vsCurrentProjHashSet = new HashSet<string>();
+
+                foreach (var currRef in currentReferences)
                 {
-                    var vsCommitedProjRefsHashSet = new HashSet<string>(commitedProjState[vSProject.Project.Name].CurrentReferences);
+                    vsCurrentProjHashSet.Add(currRef);
+                }
 
-                    var vsCurrentProjHashSet = new HashSet<string>();
+                var commonRefsHashSet = vsCurrentProjHashSet.Intersect(vsCommitedProjRefsHashSet).ToHashSet();
+                vsCurrentProjHashSet.RemoveWhere(commonRefsHashSet.Contains);
+                vsCommitedProjRefsHashSet.RemoveWhere(commonRefsHashSet.Contains);
 
-                    foreach (VSLangProj.Reference currRef in vSProject.References)
-                    {
-                        if (currRef.SourceProject != null)
-                        {
-                            vsCurrentProjHashSet.Add(currRef.Name);
-                        }
-                    }
+                if (vsCurrentProjHashSet.Count > 0)
+                {
+                    addedRefs.Add(currentProject, vsCurrentProjHashSet.ToList());
+                }
 
-                    if (!(vsCurrentProjHashSet.SetEquals(vsCommitedProjRefsHashSet)))
-                    {
-                        commitedProjState[vSProject.Project.Name].CurrentReferences = vsCurrentProjHashSet.ToList();
-
-                        var commonRefsHashSet = vsCurrentProjHashSet.Intersect(vsCommitedProjRefsHashSet).ToHashSet();
-
-                        vsCurrentProjHashSet.RemoveWhere(commonRefsHashSet.Contains);
-                        vsCommitedProjRefsHashSet.RemoveWhere(commonRefsHashSet.Contains);
-
-                        if (vsCurrentProjHashSet.Count > 0)
-                        {
-                            var addedRefsList = new List<string>();
-
-                            foreach (string currRef in vsCurrentProjHashSet)
-                                addedRefsList.Add(currRef);
-
-                            addedRefs.Add(vSProject.Project.Name, addedRefsList);
-
-                        }
-
-                        if (vsCommitedProjRefsHashSet.Count > 0)
-                        {
-                            var removedRefsList = new List<string>();
-
-                            foreach (string currRef in vsCommitedProjRefsHashSet)
-                                removedRefsList.Add(currRef);
-
-                            removedRefs.Add(vSProject.Project.Name, removedRefsList);
-                        }
-                    }
+                if (vsCommitedProjRefsHashSet.Count > 0)
+                {
+                    removedRefs.Add(currentProject, vsCommitedProjRefsHashSet.ToList());
                 }
             }
 
-            if (addedRefs.Count > 0)
+            //Если проект был удалён после коммита, то добавляем все его рефы в список удалённых
+            var deletedProjectKeys = commitedProjState.Keys.Except(currentReferencesState.Keys).ToList();
+            foreach (var currentKey in deletedProjectKeys)
             {
-                message += "Добавлены рефы:";
-                foreach (var addedRefDict in addedRefs)
-                {
-                    message += ("В проекте " + addedRefDict.Key + ": \r\n");
+                var currentDeletedProjRefs = commitedProjState[currentKey].CurrentReferences;
 
-                    foreach (string addedRef in addedRefDict.Value)
-                    {
-                        message += addedRef + "\r\n";
-
-                    }
-                }
+                if(currentDeletedProjRefs.Count > 0) 
+                    removedRefs.Add(currentKey, commitedProjState[currentKey].CurrentReferences);
             }
 
-            if (removedRefs.Count > 0)
-            {
-                message += "Удалены рефы:";
-                foreach (var removedRefDict in removedRefs)
-                {
-                    message += ("В проекте " + removedRefDict.Key + ": \r\n");
-
-                    foreach (string removedRef in removedRefDict.Value)
-                    {
-                        message += removedRef + "\r\n";
-
-                    }
-                }
-            }
+            message += ConvertCurrentRefsDictToStringFormat(addedRefs, true);
+            message += ConvertCurrentRefsDictToStringFormat(removedRefs, false);
+           
             if (addedRefs.Count == 0 && removedRefs.Count == 0)
                 message = "Изменения в рефах не обнаружены";
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
+
+        private static string ConvertCurrentRefsDictToStringFormat(Dictionary<string, List<string>> currentRefs, bool isAddedRefsDict)
+        {
+            string outputMessage = "";
+            if (currentRefs.Count > 0)
+            {
+                outputMessage += "\r\n" + (isAddedRefsDict? "Добавлены" : "\r\nУдалены") + " рефы:";
+                foreach (var currentRefDict in currentRefs)
+                {
+                    outputMessage += ("\r\nВ проекте " + currentRefDict.Key + ":");
+
+                    foreach (string currentRef in currentRefDict.Value)
+                    {
+                        outputMessage += ("\r\n - " + currentRef);
+                    }
+                }
+            }
+
+            return outputMessage;
+        }
     }
 }
+
+

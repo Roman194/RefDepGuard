@@ -270,6 +270,7 @@ namespace VSIXProject1
             configFileSolution = new ConfigFileSolutionDTO();
             configFileSolution.name = solutionName;
             configFileSolution.framework_max_version = "-";
+            configFileSolution.report_on_transit_references = false;
             configFileSolution.solution_required_references = new List<string>();
             configFileSolution.solution_unacceptable_references = new List<string>();
             configFileSolution.projects = new Dictionary<string, ConfigFileProjectDTO>();
@@ -285,6 +286,7 @@ namespace VSIXProject1
             configFileGlobal = new ConfigFileGlobalDTO();
             configFileGlobal.name = "Global";
             configFileGlobal.framework_max_version = "-";
+            configFileGlobal.report_on_transit_references = false;
             configFileGlobal.global_required_references = new List<string>();
             configFileGlobal.global_unacceptable_references = new List<string>();
 
@@ -299,6 +301,7 @@ namespace VSIXProject1
 
             ConfigFileProjectDTO fileProject = new ConfigFileProjectDTO();
             fileProject.framework_max_version = "-";
+            fileProject.report_on_transit_references = false;
             fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
             fileProject.required_references = new List<string>();
             fileProject.unacceptable_references = new List<string>();

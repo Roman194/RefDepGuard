@@ -1,4 +1,5 @@
 ﻿using EnvDTE;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
@@ -9,9 +10,10 @@ using VSIXProject1.Data;
 
 namespace VSIXProject1
 {
-    public class CommitManager
+    public class CurrentStateManager
     {
-        public static Dictionary<string, ProjectState> CommitCurrentReferences(DTE dte)
+        //Сделать общий над двумя методами?
+        public static Dictionary<string, ProjectState> GetCurrentProjectState(DTE dte)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -20,9 +22,40 @@ namespace VSIXProject1
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
-                var projectFrameworkVersions = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
-                var projectFrameworkNumVersions = ConvertTargetFrameworkToTransferFormat(projectFrameworkVersions);
+                if(project.FullName != null && project.FullName.Length != 0)
+                {
+                    var projectFrameworkVersions = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
+                    var projectFrameworkNumVersions = ConvertTargetFrameworkToTransferFormat(projectFrameworkVersions);
 
+                    VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+
+                    if (vSProject != null)
+                    {
+                        var refsList = new List<string>();
+
+                        foreach (VSLangProj.Reference vRef in vSProject.References)
+                        {
+                            if (vRef.SourceProject != null)
+                                refsList.Add(vRef.Name);
+                        }
+
+                        commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkNumVersions, projectFrameworkVersions, refsList));
+                    }
+                }
+            }
+
+            return commitedProjState;
+        }
+
+        public static Dictionary<string, List<string>> GetCurrentReferencesState(DTE dte)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            Dictionary<string, List<string>> currentReferences = new Dictionary<string, List<string>>();
+            EnvDTE.Solution solution = dte.Solution;
+
+            foreach (EnvDTE.Project project in solution.Projects)
+            {
                 VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
 
                 if (vSProject != null)
@@ -35,11 +68,11 @@ namespace VSIXProject1
                             refsList.Add(vRef.Name);
                     }
 
-                    commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkNumVersions, projectFrameworkVersions, refsList));
+                    currentReferences.Add(vSProject.Project.Name,  refsList);
                 }
             }
 
-            return commitedProjState;
+            return currentReferences;
         }
 
         private static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)

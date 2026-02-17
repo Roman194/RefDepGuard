@@ -273,7 +273,7 @@ namespace VSIXProject1
 
         private static void UpdateSolutionState(bool isBuildCheck)
         {
-            CommitCurrentReferences();
+            CommitCurrentProjectState();
             GetConfigFileInfo();
 
             if (IsReferencesAddedCorrectly())
@@ -290,9 +290,9 @@ namespace VSIXProject1
             ShowProblemsWithConfigFiles();
         }
 
-        private static void CommitCurrentReferences()
+        private static void CommitCurrentProjectState()
         {
-            commitedProjState = CommitManager.CommitCurrentReferences(dte);
+            commitedProjState = CurrentStateManager.GetCurrentProjectState(dte);
         }
 
         private static bool IsReferencesAddedCorrectly() //Срабатывает не только в случаях, когда не успели прогрузиться рефы, но и когда рефов попросту нет (что на самом деле странно и тоже заслуживает предупреждения)

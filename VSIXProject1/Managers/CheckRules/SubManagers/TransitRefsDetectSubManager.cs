@@ -41,6 +41,24 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
 
         }
 
+        public static List<string> CheckCurrentProjectOnTransitReferencesSeparetely(string projName, ProjectState currentReferencesState)
+        {
+            List<string> checkingProjReferencesList = currentReferencesState.CurrentReferences;
+            List<string> findedTransitReferencesList = new List<string>();
+
+            foreach (string currentStraightReference in checkingProjReferencesList)
+            {
+                //Не то, так как не даёт порядок в транзитивных рефах
+                //findedTransitReferencesList.AddRange(
+                //    CheckCurrentTransitProjectOnReferences(currentStraightReference, currentReferencesState).Where(
+                //        value => !findedTransitReferencesList.Contains(value)
+                //        )
+                //    );
+            }
+
+            return findedTransitReferencesList;
+        }
+
         private static List<string> CheckCurrentTransitProjectOnReferences(string transitProjName, Dictionary<string, ProjectState> currentCommitedProjState)
         {
             List<string> checkingProjTransitReferencesList = currentCommitedProjState[transitProjName].CurrentReferences;
