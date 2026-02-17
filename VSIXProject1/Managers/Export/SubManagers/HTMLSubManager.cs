@@ -59,7 +59,7 @@ namespace VSIXProject1
             foreach (var currentProject in commitedProjectsState) //Сначала задаём сами ноды (проекты)
             {
                 var currentProjectName = currentProject.Key;
-                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ErrorLevel.Project, "", false);
+                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ProblemLevel.Project, "", false);
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersionsString;
 
                 var currentProjectMaxFrVersionString = "";
@@ -74,8 +74,8 @@ namespace VSIXProject1
 
                     switch (currentProjectMaxFrVersion.ErrorLevel)
                     {
-                        case ErrorLevel.Global: currentProjectMaxFrVersionString += " G"; break;
-                        case ErrorLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
+                        case ProblemLevel.Global: currentProjectMaxFrVersionString += " G"; break;
+                        case ProblemLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
                     }
 
                     if(currentProjectMaxFrVersion.IsConflictWarningRelevantForThisProject)

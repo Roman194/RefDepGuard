@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 
 namespace VSIXProject1
 {
-    public class ConfigFileSolution
+    public class ConfigFileGlobalDTO
     {
         public string name;
         public string framework_max_version;
-        public List<string> solution_required_references;
-        public List<string> solution_unacceptable_references;
-
-        public Dictionary<string, ConfigFileProject> projects;
+        public bool report_on_transit_references;
+        public List<string> global_required_references;
+        public List<string> global_unacceptable_references;
     }
 }

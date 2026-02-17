@@ -8,11 +8,11 @@ namespace VSIXProject1.Models.FrameworkVersion
 {
     public class MaxFrameworkVersionDeviantValueWarning
     {
-        public ErrorLevel WarningLevel;
+        public ProblemLevel WarningLevel;
         public string WarningRelevantProjectName;
         public string DeviantValue;
 
-        public MaxFrameworkVersionDeviantValueWarning(ErrorLevel warningLevel, string warningRelevantProjectName, string deviantValue)
+        public MaxFrameworkVersionDeviantValueWarning(ProblemLevel warningLevel, string warningRelevantProjectName, string deviantValue)
         {
             WarningLevel = warningLevel;
             WarningRelevantProjectName = warningRelevantProjectName;

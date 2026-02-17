@@ -9,10 +9,10 @@ namespace VSIXProject1.Models.FrameworkVersion
     public class MaxFrameworkVersionTFMNotFoundWarning
     {
         public string TFMName;
-        public ErrorLevel WarningLevel;
+        public ProblemLevel WarningLevel;
         public string ProjName;
 
-        public MaxFrameworkVersionTFMNotFoundWarning(string tFMName,  ErrorLevel warningLevel, string projName)
+        public MaxFrameworkVersionTFMNotFoundWarning(string tFMName,  ProblemLevel warningLevel, string projName)
         {
             TFMName = tFMName;
             WarningLevel = warningLevel;

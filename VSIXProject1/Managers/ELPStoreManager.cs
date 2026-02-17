@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.Shell;
+using System.Collections.Generic;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
 using VSIXProject1.Data.FrameworkVersion;
@@ -9,12 +10,31 @@ namespace VSIXProject1.Managers.CheckRules
 {
     public class ELPStoreManager
     {
+        //Упорядочить форичи!
         public static void StoreErrorListProviderByValues(RefDepGuardFindedProblems refDepGuardFindedProblems, ConfigFilesData configFilesData, ErrorListProvider errorListProvider)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardFindedProblems.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardFindedProblems.RefDepGuardWarnings;
 
             ClearErrorListProvider(errorListProvider);
+
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedTransitRefsDict)
+            {
+                string projName = projKeyValuePair.Key;
+                List<string> detectedTransitRefsList = projKeyValuePair.Value;
+
+                string currentText = "RefDepGuard Transit references warning: у проекта '" + projName +"' обнаружены следующие транзитивные референсы: ";
+
+                foreach (var refName in detectedTransitRefsList)
+                {
+                    currentText += "'" + refName + "', ";
+                }
+
+                currentText = currentText.Remove(currentText.Length - 2);
+
+                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + ".csproj", TaskErrorCategory.Warning);
+
+            }
 
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
@@ -42,12 +62,12 @@ namespace VSIXProject1.Managers.CheckRules
 
                 switch (currentProjectNotFoundWarning.WarningLevel)
                 {
-                    case ErrorLevel.Global: ruleLevel = "глобального уровня"; break;
-                    case ErrorLevel.Solution: ruleLevel = "уровня Solution"; break;
-                    case ErrorLevel.Project: ruleLevel = "в проекте '"+ currentProjectNotFoundWarning.ProjName + "' "; break;
+                    case ProblemLevel.Global: ruleLevel = "глобального уровня"; break;
+                    case ProblemLevel.Solution: ruleLevel = "уровня Solution"; break;
+                    case ProblemLevel.Project: ruleLevel = "в проекте '"+ currentProjectNotFoundWarning.ProjName + "' "; break;
                 }
 
-                if(currentProjectNotFoundWarning.WarningLevel == ErrorLevel.Global)
+                if(currentProjectNotFoundWarning.WarningLevel == ProblemLevel.Global)
                 {
                     documentName = "global_config_guard.rdg";
                     ruleLevel = "глобального уровня";
@@ -67,9 +87,9 @@ namespace VSIXProject1.Managers.CheckRules
 
                 switch (maxFrameworkVersionDeviantValue.ErrorLevel)
                 {
-                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; globalPrefix = "глобального "; break;
-                    case ErrorLevel.Solution: relevantProjectName = "уровня Solution"; break;
-                    case ErrorLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
+                    case ProblemLevel.Global: documentName = "global_config_guard.rdg"; globalPrefix = "глобального "; break;
+                    case ProblemLevel.Solution: relevantProjectName = "уровня Solution"; break;
+                    case ProblemLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
                 }
 
                 string errorText = "RefDepGuard framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " + relevantProjectName + errorType + ". Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
@@ -95,9 +115,9 @@ namespace VSIXProject1.Managers.CheckRules
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)
                 {
-                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; ruleLevel = "ограничение глобального уровня"; break;
-                    case ErrorLevel.Solution: ruleLevel = "ограничение уровня решения"; break;
-                    case ErrorLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
+                    case ProblemLevel.Global: documentName = "global_config_guard.rdg"; ruleLevel = "ограничение глобального уровня"; break;
+                    case ProblemLevel.Solution: ruleLevel = "ограничение уровня решения"; break;
+                    case ProblemLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
                 }
 
                 string errorText = "RefDepGuard Framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName + "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion
@@ -140,9 +160,9 @@ namespace VSIXProject1.Managers.CheckRules
 
                 switch (referenceMatchError.ReferenceLevelValue)
                 {
-                    case ErrorLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ErrorLevel.Project: break;
+                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ProblemLevel.Project: break;
                 }
 
                 string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
@@ -171,9 +191,9 @@ namespace VSIXProject1.Managers.CheckRules
 
                 switch (error.CurrentReferenceLevel)
                 {
-                    case ErrorLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Global: referenceLevelText = "глобального уровня"; break;
-                    case ErrorLevel.Project: break;
+                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ProblemLevel.Project: break;
                 }
 
                 string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
@@ -188,9 +208,9 @@ namespace VSIXProject1.Managers.CheckRules
 
                 switch (maxFrameworkVersionDeviantValue.WarningLevel)
                 {
-                    case ErrorLevel.Global: documentName = "global_config_guard.rdg"; relevantProjectName = "глобального Config-файла"; break;
-                    case ErrorLevel.Solution: relevantProjectName = "Config-файла уровня Solution"; break;
-                    case ErrorLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.WarningRelevantProjectName + "'"; break;
+                    case ProblemLevel.Global: documentName = "global_config_guard.rdg"; relevantProjectName = "глобального Config-файла"; break;
+                    case ProblemLevel.Solution: relevantProjectName = "Config-файла уровня Solution"; break;
+                    case ProblemLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.WarningRelevantProjectName + "'"; break;
                 }
 
                 string errorText = "RefDepGuard framework_max_version deviant value warning: параметр 'framework_max_version' " + relevantProjectName + " содержит значение '"+ maxFrameworkVersionDeviantValue.DeviantValue +"', а должен содержать значение с точкой (формата 'x.x'). Приведите значение к корректному формату";
@@ -204,22 +224,22 @@ namespace VSIXProject1.Managers.CheckRules
                 string highErrorLevelText = "";
                 string lowErrorLevelText = "";
 
-                if (maxFrameworkVersionConflictValue.HighErrorLevel == maxFrameworkVersionConflictValue.LowErrorLevel)
+                if (maxFrameworkVersionConflictValue.HighWarnLevel == maxFrameworkVersionConflictValue.LowWarnLevel)
                     highErrorLevelText = ", указанное в супертипе 'all' на том же уровне";
 
                 else
                 {
-                    switch (maxFrameworkVersionConflictValue.HighErrorLevel)
+                    switch (maxFrameworkVersionConflictValue.HighWarnLevel)
                     {
-                        case ErrorLevel.Global: highErrorLevelText = "глобального уровня"; break;
-                        case ErrorLevel.Solution: highErrorLevelText = "уровня Solution"; break;
+                        case ProblemLevel.Global: highErrorLevelText = "глобального уровня"; break;
+                        case ProblemLevel.Solution: highErrorLevelText = "уровня Solution"; break;
                     }
                 }
 
-                switch (maxFrameworkVersionConflictValue.LowErrorLevel)
+                switch (maxFrameworkVersionConflictValue.LowWarnLevel)
                 {
-                    case ErrorLevel.Solution: lowErrorLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Project: lowErrorLevelText = "в проекте '" + maxFrameworkVersionConflictValue.WarningRelevantProjectName + "'"; break;
+                    case ProblemLevel.Solution: lowErrorLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Project: lowErrorLevelText = "в проекте '" + maxFrameworkVersionConflictValue.WarningRelevantProjectName + "'"; break;
                 }
 
                 string errorText = "RefDepGuard framework_max_version conflict warning: значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
@@ -243,15 +263,15 @@ namespace VSIXProject1.Managers.CheckRules
 
             foreach (MaxFrameworkVersionTFMNotFoundWarning maxFrameworkVersionTFMNotFoundWarning in refDepGuardWarnings.MaxFrameworkVersionTFMNotFoundWarningList)
             {
-                string documentName = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : configFilesData.solutionName + "_config_guard.rdg";
+                string documentName = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ProblemLevel.Global ? "global_config_guard.rdg" : configFilesData.solutionName + "_config_guard.rdg";
 
                 string warningLevel = "";
 
                 switch (maxFrameworkVersionTFMNotFoundWarning.WarningLevel)
                 {
-                    case ErrorLevel.Global : warningLevel = "глобальный уровень"; break;
-                    case ErrorLevel.Solution: warningLevel = "уровень решения"; break;
-                    case ErrorLevel.Project: warningLevel = "уровень проекта '" + maxFrameworkVersionTFMNotFoundWarning.ProjName + "'"; break;
+                    case ProblemLevel.Global : warningLevel = "глобальный уровень"; break;
+                    case ProblemLevel.Solution: warningLevel = "уровень решения"; break;
+                    case ProblemLevel.Project: warningLevel = "уровень проекта '" + maxFrameworkVersionTFMNotFoundWarning.ProjName + "'"; break;
                 }
 
                 string warningText = "RefDepGuard framework_max_version TFM not found warning: Не найден TargetFramework, имеющий значение '" + 
@@ -276,16 +296,16 @@ namespace VSIXProject1.Managers.CheckRules
                     projectName = "' проекта '" + referenceMatchWarning.ProjectName;
                 }
 
-                if (referenceMatchWarning.LowReferenceLevel == ErrorLevel.Solution)
+                if (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution)
                 {
                     lowReferenceLevelText = "уровня Solution";
                 }
 
                 switch (referenceMatchWarning.HighReferenceLevel)
                 {
-                    case ErrorLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ErrorLevel.Project: break;
+                    case ProblemLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ProblemLevel.Project: break;
                 }
 
                 if (referenceMatchWarning.IsReferenceStraight)

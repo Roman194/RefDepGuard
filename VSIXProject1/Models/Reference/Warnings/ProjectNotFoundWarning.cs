@@ -9,10 +9,10 @@ namespace VSIXProject1.Models.Reference
     public class ProjectNotFoundWarning
     {
         public string ReferenceName;
-        public ErrorLevel WarningLevel;
+        public ProblemLevel WarningLevel;
         public string ProjName;
 
-        public ProjectNotFoundWarning(string referenceName, ErrorLevel warningLevel, string projName)
+        public ProjectNotFoundWarning(string referenceName, ProblemLevel warningLevel, string projName)
         {
             ReferenceName = referenceName;
             WarningLevel = warningLevel;

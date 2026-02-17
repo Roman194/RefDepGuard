@@ -15,8 +15,8 @@ namespace VSIXProject1.Managers.CheckRules
         }
         public static List<ConfigFilePropertyNullError> CheckConfigPropertiesOnNotNull(ConfigFilesData configFilesData)
         {
-            ConfigFileGlobal configFileGlobal = configFilesData.configFileGlobal;
-            ConfigFileSolution configFileSolution = configFilesData.configFileSolution;
+            ConfigFileGlobalDTO configFileGlobal = configFilesData.configFileGlobal;
+            ConfigFileSolutionDTO configFileSolution = configFilesData.configFileSolution;
 
             if (configFileSolution != null)
             {
@@ -48,7 +48,7 @@ namespace VSIXProject1.Managers.CheckRules
             return configPropertyNullErrorList;
         }
 
-        private static void CheckConfigFileSolutionProperties(ConfigFileSolution configFileSolution) 
+        private static void CheckConfigFileSolutionProperties(ConfigFileSolutionDTO configFileSolution) 
             //How to make it better? Reflection doesn't work
         {
             if (configFileSolution.name is null)
@@ -64,7 +64,7 @@ namespace VSIXProject1.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_unacceptable_references", false, ""));
         }
 
-        private static void CheckConfigFileProjectProperties(string projectKey, ConfigFileProject currentProject)
+        private static void CheckConfigFileProjectProperties(string projectKey, ConfigFileProjectDTO currentProject)
         {
             if (currentProject.framework_max_version is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("framework_max_version", false, projectKey));
@@ -79,7 +79,7 @@ namespace VSIXProject1.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("unacceptable_references", false, projectKey));
         }
 
-        private static void CheckConfigFileGlobalProperties(ConfigFileGlobal configFileGlobal)
+        private static void CheckConfigFileGlobalProperties(ConfigFileGlobalDTO configFileGlobal)
         {
             if (configFileGlobal.name is null)
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("name", true, ""));

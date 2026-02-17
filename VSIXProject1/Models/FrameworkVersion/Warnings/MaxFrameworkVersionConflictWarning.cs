@@ -8,16 +8,16 @@ namespace VSIXProject1.Data.FrameworkVersion
 {
     public class MaxFrameworkVersionConflictWarning
     {
-        public ErrorLevel HighErrorLevel;
-        public ErrorLevel LowErrorLevel;
+        public ProblemLevel HighWarnLevel;
+        public ProblemLevel LowWarnLevel;
         public string HighLevelMaxFrameVersion;
         public string LowLevelMaxFrameVersion;
         public string WarningRelevantProjectName;
         
-        public MaxFrameworkVersionConflictWarning(ErrorLevel highErrorLevel, ErrorLevel lowErrorLevel, string highLevelMaxFrameVersion, string lowLevelMaxFrameVersion, string warningRelevantProjectName)
+        public MaxFrameworkVersionConflictWarning(ProblemLevel highWarnLevel, ProblemLevel lowWarnLevel, string highLevelMaxFrameVersion, string lowLevelMaxFrameVersion, string warningRelevantProjectName)
         {
-            HighErrorLevel = highErrorLevel;
-            LowErrorLevel = lowErrorLevel;
+            HighWarnLevel = highWarnLevel;
+            LowWarnLevel = lowWarnLevel;
             HighLevelMaxFrameVersion = highLevelMaxFrameVersion;
             LowLevelMaxFrameVersion = lowLevelMaxFrameVersion;
             WarningRelevantProjectName = warningRelevantProjectName;

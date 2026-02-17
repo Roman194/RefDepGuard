@@ -33,19 +33,19 @@ namespace VSIXProject1
             ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell
             )
         {
-            ConfigFileGlobal configFileGlobal = configFilesData.configFileGlobal;
-            ConfigFileSolution configFileSolution = configFilesData.configFileSolution;
+            ConfigFileGlobalDTO configFileGlobal = configFilesData.configFileGlobal;
+            ConfigFileSolutionDTO configFileSolution = configFilesData.configFileSolution;
             string solutionName = configFilesData.solutionName;
 
             ClearErrorAndWarningLists();
 
             var configPropertyNullErrorList = NotNullChecksSubManager.CheckConfigPropertiesOnNotNull(configFilesData);
 
-            var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileGlobal?.framework_max_version ?? "-", ErrorLevel.Global);
-            var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileSolution?.framework_max_version ?? "-", ErrorLevel.Solution);
+            var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileGlobal?.framework_max_version ?? "-", ProblemLevel.Global);
+            var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileSolution?.framework_max_version ?? "-", ProblemLevel.Solution);
 
-            MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxGlobalFrameworkVersionByTypes, ErrorLevel.Global);
-            MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxSolutionFrameworkVersionByTypes, ErrorLevel.Solution);
+            MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxGlobalFrameworkVersionByTypes, ProblemLevel.Global);
+            MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxSolutionFrameworkVersionByTypes, ProblemLevel.Solution);
 
             List<string> solutionRequiredReferences = configFileSolution?.solution_required_references ?? new List<string>();
             List<string> solutionUnacceptableReferences = configFileSolution?.solution_unacceptable_references ?? new List<string>();
@@ -55,8 +55,8 @@ namespace VSIXProject1
 
             List<ReferenceAffiliation> unionSolutionAndGlobalReferencesByType = new List<ReferenceAffiliation>
             {
-                new ReferenceAffiliation(ErrorLevel.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
-                new ReferenceAffiliation(ErrorLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
+                new ReferenceAffiliation(ProblemLevel.Solution, solutionRequiredReferences, solutionUnacceptableReferences),
+                new ReferenceAffiliation(ProblemLevel.Global, globalRequiredReferences, globalUnacceptableReferences)
             };
 
             requiredReferencesList.AddRange(globalRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
@@ -64,7 +64,7 @@ namespace VSIXProject1
 
             if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)//проверка на противоречие с global
                 MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
-                    maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "-", ErrorLevel.Solution, ErrorLevel.Global
+                    maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "-", ProblemLevel.Solution, ProblemLevel.Global
                     );
 
             //Проверка на наличие незафиксированных в конфиге и уже удалённых в solution проектов
@@ -72,15 +72,17 @@ namespace VSIXProject1
             (configFilesData, projectMatchWarningList) = CheckProjectsMatchSubManager.CheckAndUpdateProjectsOnMatch(configFilesData, currentCommitedProjState, uIShell);
 
             (globalRequiredReferences, globalUnacceptableReferences) = 
-                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(globalRequiredReferences, globalUnacceptableReferences, currentCommitedProjState, ErrorLevel.Global);
+                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(globalRequiredReferences, globalUnacceptableReferences, currentCommitedProjState, ProblemLevel.Global);
 
             (solutionRequiredReferences, solutionUnacceptableReferences) = 
-                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(solutionRequiredReferences, solutionUnacceptableReferences, currentCommitedProjState, ErrorLevel.Solution);
+                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(solutionRequiredReferences, solutionUnacceptableReferences, currentCommitedProjState, ProblemLevel.Solution);
 
 
             RefsRuleChecksSubManager.CheckRulesOnMatchConflicts(
                 solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences
                 );
+
+            bool isTransitReferencesDetectionNeeded = (configFileGlobal?.report_on_transit_references ?? false) && (configFileSolution?.report_on_transit_references ?? false);
 
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//для каждого project
             {
@@ -90,15 +92,17 @@ namespace VSIXProject1
 
                 if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)//Эта проверка требуется, так как п-ль мог запретить автомат. добавление недостающих проектов
                 {
-                    ConfigFileProject currentProjectConfigFileSettings = configFileSolution.projects[projName];
+                    ConfigFileProjectDTO currentProjectConfigFileSettings = configFileSolution.projects[projName];
 
                     bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
+                    //Вывод предупреждений о транзитоивной связи должен производиться только если это нужно на конкретном проекте и нет блока на уровнях выше
+                    bool isTransitReferencesDetectionNeededOnThisProj = (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
+
                     Dictionary<string, List<int>> projTypes = currentCommitedProjState[projName].CurrentFrameworkVersions;
-                    var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ErrorLevel.Project, projName, projTypes.Keys.ToList());
+                    var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList());
                     //На уровне Project не может быть противоречий одного уровня!!!
-                    //MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxFrameworkVersionByTypes, ErrorLevel.Project, projName);
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -111,7 +115,7 @@ namespace VSIXProject1
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
 
                     (requiredReferences, unacceptableReferences) = 
-                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedProjState, ErrorLevel.Project, projName);
+                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedProjState, ProblemLevel.Project, projName);
 
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
                         solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences, requiredReferences, 
@@ -134,19 +138,22 @@ namespace VSIXProject1
                                 false, configFileProjectAndSolutionReferences);
                     }
 
+                    if(isTransitReferencesDetectionNeededOnThisProj)
+                        TransitRefsDetectSubManager.CheckCurrentProjectOnTransitReferences(projName, currentCommitedProjState);
+
                     if (maxFrameworkVersionByTypes.Count == 0)
                     {
                         if (maxSolutionFrameworkVersionByTypes.Count > 0)
                         {
                             MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
-                                projFrameworkVersions, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Solution, maxGlobalFrameworkVersionByTypes
+                                projFrameworkVersions, maxSolutionFrameworkVersionByTypes, projName, ProblemLevel.Solution, maxGlobalFrameworkVersionByTypes
                                 );
                         }
                         else
                         {
                             if (maxGlobalFrameworkVersionByTypes.Count > 0)
                                 MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
-                                    projFrameworkVersions, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Global
+                                    projFrameworkVersions, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Global
                                     );
                         }
                     }
@@ -154,16 +161,16 @@ namespace VSIXProject1
                     {
                         if (maxSolutionFrameworkVersionByTypes.Count > 0)
                             MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
-                                maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Solution
+                                maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ProblemLevel.Project, ProblemLevel.Solution
                                 );
 
                         if (maxGlobalFrameworkVersionByTypes.Count > 0)
                             MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
-                                maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ErrorLevel.Project, ErrorLevel.Global
+                                maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Project, ProblemLevel.Global
                                 );
 
                         MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
-                            projFrameworkVersions, maxFrameworkVersionByTypes, projName, ErrorLevel.Project
+                            projFrameworkVersions, maxFrameworkVersionByTypes, projName, ProblemLevel.Project
                             );
                     }
                 }
@@ -184,6 +191,7 @@ namespace VSIXProject1
 
             var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
+            var detectedTransitRefs = TransitRefsDetectSubManager.GetDetectedTransitRefsDict();
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
@@ -205,7 +213,8 @@ namespace VSIXProject1
                 maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
                 maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, 
                 maxFrameworkVersionTFMNotFoundWarningList,
-                projectMatchWarningList, maxFrameworkRuleProblems.UntypedWarningsList);
+                projectMatchWarningList, maxFrameworkRuleProblems.UntypedWarningsList,
+                detectedTransitRefs);
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
@@ -237,16 +246,17 @@ namespace VSIXProject1
             RefsRuleChecksSubManager.ClearRefsErrorsAndWarnings();
             MaxFrameworkRuleChecksSubManager.ClearErrorAndWarningLists();
             CheckProjectsMatchSubManager.ClearErrorLists();
+            TransitRefsDetectSubManager.ClearDetectedTransitRefsDict();
         }
 
-        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ErrorLevel errorLevel, string projName = "", List<string> projTypes = null)
+        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ProblemLevel errorLevel, string projName = "", List<string> projTypes = null)
         {
             projTypes = projTypes ?? new List<string>();
 
             if (currentMaxFrameworkVersion == "-")
                 return new Dictionary<string, List<int>>();
 
-            if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ErrorLevel.Project && projTypes.Count == 1)
+            if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ProblemLevel.Project && projTypes.Count == 1)
             {
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
                 //TODO: перекинуть на новый тип ошибки framework_max_version illegal template usage error!!!
@@ -258,7 +268,7 @@ namespace VSIXProject1
 
             if (!currentMaxFrameworkVersion.Contains(':')) //Приведение всех ограничений к шаблону
             {
-                if (errorLevel == ErrorLevel.Project) //Если встречается ограничение на проект, то надо подставить тип этого проекта (или несколько типов)!!!
+                if (errorLevel == ProblemLevel.Project) //Если встречается ограничение на проект, то надо подставить тип этого проекта (или несколько типов)!!!
                 {
                     if (projTypes.Count == 1) //И получается, что на проектном уровне всё же используется шаблон различных огр-ий, но только если у нас TargetFrameworks!
                         currentMaxFrameworkVersion = projTypes.FirstOrDefault() + ":" + currentMaxFrameworkVersion;
@@ -299,7 +309,7 @@ namespace VSIXProject1
 
                 //Если при TargetFrameworks п-ль указал тип проекта, которого нет в TF или не супертип all, то выдать ошибку
                 //?????? вроде как all уже недопустим на project уровне ) && maxFrameworkVersionElementSplited[0] != "all")
-                if (errorLevel == ErrorLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]))
+                if (errorLevel == ProblemLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]))
                 { //Надо задать на это + где projTypes == 1 новый вид ошибок? (framework_max_version template illegal usage error)
                     
                     if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
@@ -329,7 +339,7 @@ namespace VSIXProject1
                     {
                         //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
                         MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
-                        if (errorLevel == ErrorLevel.Project)
+                        if (errorLevel == ProblemLevel.Project)
                         {
                             maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
                         }

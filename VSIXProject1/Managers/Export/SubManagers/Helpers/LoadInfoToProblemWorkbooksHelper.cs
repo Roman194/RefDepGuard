@@ -1,6 +1,7 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using Microsoft.VisualStudio.Shell;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using VSIXProject1.Data;
 using VSIXProject1.Data.ConfigFile;
@@ -43,7 +44,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 projectsTable.Cells[5 + i, 5] = "framework_max_version deviant value";
 
                 string currentErrorLevel = "Global";
-                if (maxFrameworkVersionDeviantValue.ErrorLevel != ErrorLevel.Global)
+                if (maxFrameworkVersionDeviantValue.ErrorLevel != ProblemLevel.Global)
                 {
                     if (errorRelevantProjectName != "-")
                         currentErrorLevel = "Project";
@@ -98,8 +99,8 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 string currentErrorLevel = "Global";
                 switch (frameworkVersionComparabilityError.ErrorLevel)
                 {
-                    case ErrorLevel.Solution: currentErrorLevel = "Solution"; break;
-                    case ErrorLevel.Project: currentErrorLevel = "Project"; break;
+                    case ProblemLevel.Solution: currentErrorLevel = "Solution"; break;
+                    case ProblemLevel.Project: currentErrorLevel = "Project"; break;
                 }
 
                 projectsTable.Cells[5 + i, 6] = currentErrorLevel;
@@ -179,7 +180,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 8] = "Устраните противоречие в правиле";
 
-                if (currentMatchError.ReferenceLevelValue == ErrorLevel.Global)
+                if (currentMatchError.ReferenceLevelValue == ProblemLevel.Global)
                     projectsTable.Cells[5 + i, 9] = "global_config_guard.rdg";
                 else
                     projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";
@@ -236,6 +237,34 @@ namespace VSIXProject1.Managers.Export.SubManagers
             (projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle) = SetProblemsTableHat(projectsTable, solutionName, currentDateTime, false);
 
             int i = 0;
+
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedTransitRefsDict)
+            {
+                if (i == 0)
+                    projectsTable.Cells[5, 2] = "1";
+                else
+                    projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
+
+                projectsTable.Cells[5 + i, 3] = projKeyValuePair.Key;
+                projectsTable.Cells[5 + i, 4] = "-";
+                projectsTable.Cells[5 + i, 5] = "Transit references warning";
+                projectsTable.Cells[5 + i, 6] = "-";
+
+                string currentText = "У данного проекта обнаружены следующие\r\nтранзитивные референсы: ";
+
+                foreach (var refName in projKeyValuePair.Value)
+                {
+                    currentText += "'" + refName + "', ";
+                }
+
+                currentText = currentText.Remove(currentText.Length - 2);
+
+                projectsTable.Cells[5 + i, 7] = currentText;
+                projectsTable.Cells[5 + i, 8] = "-";
+                projectsTable.Cells[5 + i, 9] = solutionName + ".csproj";
+
+                i++;
+            }
 
             foreach (string projName in refDepGuardWarnings.UntypedWarningsList)
             {
@@ -294,15 +323,15 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 switch (maxFrameworkVersionDeviantValue.WarningLevel)
                 {
-                    case ErrorLevel.Global: warningLevel = "Global";  break;
-                    case ErrorLevel.Solution: warningLevel = "Solution"; break;
-                    case ErrorLevel.Project: warningLevel = "Project"; break;
+                    case ProblemLevel.Global: warningLevel = "Global";  break;
+                    case ProblemLevel.Solution: warningLevel = "Solution"; break;
+                    case ProblemLevel.Project: warningLevel = "Project"; break;
                 }
 
                 projectsTable.Cells[5 + i, 6] = warningLevel;
                 projectsTable.Cells[5 + i, 7] = "Параметр 'framework_max_version' содержит\r\nзначение '" + maxFrameworkVersionDeviantValue.DeviantValue + "', а должен содержать значение с точкой (формата 'x.x')";
                 projectsTable.Cells[5 + i, 8] = "Приведите значение к корректному\r\nформату";
-                projectsTable.Cells[5 + i, 9] = maxFrameworkVersionDeviantValue.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
+                projectsTable.Cells[5 + i, 9] = maxFrameworkVersionDeviantValue.WarningLevel == ProblemLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
 
                 i++;
             }
@@ -322,9 +351,9 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 string documentName = solutionName + "_config_guard.rdg";
                 switch (currentProjectNotFoundWarning.WarningLevel)
                 {
-                    case ErrorLevel.Global: warningLevel = "Global"; documentName = "global_config_guard.rdg";  break;
-                    case ErrorLevel.Solution: warningLevel = "Solution"; break;
-                    case ErrorLevel.Project: warningLevel = "Project"; break;
+                    case ProblemLevel.Global: warningLevel = "Global"; documentName = "global_config_guard.rdg";  break;
+                    case ProblemLevel.Solution: warningLevel = "Solution"; break;
+                    case ProblemLevel.Project: warningLevel = "Project"; break;
                 }
 
                 projectsTable.Cells[5 + i, 6] = warningLevel;
@@ -347,7 +376,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
 
                 string errorRelevantProjectName = "-";
-                if (maxFrameworkVersionConflictValue.LowErrorLevel == ErrorLevel.Project)
+                if (maxFrameworkVersionConflictValue.LowWarnLevel == ProblemLevel.Project)
                     errorRelevantProjectName = maxFrameworkVersionConflictValue.WarningRelevantProjectName;
 
                 projectsTable.Cells[5 + i, 3] = errorRelevantProjectName;
@@ -355,22 +384,22 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 projectsTable.Cells[5 + i, 5] = "framework_max_version conflict";
 
-                switch (maxFrameworkVersionConflictValue.HighErrorLevel)
+                switch (maxFrameworkVersionConflictValue.HighWarnLevel)
                 {
-                    case ErrorLevel.Global: currentErrorLevels += "Global"; highErrorLevelText = " глобального уровня"; break;
-                    case ErrorLevel.Solution: currentErrorLevels += "Solution"; highErrorLevelText = " уровня Solution"; break;
+                    case ProblemLevel.Global: currentErrorLevels += "Global"; highErrorLevelText = " глобального уровня"; break;
+                    case ProblemLevel.Solution: currentErrorLevels += "Solution"; highErrorLevelText = " уровня Solution"; break;
                 }
 
-                if (maxFrameworkVersionConflictValue.HighErrorLevel == maxFrameworkVersionConflictValue.LowErrorLevel)
+                if (maxFrameworkVersionConflictValue.HighWarnLevel == maxFrameworkVersionConflictValue.LowWarnLevel)
                     highErrorLevelText = ", указанное в супертипе 'all' на том же уровне";
 
                 currentErrorLevels += " / ";
 
-                switch (maxFrameworkVersionConflictValue.LowErrorLevel)
+                switch (maxFrameworkVersionConflictValue.LowWarnLevel)
                 {
-                    case ErrorLevel.Global: currentErrorLevels += "Global"; break;
-                    case ErrorLevel.Solution: currentErrorLevels += "Solution"; lowErrorLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Project: 
+                    case ProblemLevel.Global: currentErrorLevels += "Global"; break;
+                    case ProblemLevel.Solution: currentErrorLevels += "Solution"; lowErrorLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Project: 
                         currentErrorLevels += "Project"; 
                         lowErrorLevelText = "в рассматриваемом проекте "; 
                         break;
@@ -425,15 +454,15 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 switch (maxFrameworkVersionTFMNotFoundWarning.WarningLevel)
                 {
-                    case ErrorLevel.Global: warningLevel = "Global"; break;
-                    case ErrorLevel.Solution: warningLevel = "Solution"; break;
-                    case ErrorLevel.Project: warningLevel = "Project"; break;
+                    case ProblemLevel.Global: warningLevel = "Global"; break;
+                    case ProblemLevel.Solution: warningLevel = "Solution"; break;
+                    case ProblemLevel.Project: warningLevel = "Project"; break;
                 }
 
                 projectsTable.Cells[5 + i, 6] = warningLevel;
                 projectsTable.Cells[5 + i, 7] = "Не найден TargetFramework, имеющий значение\r\n'" + maxFrameworkVersionTFMNotFoundWarning.TFMName;
                 projectsTable.Cells[5 + i, 8] = "Проверьте указанную в\r\n'max_framework_version' строку на предмет соответствия существующим TFM";
-                projectsTable.Cells[5 + i, 9] = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ErrorLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
+                projectsTable.Cells[5 + i, 9] = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ProblemLevel.Global ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
 
                 i++;
             }
@@ -460,16 +489,16 @@ namespace VSIXProject1.Managers.Export.SubManagers
 
                 switch (referenceMatchWarning.HighReferenceLevel)
                 {
-                    case ErrorLevel.Global: currentErrorLevels += "Global"; highReferenceLevelText = "глобального уровня"; break;
-                    case ErrorLevel.Solution: currentErrorLevels += "Solution"; highReferenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: currentErrorLevels += "Global"; highReferenceLevelText = "глобального уровня"; break;
+                    case ProblemLevel.Solution: currentErrorLevels += "Solution"; highReferenceLevelText = "уровня Solution"; break;
                 }
 
                 currentErrorLevels += " / ";
 
                 switch (referenceMatchWarning.LowReferenceLevel)
                 {
-                    case ErrorLevel.Solution: currentErrorLevels += "Solution"; lowReferenceLevelText = "уровня Solution"; break;
-                    case ErrorLevel.Project: currentErrorLevels += "Project"; break;
+                    case ProblemLevel.Solution: currentErrorLevels += "Solution"; lowReferenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Project: currentErrorLevels += "Project"; break;
                 }
 
                 if (referenceMatchWarning.IsReferenceStraight)

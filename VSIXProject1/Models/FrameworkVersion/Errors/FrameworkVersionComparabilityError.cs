@@ -9,12 +9,12 @@ namespace VSIXProject1.Data.FrameworkVersion
 {
     public class FrameworkVersionComparabilityError
     {
-        public ErrorLevel ErrorLevel;
+        public ProblemLevel ErrorLevel;
         public string TargetFrameworkVersion;
         public string MaxFrameworkVersion;
         public string ErrorRelevantProjectName;
         
-        public FrameworkVersionComparabilityError(ErrorLevel errorLevel,  string targetFrameworkVersion, string maxFrameworkVersion, string errorRelevantProjectName)
+        public FrameworkVersionComparabilityError(ProblemLevel errorLevel,  string targetFrameworkVersion, string maxFrameworkVersion, string errorRelevantProjectName)
         {
             ErrorLevel = errorLevel;
             TargetFrameworkVersion = targetFrameworkVersion;

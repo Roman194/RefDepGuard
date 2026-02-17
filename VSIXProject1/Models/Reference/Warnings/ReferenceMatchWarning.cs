@@ -8,14 +8,14 @@ namespace VSIXProject1.Data.Reference
 {
     public class ReferenceMatchWarning
     {
-        public ErrorLevel HighReferenceLevel;
-        public ErrorLevel LowReferenceLevel;
+        public ProblemLevel HighReferenceLevel;
+        public ProblemLevel LowReferenceLevel;
         public string ReferenceName;
         public string ProjectName;
         public bool IsReferenceStraight;
         public bool IsHighLevelReq;
 
-        public ReferenceMatchWarning(ErrorLevel highReferenceLevel, ErrorLevel lowReferenceLevel, string referenceName, string projectName, bool isReferenceStaright, bool isHighLevelReq)
+        public ReferenceMatchWarning(ProblemLevel highReferenceLevel, ProblemLevel lowReferenceLevel, string referenceName, string projectName, bool isReferenceStaright, bool isHighLevelReq)
         {
             HighReferenceLevel = highReferenceLevel;
             LowReferenceLevel = lowReferenceLevel;

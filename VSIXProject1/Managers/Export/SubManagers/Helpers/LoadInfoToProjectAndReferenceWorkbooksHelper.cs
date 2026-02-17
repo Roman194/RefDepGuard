@@ -111,13 +111,13 @@ namespace VSIXProject1.Managers.Export.SubManagers
                     var ruleLevelString = "";
                     switch (currentMaxFrVersionRule.ErrorLevel)
                     {
-                        case ErrorLevel.Global: ruleLevelString = "[G]"; break;
-                        case ErrorLevel.Solution: ruleLevelString = "[S]"; break;
+                        case ProblemLevel.Global: ruleLevelString = "[G]"; break;
+                        case ProblemLevel.Solution: ruleLevelString = "[S]"; break;
                     }
                     projectsTable.Cells[6 + i, 5] = currentMaxFrVersionRule.VersionText + ruleLevelString;
 
                     //Переделать!
-                    if (frameworkVersionComparabilityErrorsList.Contains(new FrameworkVersionComparabilityError(ErrorLevel.Global, "", "", currentProjectName), new FrameworkVersionComparabilityErrorExportContainsComparer()))
+                    if (frameworkVersionComparabilityErrorsList.Contains(new FrameworkVersionComparabilityError(ProblemLevel.Global, "", "", currentProjectName), new FrameworkVersionComparabilityErrorExportContainsComparer()))
                         projectsTable.Cells[6 + i, 5].Font.Color = 0x062CCE;
                     else
                     {

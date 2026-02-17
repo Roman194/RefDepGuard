@@ -33,7 +33,7 @@ namespace VSIXProject1.Managers.CheckRules
                 frameworkVersionComparabilityErrorList.Clear();
         }
 
-        public static void CheckMaxFrameworkVersionOneLevelConflict(Dictionary<string, List<int>> currentMaxFrameworkVersion, ErrorLevel ruleLevel)
+        public static void CheckMaxFrameworkVersionOneLevelConflict(Dictionary<string, List<int>> currentMaxFrameworkVersion, ProblemLevel ruleLevel)
         {
             if (currentMaxFrameworkVersion.ContainsKey("all")) //Проверки на противоречия в правилах макс фреймворков одного уровня
             {
@@ -52,7 +52,7 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static void CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
             Dictionary<string, List<int>> maxLowLevelFrameworkVersion, Dictionary<string, List<int>> maxHighLevelFrameworkVersion, string projName,
-            ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
+            ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel)
         {
 
             foreach (var currentMaxLowLevelFrameworkVersion in maxLowLevelFrameworkVersion)
@@ -90,7 +90,7 @@ namespace VSIXProject1.Managers.CheckRules
 
         public static void CheckProjectTargetFrameworkVersion(
             Dictionary<string, List<int>> currentProjectSupportedFrameworks, Dictionary<string, List<int>> maxFrameworkVersion,
-            string projName, ErrorLevel errorLevel, Dictionary<string, List<int>> reserveMaxFrameworkVersion = null)
+            string projName, ProblemLevel errorLevel, Dictionary<string, List<int>> reserveMaxFrameworkVersion = null)
         {
             
             if (currentProjectSupportedFrameworks.Count == 0)
@@ -118,13 +118,13 @@ namespace VSIXProject1.Managers.CheckRules
                     if (maxFrameworkVersion.ContainsKey("all"))
                     { //Проверить на наличие супертипа "all"
                         currentMaxFrameworkVersionNums = maxFrameworkVersion["all"];
-                        if (errorLevel != ErrorLevel.Project)
+                        if (errorLevel != ProblemLevel.Project)
                             currentMaxFrVersionType = "all";
                     }
                     else //Если и его нет, то попытаться найти ограничение на уровне выше
                     {
-                        if (errorLevel == ErrorLevel.Solution && reserveMaxFrameworkVersion != null) //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
-                            CheckProjectTargetFrameworkVersion(currentProjectSupportedFrameworks, reserveMaxFrameworkVersion, projName, ErrorLevel.Global);
+                        if (errorLevel == ProblemLevel.Solution && reserveMaxFrameworkVersion != null) //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
+                            CheckProjectTargetFrameworkVersion(currentProjectSupportedFrameworks, reserveMaxFrameworkVersion, projName, ProblemLevel.Global);
 
                         return;//равносильно "-"
                     }
@@ -134,7 +134,7 @@ namespace VSIXProject1.Managers.CheckRules
                 var maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
 
                 var isConflictWarningRelevantForProject = maxFrameworkVersionConflictWarningsList.Find(value =>
-                    value.LowErrorLevel == errorLevel && (value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-")
+                    value.LowWarnLevel == errorLevel && (value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-")
                     ) != null ? true : false;
 
                 //Загрузка данных об ограничениях на max_fr_version для текущего проекта
@@ -229,7 +229,7 @@ namespace VSIXProject1.Managers.CheckRules
                             .ToList()
                             .ConvertAll(value => Convert.ToInt32(value));
 
-                            CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, ErrorLevel.Undefined, ErrorLevel.Undefined, projReference);
+                            CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, ProblemLevel.Undefined, ProblemLevel.Undefined, projReference);
                         }
                     }
                 }
@@ -251,7 +251,7 @@ namespace VSIXProject1.Managers.CheckRules
             return requiredMaxFrVersionsDict;
         }
 
-        private static void CheckMaxFrameworkVersionCurrentConflict(List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel, string refName = "")
+        private static void CheckMaxFrameworkVersionCurrentConflict(List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel, string refName = "")
         {
             var maxHighLevelFrameworkVersionArrayLength = maxHighLevelFrameworkVersionList.Count;
             var maxLowLevelFrameworkVersionArrayLength = maxLowLevelFrameworkVersionList.Count;
@@ -268,7 +268,7 @@ namespace VSIXProject1.Managers.CheckRules
                     var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                     var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
 
-                    if (lowRuleLevel != ErrorLevel.Undefined)
+                    if (lowRuleLevel != ProblemLevel.Undefined)
                         AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                     else
                         AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName);
@@ -294,7 +294,7 @@ namespace VSIXProject1.Managers.CheckRules
                         var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                         var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
 
-                        if (lowRuleLevel != ErrorLevel.Undefined)
+                        if (lowRuleLevel != ProblemLevel.Undefined)
                             AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                         else
                             AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName);
@@ -305,12 +305,12 @@ namespace VSIXProject1.Managers.CheckRules
             }
         }
 
-        private static void AddNewMaxFrameworkVersionConflictWarning(string maxHighLevelFrameworkVersionString, string maxLowLevelFrameworkVersionString, string projName, ErrorLevel lowRuleLevel, ErrorLevel highRuleLevel)
+        private static void AddNewMaxFrameworkVersionConflictWarning(string maxHighLevelFrameworkVersionString, string maxLowLevelFrameworkVersionString, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel)
         {
             //Warning о противоречии между рефами
             var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
 
-            if (lowRuleLevel == ErrorLevel.Project)
+            if (lowRuleLevel == ProblemLevel.Project)
             {
                 maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
                 return;

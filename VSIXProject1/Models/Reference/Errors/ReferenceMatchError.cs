@@ -8,12 +8,12 @@ namespace VSIXProject1
 {
     public class ReferenceMatchError
     {
-        public ErrorLevel ReferenceLevelValue;
+        public ProblemLevel ReferenceLevelValue;
         public string ReferenceName;
         public string ProjectName;
         public bool IsProjNameMatchError;
 
-        public ReferenceMatchError(ErrorLevel referenceLevel, string referenceName, string projectName, bool isProjNameMatchError) 
+        public ReferenceMatchError(ProblemLevel referenceLevel, string referenceName, string projectName, bool isProjNameMatchError) 
         {
             ReferenceLevelValue = referenceLevel;
             ReferenceName = referenceName;

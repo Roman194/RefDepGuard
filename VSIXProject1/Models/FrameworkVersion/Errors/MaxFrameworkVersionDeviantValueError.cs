@@ -8,11 +8,11 @@ namespace VSIXProject1.Data.FrameworkVersion
 {
     public class MaxFrameworkVersionDeviantValueError
     {
-        public ErrorLevel ErrorLevel;
+        public ProblemLevel ErrorLevel;
         public string ErrorRelevantProjectName;
         public bool IsProjectTypeCopyError;
         
-        public MaxFrameworkVersionDeviantValueError(ErrorLevel errorLevel, string errorRelevantProjectName, bool isProjectTypeCopyError)
+        public MaxFrameworkVersionDeviantValueError(ProblemLevel errorLevel, string errorRelevantProjectName, bool isProjectTypeCopyError)
         {
             ErrorLevel = errorLevel;
             ErrorRelevantProjectName = errorRelevantProjectName;

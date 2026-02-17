@@ -9,11 +9,11 @@ namespace VSIXProject1.Data.FrameworkVersion
     public class RequiredMaxFrVersion
     {
         public string VersionText;
-        public ErrorLevel ErrorLevel;
+        public ProblemLevel ErrorLevel;
         public string ProjectTypeRule;
         public bool IsConflictWarningRelevantForThisProject;
 
-        public RequiredMaxFrVersion(string versionText, ErrorLevel errorLevel, string projectTypeRule, bool isConflictWarningRelevantForThisProject)
+        public RequiredMaxFrVersion(string versionText, ProblemLevel errorLevel, string projectTypeRule, bool isConflictWarningRelevantForThisProject)
         {
             VersionText = versionText;
             ErrorLevel = errorLevel;

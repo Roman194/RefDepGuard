@@ -49,14 +49,14 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             List<List<string>> solutionCrossLevelIntersects = new List<List<string>> { solutionReqAndGlobalUnacceptIntersect, solutionUnacceptAndGlobalReqIntersect };
             List<List<string>> solutionStraightLevelIntersects = new List<List<string>> { solutionUnacceptStraightLevelIntersect, solutionReqStraightLevelIntersect };
 
-            AddReferenceMatchErrorsToList(ErrorLevel.Solution, "", false, solutionReferencesIntersect);
-            AddReferenceMatchErrorsToList(ErrorLevel.Global, "", false, globalReferencesIntersect);
+            AddReferenceMatchErrorsToList(ProblemLevel.Solution, "", false, solutionReferencesIntersect);
+            AddReferenceMatchErrorsToList(ProblemLevel.Global, "", false, globalReferencesIntersect);
 
             //Выводим match warning только если нет match error
             if(solutionReferencesIntersect.Count == 0 && globalReferencesIntersect.Count == 0)
             {
-                AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", false, solutionCrossLevelIntersects);
-                AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Solution, "", true, solutionStraightLevelIntersects);
+                AddReferenceMatchWarningsToList(ProblemLevel.Global, ProblemLevel.Solution, "", false, solutionCrossLevelIntersects);
+                AddReferenceMatchWarningsToList(ProblemLevel.Global, ProblemLevel.Solution, "", true, solutionStraightLevelIntersects);
             }
         }
 
@@ -99,28 +99,28 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
                 projectSolutionStraightLevelIntersects[0].Clear();
             }
 
-            AddReferenceMatchErrorsToList(ErrorLevel.Project, projName, false, projectReferencesIntersect);
+            AddReferenceMatchErrorsToList(ProblemLevel.Project, projName, false, projectReferencesIntersect);
             
             //В зависимости от параметров учёта global и solution правил выводятся те или иные match warning
             if((isRequiredHighLevelRefsConsidered || isUnacceptableHighLevelRefsConsidered) && projectReferencesIntersect.Count == 0)
             {
-                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Global) == null)
+                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ProblemLevel.Global) == null)
                 {
-                    AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
-                    AddReferenceMatchWarningsToList(ErrorLevel.Global, ErrorLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
+                    AddReferenceMatchWarningsToList(ProblemLevel.Global, ProblemLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
+                    AddReferenceMatchWarningsToList(ProblemLevel.Global, ProblemLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
                 }
 
-                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ErrorLevel.Solution) == null)
+                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ProblemLevel.Solution) == null)
                 {
-                    AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, false, projectSolutionCrossLevelIntesects);
-                    AddReferenceMatchWarningsToList(ErrorLevel.Solution, ErrorLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
+                    AddReferenceMatchWarningsToList(ProblemLevel.Solution, ProblemLevel.Project, projName, false, projectSolutionCrossLevelIntesects);
+                    AddReferenceMatchWarningsToList(ProblemLevel.Solution, ProblemLevel.Project, projName, true, projectSolutionStraightLevelIntersects);
                 }
             }
         }
 
         public static Tuple<List<string>, List<string>> CheckReferencesOnProjectExisting(
             List<string> currentRequiredReferences, List<string> currentUnacceptableReferences, Dictionary<string, ProjectState> currentCommitedProjState, 
-            ErrorLevel errorLevel, string projName = "")
+            ProblemLevel errorLevel, string projName = "")
         {
             currentRequiredReferences = CheckReferencesListOnProjectExisting(currentRequiredReferences, currentCommitedProjState, errorLevel, projName);
             currentUnacceptableReferences = CheckReferencesListOnProjectExisting(currentUnacceptableReferences, currentCommitedProjState, errorLevel, projName);
@@ -142,18 +142,18 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
                             refsMatchWarningList.RemoveAll(value => value.ProjectName == projName); //Удалить все Match Warning для замыкающегося проекта
 
                             refsMatchErrorList.Add(
-                                new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, true)
+                                new ReferenceMatchError(ProblemLevel.Project, fileReference, projName, true)
                                 );
 
                             continue;
                         }
 
                         //Если реф с таким же названием содежится в MatchError, то пофиг уже на Level: важнеее устранить конфликт рефов, чем вывести по уровню
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ErrorLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ProblemLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
                             continue;
 
                         refsErrorList.Add(
-                            new ReferenceError(fileReference, projName, isReferenceRequired, ErrorLevel.Project)
+                            new ReferenceError(fileReference, projName, isReferenceRequired, ProblemLevel.Project)
                             );
                     }
                 }
@@ -161,7 +161,7 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
         }
 
         public static void CheckRulesForSolutionOrGlobalReferences(
-            string projName, List<string> projReferences, List<string> currentReferences, ErrorLevel referenceLevel,
+            string projName, List<string> projReferences, List<string> currentReferences, ProblemLevel referenceLevel,
             bool isReferenceRequired, List<List<string>> generalReferences
             )
         {
@@ -198,7 +198,7 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
         }
 
         private static List<string> CheckReferencesListOnProjectExisting(
-            List<string> currentReferencesList, Dictionary<string, ProjectState> currentCommitedProjState, ErrorLevel errorLevel, string projName)
+            List<string> currentReferencesList, Dictionary<string, ProjectState> currentCommitedProjState, ProblemLevel errorLevel, string projName)
         {
             var incorrecltlyReferingRefs = new List<string>();
 
@@ -225,7 +225,7 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
             return currentReferencesList;
         }
 
-        private static void AddReferenceMatchErrorsToList(ErrorLevel referenceLevel, string projName, bool isProjectNameMatchError, List<string> currentIntersect)
+        private static void AddReferenceMatchErrorsToList(ProblemLevel referenceLevel, string projName, bool isProjectNameMatchError, List<string> currentIntersect)
         {
             refsMatchErrorList.AddRange(
                 currentIntersect.ConvertAll(currentReference =>
@@ -235,7 +235,7 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
         }
 
         private static void AddReferenceMatchWarningsToList(
-            ErrorLevel highReferenceLevel, ErrorLevel lowReferenceLevel, string projName, bool isReferenceStraight, List<List<string>> currentIntersect
+            ProblemLevel highReferenceLevel, ProblemLevel lowReferenceLevel, string projName, bool isReferenceStraight, List<List<string>> currentIntersect
             )
         {
             bool isHighLevelReq = false;
@@ -252,11 +252,11 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
         }
 
         //Перебрать для каждого solution и Global рефа все нижестоящие на предмет противоречий
-        private static bool IsRuleConflict(string currentReference, ErrorLevel referenceType, List<List<string>> generalReferences)
+        private static bool IsRuleConflict(string currentReference, ProblemLevel referenceType, List<List<string>> generalReferences)
         {
             for (int i = 0; i < generalReferences.Count; i++)
             {
-                if (referenceType != ErrorLevel.Global && i > 1)
+                if (referenceType != ProblemLevel.Global && i > 1)
                     break;
 
                 //generalReferences содержит все Project и Solution рефы, которые могут конфликтовать с текущим рефом (0 и 1 - project рефы, 2 и 3 - solution рефы)

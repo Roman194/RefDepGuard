@@ -19,8 +19,8 @@ namespace VSIXProject1
         private static IServiceProvider serviceProvider;
         private static IVsUIShell uiShell;
 
-        private static ConfigFileSolution configFileSolution;
-        private static ConfigFileGlobal configFileGlobal;
+        private static ConfigFileSolutionDTO configFileSolution;
+        private static ConfigFileGlobalDTO configFileGlobal;
         private static string solutionName;
         private static string packageExtendedName;
         private static FileParseError parseError;
@@ -108,9 +108,9 @@ namespace VSIXProject1
                             throw new Exception();
 
                         if (configFileServiceInfo.IsGlobal)
-                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobal>(currentFileContent);
+                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobalDTO>(currentFileContent);
                         else
-                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolution>(currentFileContent);
+                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolutionDTO>(currentFileContent);
 
                         //Предполагается, что к текущему моменту настройки с ошибками JSON-синтаксиса уже будут в catch, а Null value parameters можно уже и бэкапить
                         CacheManager.UpdateConfigFilesBackup(currentFileContent, configFileServiceInfo.IsGlobal); 
@@ -248,7 +248,7 @@ namespace VSIXProject1
             }
         }
 
-        private static ConfigFileSolution updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)
+        private static ConfigFileSolutionDTO updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)
         {
             foreach (var projectName in addedProjectsList)
                 configFileSolution.projects.Add(projectName, GenerateDefaultConfigFileProject());
@@ -256,7 +256,7 @@ namespace VSIXProject1
             return configFileSolution;
         }
 
-        private static ConfigFileSolution updateConfigFileSolutionByRemovingProjects(List<string> removedProjectsList)
+        private static ConfigFileSolutionDTO updateConfigFileSolutionByRemovingProjects(List<string> removedProjectsList)
         {
 
             foreach(var project in removedProjectsList)
@@ -265,14 +265,14 @@ namespace VSIXProject1
             return configFileSolution;
         }
 
-        private static ConfigFileSolution generateDefaultConfigFileDataSolution()
+        private static ConfigFileSolutionDTO generateDefaultConfigFileDataSolution()
         {
-            configFileSolution = new ConfigFileSolution();
+            configFileSolution = new ConfigFileSolutionDTO();
             configFileSolution.name = solutionName;
             configFileSolution.framework_max_version = "-";
             configFileSolution.solution_required_references = new List<string>();
             configFileSolution.solution_unacceptable_references = new List<string>();
-            configFileSolution.projects = new Dictionary<string, ConfigFileProject>();
+            configFileSolution.projects = new Dictionary<string, ConfigFileProjectDTO>();
 
             foreach (var projectName in commitedProjState.Keys)
                 configFileSolution.projects.Add(projectName, GenerateDefaultConfigFileProject());
@@ -280,9 +280,9 @@ namespace VSIXProject1
             return configFileSolution;
         }
 
-        private static ConfigFileGlobal generateDefaultConfigFileDataGlobal()
+        private static ConfigFileGlobalDTO generateDefaultConfigFileDataGlobal()
         {
-            configFileGlobal = new ConfigFileGlobal();
+            configFileGlobal = new ConfigFileGlobalDTO();
             configFileGlobal.name = "Global";
             configFileGlobal.framework_max_version = "-";
             configFileGlobal.global_required_references = new List<string>();
@@ -291,13 +291,13 @@ namespace VSIXProject1
             return configFileGlobal;
         }
 
-        private static ConfigFileProject GenerateDefaultConfigFileProject()
+        private static ConfigFileProjectDTO GenerateDefaultConfigFileProject()
         {
             ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
             configFileProjectRefsConsidering.required = true;
             configFileProjectRefsConsidering.unacceptable = true;
 
-            ConfigFileProject fileProject = new ConfigFileProject();
+            ConfigFileProjectDTO fileProject = new ConfigFileProjectDTO();
             fileProject.framework_max_version = "-";
             fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
             fileProject.required_references = new List<string>();
