@@ -24,6 +24,7 @@ namespace VSIXProject1
         /// Command ID.
         /// </summary>
         public const int GetCurrentRefsId = 0x0100;
+        public const int GetExtendedCurrentRefsId = 0x0105;
         public const int GetChangedRefsId = 0x0110;
         public const int CommitCurrentSolStateId = 0x0120;
         public const int ExportRefsToXLSXId = 0x0130;
@@ -54,6 +55,7 @@ namespace VSIXProject1
         private static RefDepGuardExportParameters refDepGuardExportParameters;
 
         private static OleMenuCommand getCurrentRefsMenuItem;
+        private static OleMenuCommand getExtCurrentRefsMenuItem;
         private static OleMenuCommand getChangedRefsMenuItem;
         private static OleMenuCommand commitCurrentSolStateMenuItem;
         private static OleMenuCommand exportCurrentRefsToXLSXMenuItem;
@@ -73,6 +75,7 @@ namespace VSIXProject1
             serviceProvider = this.package;
 
             var getCurrentRefsCommandID = new CommandID(CommandSet, GetCurrentRefsId);
+            var getExtCurrentRefsCommandID = new CommandID(CommandSet, GetExtendedCurrentRefsId);
             var getChangedRefsMenuCommandID = new CommandID(CommandSet, GetChangedRefsId);
             var commitCurrentSolStateMenuCommandID = new CommandID(CommandSet, CommitCurrentSolStateId);
             var exportCurrentRefsToXLSXMenuCommandID = new CommandID(CommandSet, ExportRefsToXLSXId);
@@ -80,6 +83,7 @@ namespace VSIXProject1
             var activateExtMenuCommandID = new CommandID(CommandSet, ActivateExtId);
 
             getCurrentRefsMenuItem = new OleMenuCommand(this.ExecuteCurrentRefs, null, this.GetCurrentRefsQueryStatus, getCurrentRefsCommandID);
+            getExtCurrentRefsMenuItem = new OleMenuCommand(this.ExecuteExtentionCurrentRefs, null, this.ExtActivationQueryStatus, getExtCurrentRefsCommandID);
             getChangedRefsMenuItem = new OleMenuCommand(this.ExcecuteRefsChanges, null, this.ExtActivationQueryStatus, getChangedRefsMenuCommandID);
             commitCurrentSolStateMenuItem = new OleMenuCommand(this.ForceCommitCurrentSolutionState, null, this.ExtActivationQueryStatus, commitCurrentSolStateMenuCommandID);
             exportCurrentRefsToXLSXMenuItem = new OleMenuCommand(this.ExportRefsToXSLX, null, this.ExtActivationQueryStatus, exportCurrentRefsToXLSXMenuCommandID);
@@ -87,6 +91,7 @@ namespace VSIXProject1
             activateExtMenuItem = new OleMenuCommand(this.ActivateExtention, null, this.ExtActivationQueryStatus, activateExtMenuCommandID);
 
             commandService.AddCommand(getCurrentRefsMenuItem);
+            commandService.AddCommand(getExtCurrentRefsMenuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentSolStateMenuItem);
             commandService.AddCommand(exportCurrentRefsToXLSXMenuItem);
@@ -142,7 +147,7 @@ namespace VSIXProject1
         {
             if (isSolutionFamiliar)
             {
-                getCurrentRefsMenuItem.Visible = true;
+                getCurrentRefsMenuItem.Visible = true; //То что это вынесено отдельно это вроде бы моя попытка пофиксить баг
                 getCurrentRefsMenuItem.Enabled = true;
             }
             else
@@ -157,12 +162,14 @@ namespace VSIXProject1
             if (isSolutionFamiliar)
             {
                 getChangedRefsMenuItem.Visible = true;
+                getExtCurrentRefsMenuItem.Visible= true;
                 commitCurrentSolStateMenuItem.Visible = true;
                 exportCurrentRefsToXLSXMenuItem.Visible = true;
                 exportCurrentRefsToHTMLMenuItem.Visible = true;
                 activateExtMenuItem.Visible = false;
 
                 getChangedRefsMenuItem.Enabled = true;
+                getExtCurrentRefsMenuItem.Enabled = true;
                 commitCurrentSolStateMenuItem.Enabled = true;
                 exportCurrentRefsToXLSXMenuItem.Enabled = true;
                 exportCurrentRefsToHTMLMenuItem.Enabled = true;
@@ -171,12 +178,14 @@ namespace VSIXProject1
             else
             {
                 getChangedRefsMenuItem.Visible = false;
+                getExtCurrentRefsMenuItem.Visible = false;
                 commitCurrentSolStateMenuItem.Visible = false;
                 exportCurrentRefsToXLSXMenuItem.Visible = false;
                 exportCurrentRefsToHTMLMenuItem.Visible = false;
                 activateExtMenuItem.Visible = true;
 
                 getChangedRefsMenuItem.Enabled = false;
+                getExtCurrentRefsMenuItem.Enabled= false;
                 commitCurrentSolStateMenuItem.Enabled = false;
                 exportCurrentRefsToXLSXMenuItem.Enabled = false;
                 exportCurrentRefsToHTMLMenuItem.Enabled = false;
@@ -240,8 +249,16 @@ namespace VSIXProject1
         /// <param name="e">Event args.</param>
         private void ExecuteCurrentRefs(object sender, EventArgs e)
         {
-            if(isExtentionInitialized)
-                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package);
+            if(isExtentionInitialized) //Как это оптимизировать?
+                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package, false);
+            else
+                NotInitializedYetMessage();
+        }
+
+        private void ExecuteExtentionCurrentRefs(object sender, EventArgs e)
+        {
+            if (isExtentionInitialized) //Как это оптимизировать?
+                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package, true);
             else
                 NotInitializedYetMessage();
         }

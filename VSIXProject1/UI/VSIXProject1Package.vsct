@@ -78,9 +78,19 @@
         <Icon guid="guidShowRefs" id="bmpShowRef" />
 		<CommandFlag>DynamicVisibility</CommandFlag>
         <Strings>
-          <ButtonText>Показать все рефы решения</ButtonText>
+          <ButtonText>Показать все прямые рефы решения</ButtonText>
         </Strings>
       </Button>
+
+		<Button guid="guidVSIXProject1PackageCmdSet" id="GetExtendedCurrentRefsId" priority="0x0105" type="Button">
+			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuExcecuteGroup" />
+
+			<Icon guid="guidShowRefs" id="bmpShowRef" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
+			<Strings>
+				<ButtonText>Показать все транзитивные рефы решения</ButtonText>
+			</Strings>
+		</Button>
 
 		<Button guid="guidVSIXProject1PackageCmdSet" id="GetChangedRefsId" priority="0x0110" type="Button">
 			<Parent guid="guidVSIXProject1PackageCmdSet" id="MenuExcecuteGroup" />
@@ -154,6 +164,10 @@
 		  editor="guidVSStd97"
 		  key1="R" mod1="Alt">
 	  </KeyBinding>
+	  <KeyBinding guid="guidVSIXProject1PackageCmdSet" id="GetExtendedCurrentRefsId"
+		  editor="guidVSStd97"
+		  key1="T" mod1="Alt">
+	  </KeyBinding>
 	  <KeyBinding guid="guidVSIXProject1PackageCmdSet" id="GetChangedRefsId"
 		  editor="guidVSStd97"
 		  key1="E" mod1="Alt">
@@ -183,6 +197,7 @@
       <IDSymbol name="MenuCommitStateGroup" value="0x1023" />
 	  <IDSymbol name="MenuExportGroup" value="0x1024" />
       <IDSymbol name="GetCurrentRefsId" value="0x0100" />
+		<IDSymbol name="GetExtendedCurrentRefsId" value="0x0105" />
 	    <IDSymbol name="GetChangedRefsId" value="0x0110"/>
 		<IDSymbol name="CommitCurrentSolStateId" value="0x0120"/>
 		<IDSymbol name="ExportRefsToXLSXId" value="0x0130"/>

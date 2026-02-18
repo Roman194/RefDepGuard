@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
@@ -12,8 +13,12 @@ namespace VSIXProject1
 {
     public class ExcecuteRefsManager
     {
+
+        private static Dictionary<int, string> tabsAtDeepDict = new Dictionary<int, string>();
+        private static HashSet<string> shownProjectsHashSet = new HashSet<string>();
+
         //Оптимизировать алгоритмы показа рефов!
-        public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider)
+        public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider, bool showMessageWithTransitRefs)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             string message = "";
@@ -25,37 +30,49 @@ namespace VSIXProject1
                 message = "На текущий момент в Solution не обнаружены референсы";
             else
             {
-                message = ExcecuteMessageWithTransitRefs(currentReferencesState);
+                message = showMessageWithTransitRefs ? 
+                    ExcecuteMessageWithTransitRefs(currentReferencesState) : 
+                    ExcecuteMessageWithoutTransitRefs(currentReferencesState);
 
-                //string currentStartTabs = GetReqTabsCount(
-                //    Convert.ToInt32(currentReferencesState
-                //        .Where(proj => proj.Value.Count > 0) //Чтобы не учитывать те проекты, у которых нет рефов
-                //        .Select(proj => proj.Key)
-                //        .Average(x => x.Length) / 2
-                //        )
-                //    );
-
-                //foreach (var currentReferencesKeyValues in currentReferencesState)
-                //{
-                //    string currentProject = currentReferencesKeyValues.Key;
-                //    List<string> currentReferences = currentReferencesKeyValues.Value;
-
-                //    message += (currentProject + "\r\n");
-
-                //    foreach (var currRef in currentReferences)
-                //    {
-                //        if (currentReferences.Last() != currRef)
-                //            message += (currentStartTabs + "├─" + currRef + "\r\n");
-                //        else
-                //            message += (currentStartTabs + "└─" + currRef + "\r\n");
-                //    }
-
-                //    if (currentReferences.Count == 0)
-                //        message += ("   ─\r\n");
-                //}
             }
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
+        }
+
+        private static string ExcecuteMessageWithoutTransitRefs(Dictionary<string, List<string>> currentReferencesState)
+        {
+            string message = "";
+
+            string currentStartTabs = GetReqTabsCount(
+                    Convert.ToInt32(currentReferencesState
+                        .Where(proj => proj.Value.Count > 0) //Чтобы не учитывать те проекты, у которых нет рефов
+                        .Select(proj => proj.Key)
+                        .Average(x => x.Length) / 2
+                        )
+                    );
+
+            foreach (var currentReferencesKeyValues in currentReferencesState)
+            {
+                string currentProject = currentReferencesKeyValues.Key;
+                List<string> currentReferences = currentReferencesKeyValues.Value;
+
+                message += (currentProject + "\r\n");
+
+                foreach (var currRef in currentReferences)
+                {
+                    if (currentReferences.Last() != currRef)
+                        message += (currentStartTabs + "┣━" + currRef + "\r\n");
+                    else
+                        message += (currentStartTabs + "┗━" + currRef + "\r\n");
+                }
+
+                if (currentReferences.Count == 0)
+                    message += ("   ─\r\n");
+
+                message += ("\r\n");
+            }
+
+            return message;
         }
 
         private static string GetReqTabsCount(int count)
@@ -69,78 +86,87 @@ namespace VSIXProject1
 
         private static string ExcecuteMessageWithTransitRefs(Dictionary<string, List<string>> currentReferencesState)
         {
-            var maxRefsCount = currentReferencesState.Values.Max(x => x.Count);
-            var maxRefsProject = currentReferencesState.First(project => project.Value.Count == maxRefsCount);
-            var findedProjectsHashSet = new HashSet<string>();
             string message = "";
-            string currentStartTabs = GetReqTabsCount(Convert.ToInt32(maxRefsProject.Key.Length / 2));
 
-            message += GetTransitRefsMessageForCurrentProject(maxRefsProject.Key, currentReferencesState, new List<string> { currentStartTabs }, 1);
+            shownProjectsHashSet.Clear();
 
+            var stillNotShownProjects  = currentReferencesState.Keys.ToHashSet();
 
-            //var stillNotShownProjects  = currentReferencesState.Keys.ToHashSet().Except(findedProjectsHashSet);
+            while(stillNotShownProjects.Count() > 0)
+            {
+                var maxRefsCount = currentReferencesState
+                    .Where(x => stillNotShownProjects.Contains(x.Key))
+                    .Max(x => x.Value.Count);
+
+                var maxRefsProject = currentReferencesState.First(project => project.Value.Count == maxRefsCount);
+                var currentStartTabs = GetReqTabsCount(Convert.ToInt32(maxRefsProject.Key.Length / 2));
+
+                tabsAtDeepDict.Clear();
+                tabsAtDeepDict.Add(1, currentStartTabs);
+
+                message += GetTransitRefsMessageForCurrentProject(maxRefsProject.Key, currentReferencesState, currentStartTabs, 1);
+                shownProjectsHashSet.Add(maxRefsProject.Key);
+
+                stillNotShownProjects = currentReferencesState.Keys.ToHashSet().Except(shownProjectsHashSet).ToHashSet();
+            }
 
             return message;
         }
 
         //Сверить этот алгоритм с определением транзитивных связей в TransitRefsSubManager и объединить?
 
-        private static string GetTransitRefsMessageForCurrentProject(string currentProject, Dictionary<string, List<string>> currentReferencesState, List<string> currentStartTabs, int refDeep)
+        private static string GetTransitRefsMessageForCurrentProject(string currentProject, Dictionary<string, List<string>> currentReferencesState, string currentStartTabs, int refDeep)
         {
             string message = "";
             List<string> currentReferences = currentReferencesState[currentProject];
+            int futureRefDeep = refDeep + 1;
 
-            if(refDeep == 1) 
+            if (refDeep == 1) 
                 message += (currentProject + "\r\n");
 
             if (currentReferences.Count > 0)
             {
-                string currentStartTabsHierarchy = GetCurrentStartTabsHierarchy(currentStartTabs, refDeep);
-                string currentStartTabsHierarchyOnLastStr = currentStartTabsHierarchy.Replace("│", " ");
+                string nextIterationExtraTabs = "";
 
                 var nextIterationProjectsWithRefs = currentReferencesState
                         .Where(project => currentReferences.Contains(project.Key) && project.Value.Count > 0);
 
-                if(nextIterationProjectsWithRefs.Count() > 0)
+                if (nextIterationProjectsWithRefs.Count() > 0)
                 {
-                    string nextIterationStartTabs = GetReqTabsCount(
-                    Convert.ToInt32( 
-                        nextIterationProjectsWithRefs.Average(x => x.Key.Length) / 2
-                        )
-                    );
-                    currentStartTabs.Add(nextIterationStartTabs);
-                }
+                    if (tabsAtDeepDict.ContainsKey(futureRefDeep))
+                    {
+                        nextIterationExtraTabs = tabsAtDeepDict[futureRefDeep];
+                    }
+                    else
+                    {
+                        nextIterationExtraTabs = GetReqTabsCount(
+                            Convert.ToInt32(
+                                nextIterationProjectsWithRefs.Average(x => x.Key.Length) / 2
+                            )
+                        );
 
-                refDeep++;
+                        tabsAtDeepDict.Add(futureRefDeep, nextIterationExtraTabs);
+                    }
+                }
 
                 foreach (var currRef in currentReferences)
                 {
-                    if (currentReferences.Last() != currRef)
-                        message += (currentStartTabsHierarchy + "├─" + currRef + "\r\n");
-                    else
-                        message += (currentStartTabsHierarchyOnLastStr + "└─" + currRef + "\r\n");
+                    bool isCurrRefNotLast = currentReferences.Last() != currRef;
+                    string currentRefInjectSymbol = (isCurrRefNotLast) ? "┣━" : "┗━";
+                    string nextDeepStartTabs = (isCurrRefNotLast) ? currentStartTabs + "┃" + nextIterationExtraTabs : currentStartTabs + " " + nextIterationExtraTabs;
 
-                    message += GetTransitRefsMessageForCurrentProject(currRef, currentReferencesState, currentStartTabs, refDeep);
+                    message += (currentStartTabs + currentRefInjectSymbol + currRef + "\r\n");
+                    message += GetTransitRefsMessageForCurrentProject(currRef, currentReferencesState, nextDeepStartTabs, futureRefDeep);
+
+                    shownProjectsHashSet.Add(currRef);
+
+                    if (refDeep == 1 && isCurrRefNotLast)
+                        message += currentStartTabs + "┃\r\n";
                 }
             }
 
             return message;
         }
-
-        private static string GetCurrentStartTabsHierarchy(List<string> currentStartTabs, int refDeep)
-        {
-            string message = currentStartTabs[0];
-
-            for(int i = 1; i < refDeep; i++)
-            {
-                message += ("│" + currentStartTabs[i]);
-            }
-
-            return message;
-        }
-
-
-         
 
         public static void ExcecuteChangedRefs(DTE dte, IServiceProvider serviceProvider, Dictionary<string, ProjectState> commitedProjState)
         {
