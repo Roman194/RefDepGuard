@@ -69,11 +69,14 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
                 //Если есть рефы, то сначала пройтись по ним и добавить транзитивные связи из них
 
                 foreach (string transitReference in checkingProjTransitReferencesList) {
+
+
                     findedReferencesList.AddRange(
                         CheckCurrentTransitProjectOnReferences(transitReference, currentCommitedProjState).Where(
                             value => !findedReferencesList.Contains(value)
                             )
                         );
+                    
                 }
 
                 //Затем добавить прямые связи этого "транзитивного" проекта
@@ -83,6 +86,8 @@ namespace VSIXProject1.Managers.CheckRules.SubManagers
                         value => !findedReferencesList.Contains(value)
                         )
                     );
+
+                
             }
 
             return findedReferencesList;
