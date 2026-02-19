@@ -72,7 +72,7 @@ namespace VSIXProject1
                     currentProjectMaxFrVersion = requiredExportParameters[currentProjectName];
                     currentProjectMaxFrVersionString = "Max: " + currentProjectMaxFrVersion.VersionText;
 
-                    switch (currentProjectMaxFrVersion.ErrorLevel)
+                    switch (currentProjectMaxFrVersion.ReqLevel)
                     {
                         case ProblemLevel.Global: currentProjectMaxFrVersionString += " G"; break;
                         case ProblemLevel.Solution: currentProjectMaxFrVersionString += " S"; break;

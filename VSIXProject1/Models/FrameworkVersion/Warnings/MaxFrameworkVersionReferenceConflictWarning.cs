@@ -12,13 +12,15 @@ namespace VSIXProject1.Data.FrameworkVersion
         public string ProjFrameworkVersion;
         public string RefName;
         public string RefFrameworkVersion;
+        public bool IsOneProjectsTypeConflict;
 
-        public MaxFrameworkVersionReferenceConflictWarning(string projName, string projFrameworkVersion, string refName, string refFrameworkVersion)
+        public MaxFrameworkVersionReferenceConflictWarning(string projName, string projFrameworkVersion, string refName, string refFrameworkVersion, bool isOneProjectsTypeConflict)
         {
             ProjName = projName;
             ProjFrameworkVersion = projFrameworkVersion;
             RefName = refName;
             RefFrameworkVersion = refFrameworkVersion;
+            IsOneProjectsTypeConflict = isOneProjectsTypeConflict;
         }
     }
 }

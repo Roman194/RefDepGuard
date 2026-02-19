@@ -69,6 +69,7 @@
     <Compile Include="Models\FrameworkVersion\Errors\MaxFrameworkVersionIllegalTemplateUsageError.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionTFMNotFoundWarning.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionWarnings.cs" />
+    <Compile Include="Models\NetstandardMinProjTypeVersions.cs" />
     <Compile Include="Models\ProjectMatchWarning.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardExportParameters.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardFindedProblems.cs" />

@@ -253,9 +253,13 @@ namespace VSIXProject1.Managers.CheckRules
             {
                 string documentName = configFilesData.solutionName + "_config_guard.rdg";
 
+                string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
+                    "большее значение значение параметра 'framework_max_version' " :
+                    "несовместимое значение параметра 'framework_max_version' для проекта типа 'netstandard' ";
+
                 string errorText = "RefDepGuard framework_max_version reference conflict warning: значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version' проекта " + maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
-                    ", так как имеется референс на проект, имеющий большее значение значение параметра 'framework_max_version' (проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
+                    ", так как имеется референс на проект, имеющий " + errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + "). Устраните противоречие";
 
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);

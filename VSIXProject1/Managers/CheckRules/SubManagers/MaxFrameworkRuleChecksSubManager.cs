@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using VSIXProject1.Comparators;
+using VSIXProject1.Data;
 using VSIXProject1.Data.FrameworkVersion;
 using VSIXProject1.Models.FrameworkVersion;
 
@@ -220,16 +221,57 @@ namespace VSIXProject1.Managers.CheckRules
 
                     if (requiredMaxFrVersionsDict.ContainsKey(projReference) && referenceError == null)
                     {
+                        //В случае, если типы проектов не совместимы друг с другом, выдаст предупреждение сама IDE, поэтому имеет смысл проверять на потенциальные
+                        //max_framework_version конфликты только проекты одного типа, ограничения на все типы проектов или при совместимых типах проектов, но имеющих
+                        //совместимость не для всех версий проектов (например, для net не м.б. потенциальных проблем с max_fr_ver, т.к. каждая версия совместима с каждой netcoreapp/ netf)
+
                         //При проверке потенциального конфликта TargetFramework на текущий момент рассматриваются только ограничения одного типа!
-                        if (requiredMaxFrVersionsDict[projReference].ProjectTypeRule == requiredMaxFrVersionsDict[projName].ProjectTypeRule
-                            || requiredMaxFrVersionsDict[projReference].ProjectTypeRule == "all" || requiredMaxFrVersionsDict[projName].ProjectTypeRule == "all")
+
+                        RequiredMaxFrVersion projVersion = requiredMaxFrVersionsDict[projName];
+                        RequiredMaxFrVersion refVersion = requiredMaxFrVersionsDict[projReference];
+
+                        if (refVersion.ProjectTypeRule == projVersion.ProjectTypeRule || refVersion.ProjectTypeRule == "all" || projVersion.ProjectTypeRule == "all")
                         {
-                            List<int> currentRefMaxVersionNums = requiredMaxFrVersionsDict[projReference].VersionText
+                            List<int> currentRefMaxVersionNums = refVersion.VersionText
                             .Split('.')
                             .ToList()
                             .ConvertAll(value => Convert.ToInt32(value));
 
-                            CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, ProblemLevel.Undefined, ProblemLevel.Undefined, projReference);
+                            CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, 
+                                ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, true);
+                        }
+                        else
+                        {
+                            //Если реф - netstandard, а проект с ним совместим, то проверить потенциальные проблемы по req max versions!
+                            if (refVersion.ProjectTypeRule == "netstandard" && TFMSample.PossibleComparableTFMsWithNetStandard().Contains(projVersion.ProjectTypeRule))
+                            {
+                                if (projVersion.ProjectTypeRule == "net") continue;
+
+                                var minProjTypeVersions = TFMSample.MinProjTypeVersionsPerNetstandardVersion()[refVersion.VersionText];
+
+                                string currMinVersion = "";
+
+                                switch (projVersion.ProjectTypeRule)
+                                {
+                                    case "netcoreapp": currMinVersion = minProjTypeVersions.MinNetcoreappVer; break;
+                                    case "netf": currMinVersion = minProjTypeVersions.MinNetfVer; break;
+                                    default: currMinVersion = minProjTypeVersions.MinUapVer; break;
+                                }
+
+                                if (currMinVersion == "-") //Ни одна версия не поддерживается, есть проблема (хотя скорее всего студия сама предупредит, но пусть будет)
+                                {
+                                    AddNewMaxFrameworkVersionOnReferenceConflictWarning(projVersion.VersionText, refVersion.VersionText, projName, projReference, false);
+                                    continue;
+                                }  
+
+                                List<int> currMinVersionNums = currMinVersion //Мин версия, которой должен соответствовать проект, чтобы иметь связь для текущей версии netstandard
+                                    .Split('.')
+                                    .ToList()
+                                    .ConvertAll(value => Convert.ToInt32(value));
+
+                                CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currMinVersionNums, projName, 
+                                    ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, false);
+                            }
                         }
                     }
                 }
@@ -251,7 +293,9 @@ namespace VSIXProject1.Managers.CheckRules
             return requiredMaxFrVersionsDict;
         }
 
-        private static void CheckMaxFrameworkVersionCurrentConflict(List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel, string refName = "")
+        private static void CheckMaxFrameworkVersionCurrentConflict(
+            List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel, 
+            string refName = "", bool isOneProjectsTypeConflict = true)
         {
             var maxHighLevelFrameworkVersionArrayLength = maxHighLevelFrameworkVersionList.Count;
             var maxLowLevelFrameworkVersionArrayLength = maxLowLevelFrameworkVersionList.Count;
@@ -271,7 +315,7 @@ namespace VSIXProject1.Managers.CheckRules
                     if (lowRuleLevel != ProblemLevel.Undefined)
                         AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                     else
-                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName);
+                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, isOneProjectsTypeConflict);
 
                     return;
                 }
@@ -297,7 +341,7 @@ namespace VSIXProject1.Managers.CheckRules
                         if (lowRuleLevel != ProblemLevel.Undefined)
                             AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                         else
-                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName);
+                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, isOneProjectsTypeConflict);
 
                         break;
                     }
@@ -320,10 +364,13 @@ namespace VSIXProject1.Managers.CheckRules
                 maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
         }
 
-        private static void AddNewMaxFrameworkVersionOnReferenceConflictWarning(string maxProjNameFrameworkVersionString, string maxRefNameFrameworkVersionString, string projName, string refName)
+        private static void AddNewMaxFrameworkVersionOnReferenceConflictWarning(
+            string maxProjNameFrameworkVersionString, string maxRefNameFrameworkVersionString, string projName, string refName, bool isOneProjectsTypeConflict)
         {
             maxFrameworkVersionReferenceConflictWarningsList.Add(
-                new MaxFrameworkVersionReferenceConflictWarning(projName, maxProjNameFrameworkVersionString, refName, maxRefNameFrameworkVersionString));
+                new MaxFrameworkVersionReferenceConflictWarning(
+                    projName, maxProjNameFrameworkVersionString, refName, maxRefNameFrameworkVersionString, isOneProjectsTypeConflict)
+                );
         }
 
         private static string GetFrameworkVersionString(List<string> targetFrameworkVersionArray)

@@ -423,13 +423,17 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 else
                     projectsTable.Cells[5 + i, 2].FormulaLocal = $"=B{i + 4} + 1";
 
+                string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
+                    "большее значение значение параметра 'framework_max_version' " :
+                    "несовместимое значение параметра 'framework_max_version' для проекта типа 'netstandard' ";
+
                 projectsTable.Cells[5 + i, 3] = maxFrameworkVersionReferenceConflictWarning.ProjName;
                 projectsTable.Cells[5 + i, 4] = maxFrameworkVersionReferenceConflictWarning.RefName;
                 projectsTable.Cells[5 + i, 5] = "framework_max_version reference conflict";
                 projectsTable.Cells[5 + i, 6] = "-";
                 projectsTable.Cells[5 + i, 7] = "Значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version'\r\nрассматриваемого проекта приводит к\r\nпотенциальному конфликту версий TargetFramework" +
-                    ",\r\nтак как имеется референс на проект, имеющий\r\nбольшее значение значение параметра 'framework_max_version' (проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
+                    ",\r\nтак как имеется референс на проект, имеющий\r\n"+ errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";
                 projectsTable.Cells[5 + i, 8] = "Устраните противоречие";
                 projectsTable.Cells[5 + i, 9] = solutionName + "_config_guard.rdg";

@@ -109,7 +109,7 @@ namespace VSIXProject1.Managers.Export.SubManagers
                 {
                     var currentMaxFrVersionRule = requiredMaxFrVersions[currentProjectName];
                     var ruleLevelString = "";
-                    switch (currentMaxFrVersionRule.ErrorLevel)
+                    switch (currentMaxFrVersionRule.ReqLevel)
                     {
                         case ProblemLevel.Global: ruleLevelString = "[G]"; break;
                         case ProblemLevel.Solution: ruleLevelString = "[S]"; break;
