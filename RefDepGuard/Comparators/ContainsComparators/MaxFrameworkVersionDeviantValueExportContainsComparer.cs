@@ -1,0 +1,27 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using RefDepGuard.Data.FrameworkVersion;
+
+namespace RefDepGuard.Comparators
+{
+    public class MaxFrameworkVersionDeviantValueExportContainsComparer : IEqualityComparer<MaxFrameworkVersionDeviantValueError>
+    {
+        public bool Equals(MaxFrameworkVersionDeviantValueError x, MaxFrameworkVersionDeviantValueError y)
+        {
+            return x.ErrorRelevantProjectName == y.ErrorRelevantProjectName || x.ErrorRelevantProjectName == "";
+        }
+
+        public int GetHashCode(MaxFrameworkVersionDeviantValueError obj)
+        {
+            unchecked
+            {
+                int hash = 17;
+                hash = hash * 23 + (obj.ErrorRelevantProjectName?.GetHashCode() ?? 0);
+                return hash;
+            }
+        }
+    }
+}
