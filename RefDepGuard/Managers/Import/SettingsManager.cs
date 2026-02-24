@@ -14,34 +14,46 @@ using RefDepGuard.Models;
 
 namespace RefDepGuard.Managers.Import
 {
-    internal class SettingsManager
+    public class SettingsManager
     {
         private static UsingSolutionsDTO usingSolutions;
         private static string UsingSolutionsExtendedName;
         private static string SolutionName;
 
-        //Посмотреть как оптимизировать с ConfigFileManager
-        public static bool CheckIfSolutionIsFamiliarToExt(DTE dte, IVsUIShell uiShell)
-        {
-            SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
+        private static DirectoryInfo stuffDirInfo;
+        private static DirectoryInfo settingsDirInfo;
 
+        static SettingsManager()
+        {
+            //Здесь идёт дублирование с CacheManager по созданию rdgStuffDirectory (мб оставить это создание только в одном менеджере?)
             UsingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_settings\\using_solutions.rdg";
             SolutionName = SolutionNameManager.GetSolutionName();
 
+            string rdgStuffDirectory = UsingSolutionsExtendedName.Substring(0, UsingSolutionsExtendedName.LastIndexOf('\\',
+                UsingSolutionsExtendedName.LastIndexOf('\\') - 1));
+
+            stuffDirInfo = new DirectoryInfo(rdgStuffDirectory);
+            stuffDirInfo.Create();
+            stuffDirInfo.Attributes |= FileAttributes.Hidden;
+
+            string rdgSettingsDirectory = UsingSolutionsExtendedName.Substring(0, UsingSolutionsExtendedName.LastIndexOf('\\'));
+            settingsDirInfo = new DirectoryInfo(rdgSettingsDirectory);
+            settingsDirInfo.Create();
+        }
+
+        public static bool CheckIfSolutionIsFamiliarToExt(IVsUIShell uiShell)
+        {
+            
             if (File.Exists(UsingSolutionsExtendedName))
             {
                 try
                 {
-                    using (FileStream fileStream = new FileStream(UsingSolutionsExtendedName, FileMode.Open))
-                    {
-                        StreamReader sr = new StreamReader(fileStream);
+                    string currentFileContent = FileStreamManager.ReadInfoFromFile(UsingSolutionsExtendedName);
 
-                        string currentFileContent = sr.ReadToEnd();
-                        if (String.IsNullOrEmpty(currentFileContent))
-                            throw new Exception();
+                    if (String.IsNullOrEmpty(currentFileContent))
+                        throw new Exception();
 
-                         usingSolutions = JsonConvert.DeserializeObject<UsingSolutionsDTO>(currentFileContent);
-                    }
+                    usingSolutions = JsonConvert.DeserializeObject<UsingSolutionsDTO>(currentFileContent);
 
                     var findedSolution = usingSolutions.using_solutions.Find(solution => solution == SolutionName);
 
@@ -55,13 +67,13 @@ namespace RefDepGuard.Managers.Import
                         return false;
                     
                 }
-                catch (Exception)
+                catch (Exception) //????
                 {
                     
                 }
             }
 
-            return ShowUnfamiliarMessageAndMakeFamiliar(uiShell, UsingSolutionsExtendedName, SolutionName); //В противном случае спрашиваем у пользователя нужно ли ему использовать в solution расширение
+            return ShowUnfamiliarMessageAndMakeFamiliar(uiShell, SolutionName); //В противном случае спрашиваем у пользователя нужно ли ему использовать в solution расширение
         }
 
         public static bool UpdateSettingsByMakingSolutionFamiliar()
@@ -69,12 +81,12 @@ namespace RefDepGuard.Managers.Import
             usingSolutions.ignoring_solutions.Remove(SolutionName);
             usingSolutions.using_solutions.Add(SolutionName);
 
-            CreateOrRewriteUsingSolutionsFile(UsingSolutionsExtendedName);
+            CreateOrRewriteUsingSolutionsFile();
 
             return true;
         }
 
-        private static bool ShowUnfamiliarMessageAndMakeFamiliar(IVsUIShell uiShell, string usingSolutionsExtendedName, string solutionName)
+        private static bool ShowUnfamiliarMessageAndMakeFamiliar(IVsUIShell uiShell, string solutionName)
         {
             bool userAction = MessageManager.ShowYesNoPrompt(
                 uiShell,
@@ -90,7 +102,7 @@ namespace RefDepGuard.Managers.Import
             else
                 usingSolutions.ignoring_solutions.Add(solutionName);
 
-            CreateOrRewriteUsingSolutionsFile(usingSolutionsExtendedName);
+            CreateOrRewriteUsingSolutionsFile();
 
             return userAction;
         }
@@ -104,31 +116,18 @@ namespace RefDepGuard.Managers.Import
             return usingSolutions;
         }
 
-        private static void CreateOrRewriteUsingSolutionsFile(string usingSolutionsExtendedName) //Переиспользовать с ConfigFile?
+        private static void CreateOrRewriteUsingSolutionsFile()
         {
-            string rdgStuffDirectory = usingSolutionsExtendedName.Substring(0, usingSolutionsExtendedName.LastIndexOf('\\', 
-                usingSolutionsExtendedName.LastIndexOf('\\') - 1));
-
-            var dirInfo = new DirectoryInfo(rdgStuffDirectory);
-            dirInfo.Create();
-            dirInfo.Attributes |= FileAttributes.Hidden;
-
-            string rdgSettingsDirectory = usingSolutionsExtendedName.Substring(0, usingSolutionsExtendedName.LastIndexOf('\\'));
-            var dirSettingsInfo = new DirectoryInfo(rdgSettingsDirectory);
-            dirSettingsInfo.Create();
-
-            using (FileStream fileStream = File.Create(usingSolutionsExtendedName))
+            if (!Directory.Exists(UsingSolutionsExtendedName))
             {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
-                string json = JsonConvert.SerializeObject(usingSolutions, Formatting.Indented);
+                stuffDirInfo.Create();
+                stuffDirInfo.Attributes |= FileAttributes.Hidden;
 
-                streamWriter.Write(json);
-
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
+                settingsDirInfo.Create();
             }
+
+            string json = JsonConvert.SerializeObject(usingSolutions, Formatting.Indented);
+            FileStreamManager.WriteInfoToFile(UsingSolutionsExtendedName, json);
         }
     }
 }

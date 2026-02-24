@@ -10,7 +10,6 @@ namespace RefDepGuard.Managers.CheckRules
 {
     public class ELPStoreManager
     {
-        //Упорядочить форичи!
         public static void StoreErrorListProviderByValues(RefDepGuardFindedProblems refDepGuardFindedProblems, ConfigFilesData configFilesData, ErrorListProvider errorListProvider)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardFindedProblems.RefDepGuardErrors;
@@ -18,64 +17,63 @@ namespace RefDepGuard.Managers.CheckRules
 
             ClearErrorListProvider(errorListProvider);
 
-            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedTransitRefsDict)
+            //Errors
+            foreach (ReferenceError error in refDepGuardErrors.RefsErrorList)
             {
-                string projName = projKeyValuePair.Key;
-                List<string> detectedTransitRefsList = projKeyValuePair.Value;
+                string referenceTypeText = "";
+                string referenceLevelText = "";
+                string documentName = error.ErrorRelevantProjectName + ".csproj";
+                string actionForUser = "";
 
-                string currentText = "RefDepGuard Transit references warning: у проекта '" + projName +"' обнаружены следующие транзитивные референсы: ";
-
-                foreach (var refName in detectedTransitRefsList)
+                if (error.IsReferenceRequired)
                 {
-                    currentText += "'" + refName + "', ";
+                    referenceTypeText = "Отсутсвует обязательный";
+                    actionForUser = "Добавьте";
+                }
+                else
+                {
+                    referenceTypeText = "Присутствует недопустимый";
+                    actionForUser = "Удалите";
                 }
 
-                currentText = currentText.Remove(currentText.Length - 2);
+                switch (error.CurrentReferenceLevel)
+                {
+                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ProblemLevel.Project: break;
+                }
 
-                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + ".csproj", TaskErrorCategory.Warning);
+                string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
 
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
-            foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
+            foreach (ReferenceMatchError referenceMatchError in refDepGuardErrors.RefsMatchErrorList)
             {
-                string currentText = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'";
-
-                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + ".csproj", TaskErrorCategory.Warning);
-            }
-
-            foreach(var currentProjectMatchWarning in refDepGuardWarnings.ProjectMatchWarningList)
-            {
-                string placeWhereProjectNotFound = "solution";
-
-                if (currentProjectMatchWarning.IsNoProjectInConfigFile)
-                    placeWhereProjectNotFound = "config-файле";
-
-                string currentText = "RefDepGuard Project match warning: проект '" + currentProjectMatchWarning.ProjName + "' не обнаружен в " + placeWhereProjectNotFound + ". Проверьте проект на корректность написания его имени в config-файле";
-
-                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + "_config_guard.rdg", TaskErrorCategory.Warning);
-            }
-
-            foreach(var currentProjectNotFoundWarning in refDepGuardWarnings.ProjectNotFoundWarningList)
-            {
+                string projectName = "";
+                string referenceLevelText = "";
                 string documentName = configFilesData.solutionName + "_config_guard.rdg";
-                string ruleLevel = "уровня Solution";
+                string matchErrorDescription = "";
 
-                switch (currentProjectNotFoundWarning.WarningLevel)
+                if (referenceMatchError.IsProjNameMatchError)
+                    matchErrorDescription = " совпадает с именем проекта";
+                else
+                    matchErrorDescription = " одновременно заявлен как обязательный и недопустимый";
+
+                if (referenceMatchError.ProjectName != "")
+                    projectName = "' проекта '" + referenceMatchError.ProjectName;
+
+
+                switch (referenceMatchError.ReferenceLevelValue)
                 {
-                    case ProblemLevel.Global: ruleLevel = "глобального уровня"; break;
-                    case ProblemLevel.Solution: ruleLevel = "уровня Solution"; break;
-                    case ProblemLevel.Project: ruleLevel = "в проекте '"+ currentProjectNotFoundWarning.ProjName + "' "; break;
+                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
+                    case ProblemLevel.Project: break;
                 }
 
-                if(currentProjectNotFoundWarning.WarningLevel == ProblemLevel.Global)
-                {
-                    documentName = "global_config_guard.rdg";
-                    ruleLevel = "глобального уровня";
-                }
-                
-                string currentText = "RefDepGuard Project not found warning: проект '" + currentProjectNotFoundWarning.ReferenceName + "', указанный в референс-правиле " + ruleLevel + ", не обнаружен в solution" + ". Проверьте правило на корректность написания в config-файле";
+                string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
 
-                StoreErrorTask(errorListProvider, currentText, documentName, TaskErrorCategory.Warning);
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
             foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
@@ -142,63 +140,101 @@ namespace RefDepGuard.Managers.CheckRules
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
-            foreach (ReferenceMatchError referenceMatchError in refDepGuardErrors.RefsMatchErrorList)
+            //Warnings
+            foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
-                string projectName = "";
-                string referenceLevelText = "";
-                string documentName = configFilesData.solutionName + "_config_guard.rdg";
-                string matchErrorDescription = "";
+                string currentText = "RefDepGuard warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName + "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства. Проверьте, что проект имеет корректную версию 'TargetFramework'";
 
-                if (referenceMatchError.IsProjNameMatchError)
-                    matchErrorDescription = " совпадает с именем проекта";
-                else
-                    matchErrorDescription = " одновременно заявлен как обязательный и недопустимый";
-
-                if (referenceMatchError.ProjectName != "")
-                    projectName = "' проекта '" + referenceMatchError.ProjectName;
-
-
-                switch (referenceMatchError.ReferenceLevelValue)
-                {
-                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ProblemLevel.Project: break;
-                }
-
-                string errorText = "RefDepGuard Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText + matchErrorDescription + ". Устраните противоречие в правиле";
-
-                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
+                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + ".csproj", TaskErrorCategory.Warning);
             }
 
-
-            foreach (ReferenceError error in refDepGuardErrors.RefsErrorList)
+            foreach (var currentProjectMatchWarning in refDepGuardWarnings.ProjectMatchWarningList)
             {
+                string placeWhereProjectNotFound = "solution";
+
+                if (currentProjectMatchWarning.IsNoProjectInConfigFile)
+                    placeWhereProjectNotFound = "config-файле";
+
+                string currentText = "RefDepGuard Project match warning: проект '" + currentProjectMatchWarning.ProjName + "' не обнаружен в " + placeWhereProjectNotFound + ". Проверьте проект на корректность написания его имени в config-файле";
+
+                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + "_config_guard.rdg", TaskErrorCategory.Warning);
+            }
+
+            foreach (var currentProjectNotFoundWarning in refDepGuardWarnings.ProjectNotFoundWarningList)
+            {
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
+                string ruleLevel = "уровня Solution";
+
+                switch (currentProjectNotFoundWarning.WarningLevel)
+                {
+                    case ProblemLevel.Global: ruleLevel = "глобального уровня"; break;
+                    case ProblemLevel.Solution: ruleLevel = "уровня Solution"; break;
+                    case ProblemLevel.Project: ruleLevel = "в проекте '" + currentProjectNotFoundWarning.ProjName + "' "; break;
+                }
+
+                if (currentProjectNotFoundWarning.WarningLevel == ProblemLevel.Global)
+                {
+                    documentName = "global_config_guard.rdg";
+                    ruleLevel = "глобального уровня";
+                }
+
+                string currentText = "RefDepGuard Project not found warning: проект '" + currentProjectNotFoundWarning.ReferenceName + "', указанный в референс-правиле " + ruleLevel + ", не обнаружен в solution" + ". Проверьте правило на корректность написания в config-файле";
+
+                StoreErrorTask(errorListProvider, currentText, documentName, TaskErrorCategory.Warning);
+            }
+
+            foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
+            {
+                string documentName = configFilesData.solutionName + "_config_guard.rdg";
+                string projectName = "";
+                string highReferenceLevelText = "";
+                string lowReferenceLevelText = "";
                 string referenceTypeText = "";
-                string referenceLevelText = "";
-                string documentName = error.ErrorRelevantProjectName + ".csproj";
-                string actionForUser = "";
+                string warningDescription = "";
+                string warningAction = "";
 
-                if (error.IsReferenceRequired)
+
+                if (referenceMatchWarning.ProjectName != "")
                 {
-                    referenceTypeText = "Отсутсвует обязательный";
-                    actionForUser = "Добавьте";
-                }
-                else
-                {
-                    referenceTypeText = "Присутствует недопустимый";
-                    actionForUser = "Удалите";
+                    projectName = "' проекта '" + referenceMatchWarning.ProjectName;
                 }
 
-                switch (error.CurrentReferenceLevel)
+                if (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution)
                 {
-                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    lowReferenceLevelText = "уровня Solution";
+                }
+
+                switch (referenceMatchWarning.HighReferenceLevel)
+                {
+                    case ProblemLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
                     case ProblemLevel.Project: break;
                 }
 
-                string errorText = "RefDepGuard Reference error: " + referenceTypeText + " референс " + referenceLevelText + " '" + error.ReferenceName + "' для проекта '" + error.ErrorRelevantProjectName + "'. " + actionForUser + " его через обозреватель решений";
+                if (referenceMatchWarning.IsReferenceStraight)
+                {
+                    warningDescription = " дубирует правило с одноимённым референсом ";
+                    warningAction = ". Устраните дублирование правила";
 
-                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
+                    if (referenceMatchWarning.IsHighLevelReq)
+                        referenceTypeText = " является обязательным и";
+                    else
+                        referenceTypeText = " является недопустимым и";
+                }
+                else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
+                {
+                    warningDescription = " противоречит правилу с одноимённым референсом ";
+                    warningAction = ". Устраните противоречие в правиле";
+
+                    if (referenceMatchWarning.IsHighLevelReq)
+                        referenceTypeText = " является недопустимым и";
+                    else
+                        referenceTypeText = " является обязательным и";
+                }
+
+                string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
+
+                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
 
             foreach (MaxFrameworkVersionDeviantValueWarning maxFrameworkVersionDeviantValue in refDepGuardWarnings.MaxFrameworkVersionDeviantValueWarningList)
@@ -284,58 +320,22 @@ namespace RefDepGuard.Managers.CheckRules
                 StoreErrorTask(errorListProvider, warningText, documentName, TaskErrorCategory.Warning);
             }
 
-            foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedTransitRefsDict)
             {
-                string documentName = configFilesData.solutionName + "_config_guard.rdg";
-                string projectName = "";
-                string highReferenceLevelText = "";
-                string lowReferenceLevelText = "";
-                string referenceTypeText = "";
-                string warningDescription = "";
-                string warningAction = "";
+                string projName = projKeyValuePair.Key;
+                List<string> detectedTransitRefsList = projKeyValuePair.Value;
 
+                string currentText = "RefDepGuard Transit references warning: у проекта '" + projName + "' обнаружены следующие транзитивные референсы: ";
 
-                if (referenceMatchWarning.ProjectName != "")
+                foreach (var refName in detectedTransitRefsList)
                 {
-                    projectName = "' проекта '" + referenceMatchWarning.ProjectName;
+                    currentText += "'" + refName + "', ";
                 }
 
-                if (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution)
-                {
-                    lowReferenceLevelText = "уровня Solution";
-                }
+                currentText = currentText.Remove(currentText.Length - 2);
 
-                switch (referenceMatchWarning.HighReferenceLevel)
-                {
-                    case ProblemLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Global: highReferenceLevelText = "глобального уровня"; documentName = "global_config_guard.rdg"; break;
-                    case ProblemLevel.Project: break;
-                }
+                StoreErrorTask(errorListProvider, currentText, configFilesData.solutionName + ".csproj", TaskErrorCategory.Warning);
 
-                if (referenceMatchWarning.IsReferenceStraight)
-                {
-                    warningDescription = " дубирует правило с одноимённым референсом ";
-                    warningAction = ". Устраните дублирование правила";
-
-                    if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = " является обязательным и";
-                    else
-                        referenceTypeText = " является недопустимым и";
-                }
-                else //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
-                {
-                    warningDescription = " противоречит правилу с одноимённым референсом ";
-                    warningAction = ". Устраните противоречие в правиле";
-
-                    if (referenceMatchWarning.IsHighLevelReq)
-                        referenceTypeText = " является недопустимым и";
-                    else
-                        referenceTypeText = " является обязательным и";
-                }
-
-                string errorText = "RefDepGuard Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
-
-                StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Warning);
             }
 
             if (errorListProvider != null)

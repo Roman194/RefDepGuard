@@ -35,6 +35,7 @@
 		  <Menu guid="guidRefDepGuardPackageCmdSet" id="ExtentionMenu" priority="0x700" type="Menu">
 			  <Parent guid="guidSHLMainMenu"
 					  id="IDG_VS_MM_TOOLSADDINS" />
+			  
 			  <Strings>
 				  <ButtonText>RefDepGuardian</ButtonText>
 			  </Strings>
@@ -73,19 +74,19 @@
 
 		
 		<Button guid="guidRefDepGuardPackageCmdSet" id="GetCurrentRefsId" priority="0x0100" type="Button">
-        <Parent guid="guidRefDepGuardPackageCmdSet" id="MenuExcecuteGroup" />
+			<Parent guid="guidRefDepGuardPackageCmdSet" id="MenuExcecuteGroup" />
 		
-        <Icon guid="guidShowRefs" id="bmpShowRef" />
-		<CommandFlag>DynamicVisibility</CommandFlag>
-        <Strings>
-          <ButtonText>Показать все прямые рефы решения</ButtonText>
-        </Strings>
+			<Icon guid="guidShowRefs" id="bmpShowRef" />
+			<CommandFlag>DynamicVisibility</CommandFlag>
+			<Strings>
+				<ButtonText>Показать все прямые рефы решения</ButtonText>
+			</Strings>
       </Button>
 
 		<Button guid="guidRefDepGuardPackageCmdSet" id="GetExtendedCurrentRefsId" priority="0x0105" type="Button">
 			<Parent guid="guidRefDepGuardPackageCmdSet" id="MenuExcecuteGroup" />
 
-			<Icon guid="guidShowRefs" id="bmpShowRef" />
+			<Icon guid="guidShowExtRefs" id="bmpShowExtRef" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
 				<ButtonText>Показать все транзитивные рефы решения</ButtonText>
@@ -148,6 +149,7 @@
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
       <Bitmap guid="guidImages" href="Resources\Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
 		<Bitmap guid="guidShowRefs" href="Resources\ShowRefs_icon.png" usedList="bmpShowRef"/>
+		<Bitmap guid="guidShowExtRefs" href="Resources\ShowExtRefs_icon.png" usedList="bmpShowExtRef"/>
 		<Bitmap guid="guidShowChanges" href="Resources\ShowChanges_icon.png" usedList="bmpShowCh"/>
 		<Bitmap guid="guidCommitSolState" href="Resources\CommitSolState_icon.png" usedList="bmpCommitSolState"/>
 		<Bitmap guid="guidUpdateConfigRules" href="Resources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
@@ -216,6 +218,10 @@
 
 	  <GuidSymbol name="guidShowRefs" value="{dceed754-0469-4e89-968e-668b81728f25}">
 		  <IDSymbol name="bmpShowRef" value="1"/>
+	  </GuidSymbol>
+
+	  <GuidSymbol name="guidShowExtRefs" value="{dceed754-0469-4e89-968e-668b81728f26}">
+		  <IDSymbol name="bmpShowExtRef" value="1"/>
 	  </GuidSymbol>
 
 	  <GuidSymbol name="guidShowChanges" value="{dceed754-0469-4e89-968e-668b81728f27}">

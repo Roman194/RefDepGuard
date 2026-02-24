@@ -320,10 +320,8 @@ namespace RefDepGuard
 
                 //Проверка на то, что обнаруженный TFM существует. Иначе добавляется варнинг и TFM в словарь не добавляется
                 if (!TFMSample.PossibleTargetFrameworkMonikiers().Contains(maxFrameworkVersionElementSplited[0])){
-                    if(maxFrameworkVersionTFMNotFoundWarningList.Find(warning =>  //Как лучше, так или с компаратором?
-                            warning.TFMName == maxFrameworkVersionElementSplited[0] && 
-                            warning.WarningLevel == errorLevel && 
-                            warning.ProjName == projName) == null)
+                    if(maxFrameworkVersionTFMNotFoundWarningList.Find(warning =>
+                            warning.TFMName == maxFrameworkVersionElementSplited[0] && warning.WarningLevel == errorLevel && warning.ProjName == projName) == null)
                         maxFrameworkVersionTFMNotFoundWarningList.Add(new MaxFrameworkVersionTFMNotFoundWarning(maxFrameworkVersionElementSplited[0], errorLevel, projName));
 
                     continue;

@@ -41,22 +41,14 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
 
         }
 
-        public static List<string> CheckCurrentProjectOnTransitReferencesSeparetely(string projName, ProjectState currentReferencesState)
+        public static Dictionary<string, List<string>> GetDetectedTransitRefsDict()
         {
-            List<string> checkingProjReferencesList = currentReferencesState.CurrentReferences;
-            List<string> findedTransitReferencesList = new List<string>();
+            return detectedTransitRefsDict;
+        }
 
-            foreach (string currentStraightReference in checkingProjReferencesList)
-            {
-                //Не то, так как не даёт порядок в транзитивных рефах
-                //findedTransitReferencesList.AddRange(
-                //    CheckCurrentTransitProjectOnReferences(currentStraightReference, currentReferencesState).Where(
-                //        value => !findedTransitReferencesList.Contains(value)
-                //        )
-                //    );
-            }
-
-            return findedTransitReferencesList;
+        public static void ClearDetectedTransitRefsDict()
+        {
+            detectedTransitRefsDict.Clear();
         }
 
         private static List<string> CheckCurrentTransitProjectOnReferences(string transitProjName, Dictionary<string, ProjectState> currentCommitedProjState)
@@ -69,38 +61,22 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                 //Если есть рефы, то сначала пройтись по ним и добавить транзитивные связи из них
 
                 foreach (string transitReference in checkingProjTransitReferencesList) {
-
-
                     findedReferencesList.AddRange(
                         CheckCurrentTransitProjectOnReferences(transitReference, currentCommitedProjState).Where(
                             value => !findedReferencesList.Contains(value)
                             )
                         );
-                    
                 }
 
                 //Затем добавить прямые связи этого "транзитивного" проекта
-
                 findedReferencesList.AddRange(
                     checkingProjTransitReferencesList.Where(
                         value => !findedReferencesList.Contains(value)
                         )
                     );
-
-                
             }
 
             return findedReferencesList;
-        }
-
-        public static Dictionary<string, List<string>> GetDetectedTransitRefsDict()
-        {
-            return detectedTransitRefsDict;
-        }
-
-        public static void ClearDetectedTransitRefsDict()
-        {
-            detectedTransitRefsDict.Clear();
         }
     }
 }

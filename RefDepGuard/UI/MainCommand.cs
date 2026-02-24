@@ -2,14 +2,15 @@
 using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
 using RefDepGuard.Data;
 using RefDepGuard.Data.ConfigFile;
+using RefDepGuard.Managers.Applied;
 using RefDepGuard.Managers.CheckRules;
 using RefDepGuard.Managers.Import;
 using RefDepGuard.Models;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
 
@@ -62,6 +63,8 @@ namespace RefDepGuard
         private static OleMenuCommand exportCurrentRefsToHTMLMenuItem;
         private static OleMenuCommand activateExtMenuItem;
 
+        //private static ConfigFileManager configFileManager;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MainCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
@@ -89,6 +92,8 @@ namespace RefDepGuard
             exportCurrentRefsToXLSXMenuItem = new OleMenuCommand(this.ExportRefsToXSLX, null, this.ExtActivationQueryStatus, exportCurrentRefsToXLSXMenuCommandID);
             exportCurrentRefsToHTMLMenuItem = new OleMenuCommand(this.ExportRefsToHTML, null, this.ExtActivationQueryStatus, exportCurrentRefsToHTMLMenuCommandID);
             activateExtMenuItem = new OleMenuCommand(this.ActivateExtention, null, this.ExtActivationQueryStatus, activateExtMenuCommandID);
+
+            //configFileManager = new ConfigFileManager();
 
             commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getExtCurrentRefsMenuItem);
@@ -225,7 +230,9 @@ namespace RefDepGuard
 
         private static void CheckSolutionSettings()
         {
-            isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(dte, uiShell);
+            SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
+
+            isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(uiShell);
         }
 
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)

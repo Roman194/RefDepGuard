@@ -7,17 +7,14 @@ using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
 using RefDepGuard.Data;
-using RefDepGuard.Managers.CheckRules.SubManagers;
 
 namespace RefDepGuard
 {
     public class ExcecuteRefsManager
     {
-
         private static Dictionary<int, string> tabsAtDeepDict = new Dictionary<int, string>();
         private static HashSet<string> shownProjectsHashSet = new HashSet<string>();
 
-        //Оптимизировать алгоритмы показа рефов!
         public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider, bool showMessageWithTransitRefs)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -35,6 +32,67 @@ namespace RefDepGuard
                     ExcecuteMessageWithoutTransitRefs(currentReferencesState);
 
             }
+
+            MessageManager.ShowMessageBox(serviceProvider, message, title);
+        }
+
+        public static void ExcecuteChangedRefs(DTE dte, IServiceProvider serviceProvider, Dictionary<string, ProjectState> commitedProjState)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> removedRefs = new Dictionary<string, List<string>>();
+
+            string message = "С момента последней проверки рефов произошли следующие изменения:\r\n";
+            string title = "Изменения в рефах";
+
+            var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
+
+            foreach (var currentReferencesKeyValues in currentReferencesState)
+            {
+                string currentProject = currentReferencesKeyValues.Key;
+                List<string> currentReferences = currentReferencesKeyValues.Value;
+
+                //Если проект был добавлен посе коммита, то просто инициализируем его коммит-рефы как пустые
+                var vsCommitedProjRefsList = commitedProjState.ContainsKey(currentProject) ? commitedProjState[currentProject].CurrentReferences : new List<string>();
+                var vsCommitedProjRefsHashSet = new HashSet<string>(vsCommitedProjRefsList);
+                var vsCurrentProjHashSet = new HashSet<string>();
+
+                foreach (var currRef in currentReferences)
+                {
+                    vsCurrentProjHashSet.Add(currRef);
+                }
+
+                var commonRefsHashSet = vsCurrentProjHashSet.Intersect(vsCommitedProjRefsHashSet).ToHashSet();
+                vsCurrentProjHashSet.RemoveWhere(commonRefsHashSet.Contains);
+                vsCommitedProjRefsHashSet.RemoveWhere(commonRefsHashSet.Contains);
+
+                if (vsCurrentProjHashSet.Count > 0)
+                {
+                    addedRefs.Add(currentProject, vsCurrentProjHashSet.ToList());
+                }
+
+                if (vsCommitedProjRefsHashSet.Count > 0)
+                {
+                    removedRefs.Add(currentProject, vsCommitedProjRefsHashSet.ToList());
+                }
+            }
+
+            //Если проект был удалён после коммита, то добавляем все его рефы в список удалённых
+            var deletedProjectKeys = commitedProjState.Keys.Except(currentReferencesState.Keys).ToList();
+            foreach (var currentKey in deletedProjectKeys)
+            {
+                var currentDeletedProjRefs = commitedProjState[currentKey].CurrentReferences;
+
+                if (currentDeletedProjRefs.Count > 0)
+                    removedRefs.Add(currentKey, commitedProjState[currentKey].CurrentReferences);
+            }
+
+            message += ConvertCurrentRefsDictToStringFormat(addedRefs, true);
+            message += ConvertCurrentRefsDictToStringFormat(removedRefs, false);
+
+            if (addedRefs.Count == 0 && removedRefs.Count == 0)
+                message = "Изменения в рефах не обнаружены";
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
@@ -113,8 +171,6 @@ namespace RefDepGuard
             return message;
         }
 
-        //Сверить этот алгоритм с определением транзитивных связей в TransitRefsSubManager и объединить?
-
         private static string GetTransitRefsMessageForCurrentProject(string currentProject, Dictionary<string, List<string>> currentReferencesState, string currentStartTabs, int refDeep)
         {
             string message = "";
@@ -166,67 +222,6 @@ namespace RefDepGuard
             }
 
             return message;
-        }
-
-        public static void ExcecuteChangedRefs(DTE dte, IServiceProvider serviceProvider, Dictionary<string, ProjectState> commitedProjState)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
-            Dictionary<string, List<string>> removedRefs = new Dictionary<string, List<string>>();
-
-            string message = "С момента последней проверки рефов произошли следующие изменения:\r\n";
-            string title = "Изменения в рефах";
-
-            var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
-
-            foreach (var currentReferencesKeyValues in currentReferencesState)
-            {
-                string currentProject = currentReferencesKeyValues.Key;
-                List<string> currentReferences = currentReferencesKeyValues.Value;
-
-                //Если проект был добавлен посе коммита, то просто инициализируем его коммит-рефы как пустые
-                var vsCommitedProjRefsList = commitedProjState.ContainsKey(currentProject) ? commitedProjState[currentProject].CurrentReferences : new List<string>();
-                var vsCommitedProjRefsHashSet = new HashSet<string>(vsCommitedProjRefsList);
-                var vsCurrentProjHashSet = new HashSet<string>();
-
-                foreach (var currRef in currentReferences)
-                {
-                    vsCurrentProjHashSet.Add(currRef);
-                }
-
-                var commonRefsHashSet = vsCurrentProjHashSet.Intersect(vsCommitedProjRefsHashSet).ToHashSet();
-                vsCurrentProjHashSet.RemoveWhere(commonRefsHashSet.Contains);
-                vsCommitedProjRefsHashSet.RemoveWhere(commonRefsHashSet.Contains);
-
-                if (vsCurrentProjHashSet.Count > 0)
-                {
-                    addedRefs.Add(currentProject, vsCurrentProjHashSet.ToList());
-                }
-
-                if (vsCommitedProjRefsHashSet.Count > 0)
-                {
-                    removedRefs.Add(currentProject, vsCommitedProjRefsHashSet.ToList());
-                }
-            }
-
-            //Если проект был удалён после коммита, то добавляем все его рефы в список удалённых
-            var deletedProjectKeys = commitedProjState.Keys.Except(currentReferencesState.Keys).ToList();
-            foreach (var currentKey in deletedProjectKeys)
-            {
-                var currentDeletedProjRefs = commitedProjState[currentKey].CurrentReferences;
-
-                if(currentDeletedProjRefs.Count > 0) 
-                    removedRefs.Add(currentKey, commitedProjState[currentKey].CurrentReferences);
-            }
-
-            message += ConvertCurrentRefsDictToStringFormat(addedRefs, true);
-            message += ConvertCurrentRefsDictToStringFormat(removedRefs, false);
-           
-            if (addedRefs.Count == 0 && removedRefs.Count == 0)
-                message = "Изменения в рефах не обнаружены";
-
-            MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
 
         private static string ConvertCurrentRefsDictToStringFormat(Dictionary<string, List<string>> currentRefs, bool isAddedRefsDict)

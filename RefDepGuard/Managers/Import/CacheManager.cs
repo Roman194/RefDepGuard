@@ -16,7 +16,10 @@ namespace RefDepGuard.Managers.Import
         private static string globalConfigBackupName;
         private static string solutionConfigBackupName;
 
-        public static void UpdateConfigFilesBackup(string json, bool isGlobal)
+        private static DirectoryInfo stuffDirInfo;
+        private static DirectoryInfo cacheDirInfo;
+
+        static CacheManager()
         {
             configFilesBackupExtendedPackageName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_cache\\";
             globalConfigBackupName = configFilesBackupExtendedPackageName + "global_config_guard.rdg";
@@ -25,25 +28,26 @@ namespace RefDepGuard.Managers.Import
             string rdgStuffDirectory = configFilesBackupExtendedPackageName.Substring(0, configFilesBackupExtendedPackageName.LastIndexOf('\\',
                 configFilesBackupExtendedPackageName.LastIndexOf('\\') - 1));
 
-            var dirInfo = new DirectoryInfo(rdgStuffDirectory);
-            dirInfo.Create();
-            dirInfo.Attributes |= FileAttributes.Hidden;
+            stuffDirInfo = new DirectoryInfo(rdgStuffDirectory);
+            stuffDirInfo.Create();
+            stuffDirInfo.Attributes |= FileAttributes.Hidden;
 
             string rdgCacheDirectory = configFilesBackupExtendedPackageName.Substring(0, configFilesBackupExtendedPackageName.LastIndexOf('\\'));
-            var dirCacheInfo = new DirectoryInfo(rdgCacheDirectory);
-            dirCacheInfo.Create();
+            cacheDirInfo = new DirectoryInfo(rdgCacheDirectory);
+            cacheDirInfo.Create();
+        }
 
-            using (FileStream fileStream = File.Create(isGlobal? globalConfigBackupName : solutionConfigBackupName))
+        public static void UpdateConfigFilesBackup(string json, bool isGlobal)
+        {
+            if (!Directory.Exists(configFilesBackupExtendedPackageName))
             {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
+                stuffDirInfo.Create();
+                stuffDirInfo.Attributes |= FileAttributes.Hidden;
 
-                streamWriter.Write(json);
-
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
+                cacheDirInfo.Create();
             }
+
+            FileStreamManager.WriteInfoToFile(GetCurrentBackupFileName(isGlobal), json);
         }
 
         public static string GetInfoFromBackupFile(bool isGlobal)
@@ -51,25 +55,24 @@ namespace RefDepGuard.Managers.Import
             if (globalConfigBackupName == null || solutionConfigBackupName == null)
                 return "";
 
-            var currentBackupFileName = isGlobal ? globalConfigBackupName : solutionConfigBackupName;
+            var currentBackupFileName = GetCurrentBackupFileName(isGlobal);
 
             if (File.Exists(currentBackupFileName))
             {
-                using (FileStream fileStream = new FileStream(currentBackupFileName, FileMode.Open))
-                {
-                    StreamReader sr = new StreamReader(fileStream);
+                string currentFileContent  = FileStreamManager.ReadInfoFromFile(currentBackupFileName);
 
-                    string currentFileContent = sr.ReadToEnd();
-                    if (String.IsNullOrEmpty(currentFileContent))
-                        return "";
+                if (String.IsNullOrEmpty(currentFileContent))
+                    return "";
 
-                    return currentFileContent;
-                }
+                return currentFileContent;
             }
 
             return "";
         }
 
-
+        private static string GetCurrentBackupFileName(bool isGlobal)
+        {
+            return isGlobal ? globalConfigBackupName : solutionConfigBackupName;
+        }
     }
 }

@@ -4,6 +4,9 @@
     <MinimumVisualStudioVersion>17.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>RefDepGuard_icon.ico</ApplicationIcon>
+  </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -48,6 +51,7 @@
     <Compile Include="Comparators\ContainsComparators\ProjectMatchWarningContainsComparer.cs" />
     <Compile Include="Comparators\ContainsComparators\ProjectNotFoundContainsComparer.cs" />
     <Compile Include="Data\TFMSample.cs" />
+    <Compile Include="Managers\Applied\FileStreamManager.cs" />
     <Compile Include="Managers\Applied\SolutionNameManager.cs" />
     <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
     <Compile Include="Managers\CheckRules\SubManagers\CheckProjectsMatchSubManager.cs" />
@@ -162,6 +166,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="RefDepGuard_icon.ico" />
     <Content Include="UI\Resources\CommitSolState_icon.png" />
     <Content Include="UI\Resources\GraphExport_icon.png" />
     <Content Include="UI\Resources\ShowChanges_icon.png" />

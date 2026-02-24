@@ -1,6 +1,4 @@
-﻿using EnvDTE;
-using Microsoft.Office.Interop.Excel;
-using Microsoft.VisualStudio.Shell;
+﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using System;
@@ -25,8 +23,27 @@ namespace RefDepGuard
         private static string packageExtendedName;
         private static FileParseError parseError;
 
+        private static ConfigFileServiceInfo currentSolutionConfigFileServiceInfo;
+        private static ConfigFileServiceInfo globalSolutionConfigFileServiceInfo;
+
 
         private static Dictionary<string, ProjectState> commitedProjState;
+
+        static ConfigFileManager() //My static initializator for use it results in the static methods
+        {
+            packageExtendedName = SolutionNameManager.GetPackageName();
+            solutionName = SolutionNameManager.GetSolutionName();
+            string solutionExtendedName = SolutionNameManager.GetSolutionExtendedName();
+
+            string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
+            string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";
+
+            string solutionConfigGuardRollbackFile = solutionExtendedName + "_config_guard_rollback.rdg";
+            string globalConfigGuardRollbackFile = packageExtendedName + "\\global_config_guard_rollback.rdg";
+
+            currentSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(false, solutionConfigGuardFile, solutionConfigGuardRollbackFile);
+            globalSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(true, globalConfigGuardFile, globalConfigGuardRollbackFile);
+        }
 
         public static ConfigFilesData GetInfoFromConfigFiles(
             IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, Dictionary<string, ProjectState> currentCommitedProjState)
@@ -38,19 +55,6 @@ namespace RefDepGuard
 
             commitedProjState = currentCommitedProjState;
             parseError = FileParseError.None;
-            
-            packageExtendedName = SolutionNameManager.GetPackageName();
-            solutionName = SolutionNameManager.GetSolutionName();
-            string solutionExtendedName = SolutionNameManager.GetSolutionExtendedName();
-
-            string solutionConfigGuardFile = solutionExtendedName + "_config_guard.rdg";
-            string globalConfigGuardFile = packageExtendedName + "\\global_config_guard.rdg";
-
-            string solutionConfigGuardRollbackFile = solutionExtendedName + "_config_guard_rollback.rdg";
-            string globalConfigGuardRollbackFile = packageExtendedName + "\\global_config_guard_rollback.rdg";
-
-            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(false, solutionConfigGuardFile, solutionConfigGuardRollbackFile);
-            ConfigFileServiceInfo globalSolutionConfigFileServiceInfo = new ConfigFileServiceInfo(true, globalConfigGuardFile, globalConfigGuardRollbackFile);
 
             GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
             GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
@@ -61,62 +65,47 @@ namespace RefDepGuard
         public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
         {
             configFileSolution = currentConfigFilesData.configFileSolution;
-            configFileGlobal = currentConfigFilesData.configFileGlobal; //???
+            configFileGlobal = currentConfigFilesData.configFileGlobal; //Протаскиваю здесь global, хотя он тут никак не может измениться, а надо ли?
 
-            using (FileStream fileStream = File.Create(packageExtendedName + "\\" + solutionName + "_config_guard.rdg"))
-            {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
-                string json;
+            ConfigFileSolutionDTO currentProj = isProjectAdding ? 
+                updateConfigFileSolutionByAddingProjects(differProjectsList) : 
+                updateConfigFileSolutionByRemovingProjects(differProjectsList);
 
-                if (isProjectAdding)
-                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByAddingProjects(differProjectsList), Formatting.Indented);
-                else
-                    json = JsonConvert.SerializeObject(updateConfigFileSolutionByRemovingProjects(differProjectsList), Formatting.Indented);
+            string json = JsonConvert.SerializeObject(currentProj, Formatting.Indented);
+            string updateFileName = packageExtendedName + "\\" + solutionName + "_config_guard.rdg";
 
-                streamWriter.Write(json);
+            FileStreamManager.WriteInfoToFile(updateFileName, json);
 
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
-
-                CacheManager.UpdateConfigFilesBackup(json, false);
-            }
+            CacheManager.UpdateConfigFilesBackup(json, false);
 
             return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);// Предполагается, что эти параметры не могут нигде измениться после инициализации до вызова этого метода
         }
 
         private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo, bool isSecondAttempt = false)
         {
-            FileErrorMessage fileErrorMessage;
-
-            if (configFileServiceInfo.IsGlobal)
-                fileErrorMessage = new FileErrorMessage("Не получилось загрузить глобальный файл конфигурации", "Глобальный файл конфигурации не найден");
-            else
-                fileErrorMessage = new FileErrorMessage("Не получилось загрузить файл конфигурации", "Файл конфигурации не найден");
+            string typePrefix = configFileServiceInfo.IsGlobal ? "Глобальный ф" : "Ф"; //Вынести это отдельно?
+            
+            FileErrorMessage fileErrorMessage = new FileErrorMessage(
+                "Не получилось загрузить " + typePrefix + "файл конфигурации", typePrefix + "файл конфигурации не найден");
 
             if (File.Exists(configFileServiceInfo.SolutionConfigGuardFile))
             {
                 try
                 {
-                    using (FileStream fileStream = new FileStream(configFileServiceInfo.SolutionConfigGuardFile, FileMode.Open))
-                    {
-                        StreamReader sr = new StreamReader(fileStream);
+                    string currentFileContent = FileStreamManager.ReadInfoFromFile(configFileServiceInfo.SolutionConfigGuardFile);
 
-                        string currentFileContent = sr.ReadToEnd();
-                        if (String.IsNullOrEmpty(currentFileContent))
-                            throw new Exception();
+                    if (String.IsNullOrEmpty(currentFileContent))
+                        throw new Exception();
 
-                        if (configFileServiceInfo.IsGlobal)
-                            configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobalDTO>(currentFileContent);
-                        else
-                            configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolutionDTO>(currentFileContent);
+                    if (configFileServiceInfo.IsGlobal)
+                        configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobalDTO>(currentFileContent);
+                    else
+                        configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolutionDTO>(currentFileContent);
 
-                        //Предполагается, что к текущему моменту настройки с ошибками JSON-синтаксиса уже будут в catch, а Null value parameters можно уже и бэкапить
-                        CacheManager.UpdateConfigFilesBackup(currentFileContent, configFileServiceInfo.IsGlobal); 
-                    }
+                    //Предполагается, что к текущему моменту настройки с ошибками JSON-синтаксиса уже будут в catch, а Null value parameters можно уже и не бэкапить
+                    CacheManager.UpdateConfigFilesBackup(currentFileContent, configFileServiceInfo.IsGlobal);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
                 }
@@ -208,43 +197,40 @@ namespace RefDepGuard
             }    
         }
 
-        private static void CopyInfoFromBackupToConfigFile(ConfigFileServiceInfo configFileServiceInfo, string backupFileInfo) //Оптимизировать!
+        private static void CopyInfoFromBackupToConfigFile(ConfigFileServiceInfo configFileServiceInfo, string backupFileInfo)
         {
-            using (FileStream fileStream = File.Create(configFileServiceInfo.SolutionConfigGuardFile))
-            {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
-                
-                streamWriter.Write(backupFileInfo);
-
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
-            }
-
+            FileStreamManager.WriteInfoToFile(configFileServiceInfo.SolutionConfigGuardFile, backupFileInfo);
             GetCurrentConfigFileInfo(configFileServiceInfo, true); //Second attempt to read config file
         }
 
         private static void CreateNewConfigFile(string currentConfigGuardFile, bool isGlobal)
         {
-            using (FileStream fileStream = File.Create(currentConfigGuardFile))
+            string json;
+
+            if (isGlobal)
+                json = JsonConvert.SerializeObject(generateDefaultConfigFileDataGlobal(), Formatting.Indented);
+            else
+                json = JsonConvert.SerializeObject(generateDefaultConfigFileDataSolution(), Formatting.Indented);
+
+            FileStreamManager.WriteInfoToFile(currentConfigGuardFile, json);
+
+            CacheManager.UpdateConfigFilesBackup(json, isGlobal);
+        }
+
+        private static void RestoreInfoToRollbackFile(string currentConfigGuardFile, string currentConfigGuardRollbackFile)
+        {
+            try
             {
-                StreamWriter streamWriter = new StreamWriter(fileStream);
-                string json;
-
-                if (isGlobal)
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileDataGlobal(), Formatting.Indented);
-                else
-                    json = JsonConvert.SerializeObject(generateDefaultConfigFileDataSolution(), Formatting.Indented);
-
-                streamWriter.Write(json);
-
-                streamWriter.Flush();
-                fileStream.Flush();
-
-                streamWriter.Close();
-
-                CacheManager.UpdateConfigFilesBackup(json, isGlobal);
+                string fileInfo = FileStreamManager.ReadInfoFromFile(currentConfigGuardFile);
+                FileStreamManager.WriteInfoToFile(currentConfigGuardRollbackFile, fileInfo);
+            }
+            catch (Exception)
+            {
+                MessageManager.ShowMessageBox(
+                    serviceProvider,
+                    "Проверьте, что глобальный и локальные .rdg файлы не имеют запретов на чтение, а в корневой папке solution нет запрета на создание файлов",
+                    "RefDepGuard: Ошибка генерации Rollback файла"
+                    );
             }
         }
 
@@ -258,7 +244,6 @@ namespace RefDepGuard
 
         private static ConfigFileSolutionDTO updateConfigFileSolutionByRemovingProjects(List<string> removedProjectsList)
         {
-
             foreach(var project in removedProjectsList)
                 configFileSolution.projects.Remove(project);
             
@@ -307,41 +292,6 @@ namespace RefDepGuard
             fileProject.unacceptable_references = new List<string>();
 
             return fileProject;
-        }
-
-        private static void RestoreInfoToRollbackFile(string currentConfigGuardFile, string currentConfigGuardRollbackFile)
-        {
-            try
-            {
-                string fileInfo;
-
-                using (FileStream fileStream = new FileStream(currentConfigGuardFile, FileMode.Open))
-                {
-                    StreamReader sr = new StreamReader(fileStream);
-
-                    fileInfo = sr.ReadToEnd();
-                }
-
-                using (FileStream fileStream = File.Create(currentConfigGuardRollbackFile))
-                {
-                    StreamWriter streamWriter = new StreamWriter(fileStream);
-
-                    streamWriter.Write(fileInfo);
-
-                    streamWriter.Flush();
-                    fileStream.Flush();
-
-                    streamWriter.Close();
-                }
-            }
-            catch (Exception)
-            {
-                MessageManager.ShowMessageBox(
-                    serviceProvider,
-                    "Проверьте, что глобальный и локальные .rdg файлы не имеют запретов на чтение, а в корневой папке solution нет запрета на создание файлов",
-                    "RefDepGuard: Ошибка генерации Rollback файла"
-                    );
-            }
         }
     }
 }

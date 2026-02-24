@@ -12,8 +12,23 @@ namespace RefDepGuard
 {
     public class CurrentStateManager
     {
-        //Сделать общий над двумя методами?
         public static Dictionary<string, ProjectState> GetCurrentProjectState(DTE dte)
+        {
+            return GetCurrentRequiredState(dte, false);
+        }
+
+        public static Dictionary<string, List<string>> GetCurrentReferencesState(DTE dte)
+        {
+            Dictionary<string, List<string>> currentReferences = 
+                GetCurrentRequiredState(dte, true).ToDictionary(
+                    project => project.Key, 
+                    project => project.Value.CurrentReferences
+                );  
+
+            return currentReferences;
+        }
+
+        private static Dictionary<string, ProjectState> GetCurrentRequiredState(DTE dte, bool isOnlyRefsNeeded)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -22,10 +37,16 @@ namespace RefDepGuard
 
             foreach (EnvDTE.Project project in solution.Projects)
             {
-                if(project.FullName != null && project.FullName.Length != 0)
+                if (project.FullName != null && project.FullName.Length != 0)
                 {
-                    var projectFrameworkVersions = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
-                    var projectFrameworkNumVersions = ConvertTargetFrameworkToTransferFormat(projectFrameworkVersions);
+                    string projectFrameworkVersions = "";
+                    Dictionary<string, List<int>> projectFrameworkNumVersions = new Dictionary<string, List<int>>();
+
+                    if (!isOnlyRefsNeeded)
+                    {
+                        projectFrameworkVersions = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
+                        projectFrameworkNumVersions = ConvertTargetFrameworkToTransferFormat(projectFrameworkVersions);
+                    }
 
                     VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
 
@@ -45,34 +66,6 @@ namespace RefDepGuard
             }
 
             return commitedProjState;
-        }
-
-        public static Dictionary<string, List<string>> GetCurrentReferencesState(DTE dte)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            Dictionary<string, List<string>> currentReferences = new Dictionary<string, List<string>>();
-            EnvDTE.Solution solution = dte.Solution;
-
-            foreach (EnvDTE.Project project in solution.Projects)
-            {
-                VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
-
-                if (vSProject != null)
-                {
-                    var refsList = new List<string>();
-
-                    foreach (VSLangProj.Reference vRef in vSProject.References)
-                    {
-                        if (vRef.SourceProject != null)
-                            refsList.Add(vRef.Name);
-                    }
-
-                    currentReferences.Add(vSProject.Project.Name,  refsList);
-                }
-            }
-
-            return currentReferences;
         }
 
         private static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)
