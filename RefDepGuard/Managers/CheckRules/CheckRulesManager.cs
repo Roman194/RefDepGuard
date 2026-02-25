@@ -204,17 +204,14 @@ namespace RefDepGuard
             maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList.Sort(new FrameworkVersionComparabilityErrorSortComparer());
 
             refDepGuardErrors = new RefDepGuardErrors(
-                configPropertyNullErrorList, refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, maxFrameworkVersionDeviantValueErrorList,
+                refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, configPropertyNullErrorList, maxFrameworkVersionDeviantValueErrorList,
                 maxFrameworkVersionIllegalTemplateUsageErrorsList, maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList);
 
             refDepGuardWarnings = new RefDepGuardWarnings(
-                refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList,
-                maxFrameworkVersionDeviantValueWarningList,
-                maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
-                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, 
-                maxFrameworkVersionTFMNotFoundWarningList,
-                projectMatchWarningList, maxFrameworkRuleProblems.UntypedWarningsList,
-                detectedTransitRefs);
+                refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList, projectMatchWarningList,
+                maxFrameworkVersionDeviantValueWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
+                maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkVersionTFMNotFoundWarningList,
+                maxFrameworkRuleProblems.UntypedWarningsList, detectedTransitRefs);
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
@@ -333,7 +330,7 @@ namespace RefDepGuard
                 foreach (var maxFrameworkVersionNumber in maxFrameworkVersionNumbers)
                 {
                     int maxVersionCurrentNum;
-                    if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Попытка парсинга очередного числа вресии макс фреймворка
+                    if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Попытка парсинга очередного числа версии макс фреймворка
                     {
                         //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
                         MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);

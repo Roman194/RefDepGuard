@@ -1,10 +1,10 @@
 ﻿using HtmlAgilityPack;
 using System.Collections.Generic;
-using System.IO;
 using RefDepGuard.Data;
 using RefDepGuard.Data.ConfigFile;
 using RefDepGuard.Data.FrameworkVersion;
 using RefDepGuard.Data.Reference;
+using RefDepGuard.Managers.Applied;
 
 namespace RefDepGuard
 {
@@ -14,12 +14,9 @@ namespace RefDepGuard
             RefDepGuardExportParameters refDepGuardExportParameters) 
         {
             string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardExportParameters);
+            string currentReportFile = currentReportDirectory + "\\" + configFilesData.solutionName + "_references_report.html";
 
-            StreamWriter sw = new StreamWriter(currentReportDirectory + "\\" + configFilesData.solutionName + "_references_report.html");
-            sw.Write(generatedHtml);
-
-            sw.Flush();
-            sw.Close();
+            FileStreamManager.WriteInfoToFile(currentReportFile, generatedHtml);
         }
 
         private static string GetCurrentHTMLCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
@@ -43,7 +40,6 @@ namespace RefDepGuard
 
         private static string GetCurrentMermaidCode(Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
-            string outputMermaidCode = "flowchart LR\r\n";
             Dictionary <string, string> projectNameToNodeIdCompare = new Dictionary<string, string>();
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
@@ -54,6 +50,8 @@ namespace RefDepGuard
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrVersionRefConflictWarning = refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
+
+            string outputMermaidCode = "flowchart LR\r\n";
 
             int currentNodeNum = 0;
             foreach (var currentProject in commitedProjectsState) //Сначала задаём сами ноды (проекты)
