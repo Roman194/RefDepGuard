@@ -1,5 +1,4 @@
 ﻿using EnvDTE;
-using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using RefDepGuard.Data;
@@ -63,8 +62,6 @@ namespace RefDepGuard
         private static OleMenuCommand exportCurrentRefsToHTMLMenuItem;
         private static OleMenuCommand activateExtMenuItem;
 
-        //private static ConfigFileManager configFileManager;
-
         /// <summary>
         /// Initializes a new instance of the <see cref="MainCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
@@ -92,8 +89,6 @@ namespace RefDepGuard
             exportCurrentRefsToXLSXMenuItem = new OleMenuCommand(this.ExportRefsToXSLX, null, this.ExtActivationQueryStatus, exportCurrentRefsToXLSXMenuCommandID);
             exportCurrentRefsToHTMLMenuItem = new OleMenuCommand(this.ExportRefsToHTML, null, this.ExtActivationQueryStatus, exportCurrentRefsToHTMLMenuCommandID);
             activateExtMenuItem = new OleMenuCommand(this.ActivateExtention, null, this.ExtActivationQueryStatus, activateExtMenuCommandID);
-
-            //configFileManager = new ConfigFileManager();
 
             commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getExtCurrentRefsMenuItem);
@@ -247,6 +242,14 @@ namespace RefDepGuard
             GC.Collect();
         }
 
+        private void ExecuteIfInitialized(Action currentAction)
+        {
+            if (isExtentionInitialized)
+                currentAction();
+            else
+                NotInitializedYetMessage();
+        }
+
         /// <summary>
         /// This function is the callback used to execute the command when the menu item is clicked.
         /// See the constructor to see how the menu item is associated with this function using
@@ -256,43 +259,37 @@ namespace RefDepGuard
         /// <param name="e">Event args.</param>
         private void ExecuteCurrentRefs(object sender, EventArgs e)
         {
-            if(isExtentionInitialized) //Как это оптимизировать?
-                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package, false);
-            else
-                NotInitializedYetMessage();
+            ExecuteIfInitialized(() => 
+                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package, false)
+                );
         }
 
         private void ExecuteExtentionCurrentRefs(object sender, EventArgs e)
         {
-            if (isExtentionInitialized) //Как это оптимизировать?
-                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package, true);
-            else
-                NotInitializedYetMessage();
+            ExecuteIfInitialized(() =>
+                ExcecuteRefsManager.ExcecuteCurrentRefs(dte, this.package, true)
+                );
         }
 
         private void ExcecuteRefsChanges(object sender, EventArgs e)
         {
-            if(isExtentionInitialized)
-                ExcecuteRefsManager.ExcecuteChangedRefs(dte, this.package, commitedProjState);
-            else
-                NotInitializedYetMessage();
+            ExecuteIfInitialized(() =>
+                ExcecuteRefsManager.ExcecuteChangedRefs(dte, this.package, commitedProjState)
+                );
         }
 
         private void ForceCommitCurrentSolutionState(object sender, EventArgs e)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            if (isExtentionInitialized)
+            ExecuteIfInitialized(() =>
             {
                 UpdateSolutionState(false);
                 MessageManager.ShowMessageBox(
-                    serviceProvider, 
-                    isSuccessfulCheckingRules? "Референсы успешно зафиксированы": "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами", 
+                    serviceProvider,
+                    isSuccessfulCheckingRules ? "Референсы успешно зафиксированы" : "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами",
                     "RefDepGuard"
                     );
-            }
-            else
-                NotInitializedYetMessage();
+            }    
+            );
         }
 
         private static void UpdateSolutionState(bool isBuildCheck)
@@ -366,18 +363,12 @@ namespace RefDepGuard
 
         private void ExportRefsToXSLX(object sender, EventArgs e)
         {
-            if (isExtentionInitialized)
-                ExportRefsGeneral("table_type");
-            else
-                NotInitializedYetMessage();
+            ExecuteIfInitialized(() => ExportRefsGeneral("table_type"));
         }
 
         private void ExportRefsToHTML(object sender, EventArgs e)
         {
-            if (isExtentionInitialized)
-                ExportRefsGeneral("graph_type");
-            else
-                NotInitializedYetMessage();
+            ExecuteIfInitialized(() => ExportRefsGeneral("graph_type"));
         }
 
         private void NotInitializedYetMessage()
@@ -397,7 +388,7 @@ namespace RefDepGuard
                     case "table_type":
                         reportTitleText = "Экспорт в XLSX";
                         reportSuccessText = "Экспорт в эксель завершён. Открыть папку со сгенерированным отчётом?";
-                        reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.solutionName + "_references_report.xlsx' не открыт в Excel";
+                        reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.SolutionName + "_references_report.xlsx' не открыт в Excel";
                         break;
 
                     case "graph_type":

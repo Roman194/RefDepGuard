@@ -15,8 +15,8 @@ namespace RefDepGuard.Managers.CheckRules
         }
         public static List<ConfigFilePropertyNullError> CheckConfigPropertiesOnNotNull(ConfigFilesData configFilesData)
         {
-            ConfigFileGlobalDTO configFileGlobal = configFilesData.configFileGlobal;
-            ConfigFileSolutionDTO configFileSolution = configFilesData.configFileSolution;
+            ConfigFileGlobalDTO configFileGlobal = configFilesData.ConfigFileGlobal;
+            ConfigFileSolutionDTO configFileSolution = configFilesData.ConfigFileSolution;
 
             if (configFileSolution != null)
             {
@@ -37,7 +37,7 @@ namespace RefDepGuard.Managers.CheckRules
                     configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("projects", false, ""));
             }
             else
-                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError(configFilesData.solutionName, false, ""));
+                configPropertyNullErrorList.Add(new ConfigFilePropertyNullError(configFilesData.SolutionName, false, ""));
 
 
             if (configFileGlobal != null)

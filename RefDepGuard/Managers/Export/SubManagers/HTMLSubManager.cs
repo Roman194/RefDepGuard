@@ -14,7 +14,7 @@ namespace RefDepGuard
             RefDepGuardExportParameters refDepGuardExportParameters) 
         {
             string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardExportParameters);
-            string currentReportFile = currentReportDirectory + "\\" + configFilesData.solutionName + "_references_report.html";
+            string currentReportFile = currentReportDirectory + "\\" + configFilesData.SolutionName + "_references_report.html";
 
             FileStreamManager.WriteInfoToFile(currentReportFile, generatedHtml);
         }

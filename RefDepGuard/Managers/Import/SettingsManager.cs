@@ -1,14 +1,8 @@
-﻿using EnvDTE;
-using Microsoft.Office.Interop.Excel;
-using Microsoft.VisualStudio.Shell.Interop;
+﻿using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RefDepGuard.Data;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Models;
 
@@ -25,7 +19,7 @@ namespace RefDepGuard.Managers.Import
 
         static SettingsManager()
         {
-            //Здесь идёт дублирование с CacheManager по созданию rdgStuffDirectory (мб оставить это создание только в одном менеджере?)
+            
             UsingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_settings\\using_solutions.rdg";
             SolutionName = SolutionNameManager.GetSolutionName();
 
@@ -46,8 +40,8 @@ namespace RefDepGuard.Managers.Import
             
             if (File.Exists(UsingSolutionsExtendedName))
             {
-                try
-                {
+                //try // Закомментировал try-catch на время тестирования, чтобы понять зачем он вообще м.б. нужен
+                //{
                     string currentFileContent = FileStreamManager.ReadInfoFromFile(UsingSolutionsExtendedName);
 
                     if (String.IsNullOrEmpty(currentFileContent))
@@ -66,11 +60,11 @@ namespace RefDepGuard.Managers.Import
                     if (findedSolution != null)
                         return false;
                     
-                }
-                catch (Exception) //????
-                {
+                //}
+                //catch (Exception)
+                //{
                     
-                }
+                //}
             }
 
             return ShowUnfamiliarMessageAndMakeFamiliar(uiShell, SolutionName); //В противном случае спрашиваем у пользователя нужно ли ему использовать в solution расширение

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using RefDepGuard.Comparators;
 using RefDepGuard.Data;
 using RefDepGuard.Data.FrameworkVersion;
 using RefDepGuard.Models.FrameworkVersion;
@@ -51,7 +49,7 @@ namespace RefDepGuard.Managers.CheckRules
             }
         }
 
-        public static void CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
+        public static void CheckProjectMaxFrameworkVersionDifferentLevelsConflicts(
             Dictionary<string, List<int>> maxLowLevelFrameworkVersion, Dictionary<string, List<int>> maxHighLevelFrameworkVersion, string projName,
             ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel)
         {
@@ -140,9 +138,11 @@ namespace RefDepGuard.Managers.CheckRules
 
                 //Загрузка данных об ограничениях на max_fr_version для текущего проекта
                 if (!requiredMaxFrVersionsDict.ContainsKey(projName))//Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
-                    requiredMaxFrVersionsDict.Add(projName, new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject));
+                    requiredMaxFrVersionsDict.Add(projName, 
+                        new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject));
                 else
-                    requiredMaxFrVersionsDict[projName] = new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject);
+                    requiredMaxFrVersionsDict[projName] = 
+                        new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject);
 
                 var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
 
@@ -158,11 +158,13 @@ namespace RefDepGuard.Managers.CheckRules
                         //Ошибка, когда "TargetFramework" оказался больше чем максимально допустимый
                         var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
 
-                        var currentFrameworkVersionComparabilityError =
-                            new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName);
-
-                        if (!frameworkVersionComparabilityErrorList.Contains(currentFrameworkVersionComparabilityError, new FrameworkVersionComparabilityErrorContainsComparer()))
-                            frameworkVersionComparabilityErrorList.Add(currentFrameworkVersionComparabilityError);
+                        if(frameworkVersionComparabilityErrorList.Find(error => 
+                                error.ErrorLevel == errorLevel && error.TargetFrameworkVersion == currentProjFrameworkVersionString &&
+                                error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantProjectName == projName) == null
+                            )
+                            frameworkVersionComparabilityErrorList.Add(
+                                new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
+                                );
 
                         i = 0;
                         break;
@@ -188,11 +190,13 @@ namespace RefDepGuard.Managers.CheckRules
                         {
                             var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
 
-                            var currentFrameworkVersionComparabilityError =
-                                new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName);
-
-                            if (!frameworkVersionComparabilityErrorList.Contains(currentFrameworkVersionComparabilityError, new FrameworkVersionComparabilityErrorContainsComparer()))
-                                frameworkVersionComparabilityErrorList.Add(currentFrameworkVersionComparabilityError);
+                            if (frameworkVersionComparabilityErrorList.Find(error =>
+                                error.ErrorLevel == errorLevel && error.TargetFrameworkVersion == currentProjFrameworkVersionString &&
+                                error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantProjectName == projName) == null
+                            )
+                                frameworkVersionComparabilityErrorList.Add(
+                                    new FrameworkVersionComparabilityError(errorLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
+                                    );
 
                             break;
                         }
@@ -315,7 +319,8 @@ namespace RefDepGuard.Managers.CheckRules
                     if (lowRuleLevel != ProblemLevel.Undefined)
                         AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                     else
-                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, isOneProjectsTypeConflict);
+                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, 
+                            isOneProjectsTypeConflict);
 
                     return;
                 }
@@ -339,9 +344,11 @@ namespace RefDepGuard.Managers.CheckRules
                         var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
 
                         if (lowRuleLevel != ProblemLevel.Undefined)
-                            AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
+                            AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, 
+                                highRuleLevel);
                         else
-                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, isOneProjectsTypeConflict);
+                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, 
+                                isOneProjectsTypeConflict);
 
                         break;
                     }
@@ -349,10 +356,12 @@ namespace RefDepGuard.Managers.CheckRules
             }
         }
 
-        private static void AddNewMaxFrameworkVersionConflictWarning(string maxHighLevelFrameworkVersionString, string maxLowLevelFrameworkVersionString, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel)
+        private static void AddNewMaxFrameworkVersionConflictWarning(
+            string maxHighLevelFrameworkVersionString, string maxLowLevelFrameworkVersionString, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel)
         {
             //Warning о противоречии между рефами
-            var potentialMaxFrameworkVersionConflictWarning = new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
+            var potentialMaxFrameworkVersionConflictWarning = 
+                new MaxFrameworkVersionConflictWarning(highRuleLevel, lowRuleLevel, maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName);
 
             if (lowRuleLevel == ProblemLevel.Project)
             {
@@ -360,7 +369,9 @@ namespace RefDepGuard.Managers.CheckRules
                 return;
             }
 
-            if (!maxFrameworkVersionConflictWarningsList.Contains(potentialMaxFrameworkVersionConflictWarning, new MaxFrameworkVersionConflictWarningContainsComparer()))
+            if(maxFrameworkVersionConflictWarningsList.Find(error => 
+                error.HighWarnLevel == highRuleLevel && error.LowWarnLevel == lowRuleLevel && error.WarningRelevantProjectName == projName) == null
+            )
                 maxFrameworkVersionConflictWarningsList.Add(potentialMaxFrameworkVersionConflictWarning);
         }
 

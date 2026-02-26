@@ -64,8 +64,8 @@ namespace RefDepGuard
 
         public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
         {
-            configFileSolution = currentConfigFilesData.configFileSolution;
-            configFileGlobal = currentConfigFilesData.configFileGlobal; //Протаскиваю здесь global, хотя он тут никак не может измениться, а надо ли?
+            configFileSolution = currentConfigFilesData.ConfigFileSolution;
+            configFileGlobal = currentConfigFilesData.ConfigFileGlobal; //Протаскиваю здесь global, хотя он тут никак не может измениться, а надо ли?
 
             ConfigFileSolutionDTO currentProj = isProjectAdding ? 
                 updateConfigFileSolutionByAddingProjects(differProjectsList) : 

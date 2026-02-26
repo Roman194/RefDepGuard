@@ -1,8 +1,6 @@
-﻿using Microsoft.VisualStudio.TextManager.Interop;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Comparators.ContainsComparators;
 using RefDepGuard.Data;
 using RefDepGuard.Data.Reference;
 using RefDepGuard.Models.Reference;
@@ -149,7 +147,7 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                         }
 
                         //Если реф с таким же названием содежится в MatchError, то пофиг уже на Level: важнеее устранить конфликт рефов, чем вывести по уровню
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(ProblemLevel.Project, fileReference, projName, false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Find(error => error.ReferenceName == fileReference) != null)
                             continue;
 
                         refsErrorList.Add(
@@ -172,7 +170,7 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                     if ((isReferenceRequired && !projReferences.Contains(currentReference)) ||
                         (!isReferenceRequired && projReferences.Contains(currentReference)))
                     {
-                        if (refsMatchErrorList.Contains(new ReferenceMatchError(referenceLevel, currentReference, "", false), new ReferenceMatchErrorComparer()))
+                        if (refsMatchErrorList.Find(error => error.ReferenceName == currentReference) != null)
                             continue;
 
                         if (IsRuleConflict(currentReference, referenceLevel, generalReferences))
@@ -181,7 +179,9 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                         if (isReferenceRequired && currentReference == projName)
                             continue;
 
-                        refsErrorList.Add(new ReferenceError(currentReference, projName, isReferenceRequired, referenceLevel));
+                        refsErrorList.Add(
+                            new ReferenceError(currentReference, projName, isReferenceRequired, referenceLevel)
+                            );
                     }
                 }
             }
@@ -198,7 +198,7 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
         }
 
         private static List<string> CheckReferencesListOnProjectExisting(
-            List<string> currentReferencesList, Dictionary<string, ProjectState> currentCommitedProjState, ProblemLevel errorLevel, string projName)
+            List<string> currentReferencesList, Dictionary<string, ProjectState> currentCommitedProjState, ProblemLevel warningLevel, string projName)
         {
             var incorrecltlyReferingRefs = new List<string>();
 
@@ -214,12 +214,12 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
             {
                 currentReferencesList.Remove(incorrRef);
 
-                var currentPNFWarningInstance = new ProjectNotFoundWarning(incorrRef, errorLevel, projName);
+                var currentPNFWarningInstance = new ProjectNotFoundWarning(incorrRef, warningLevel, projName);
 
-                if (!projectNotFoundWarningsList.Contains(currentPNFWarningInstance, new ProjectNotFoundContainsComparer()))
-                {
+                if(projectNotFoundWarningsList.Find(warning => 
+                    warning.ReferenceName == incorrRef && warning.WarningLevel == warningLevel && warning.ProjName == projName) == null
+                )
                     projectNotFoundWarningsList.Add(currentPNFWarningInstance);
-                }
             }
 
             return currentReferencesList;

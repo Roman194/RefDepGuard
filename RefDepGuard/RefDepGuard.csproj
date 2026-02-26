@@ -48,8 +48,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Comparators\ContainsComparators\ProjectMatchWarningContainsComparer.cs" />
-    <Compile Include="Comparators\ContainsComparators\ProjectNotFoundContainsComparer.cs" />
     <Compile Include="Data\TFMSample.cs" />
     <Compile Include="Managers\Applied\FileStreamManager.cs" />
     <Compile Include="Managers\Applied\SolutionNameManager.cs" />
@@ -67,14 +65,14 @@
     <Compile Include="Managers\Import\ConfigFileManager.cs" />
     <Compile Include="Managers\Import\SettingsManager.cs" />
     <Compile Include="Models\ConfigFile\ConfigFilesData.cs" />
-    <Compile Include="Models\FileParseError.cs" />
+    <Compile Include="Models\FileError\FileParseError.cs" />
     <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleProblems.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionDeviantValueWarning.cs" />
     <Compile Include="Models\FrameworkVersion\Errors\MaxFrameworkVersionIllegalTemplateUsageError.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionTFMNotFoundWarning.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionWarnings.cs" />
     <Compile Include="Models\NetstandardMinProjTypeVersions.cs" />
-    <Compile Include="Models\ProjectMatchWarning.cs" />
+    <Compile Include="Models\Project\ProjectMatchWarning.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardExportParameters.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardFindedProblems.cs" />
     <Compile Include="Managers\ExcecuteRefsManager.cs" />
@@ -88,10 +86,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="UI\MainCommand.cs" />
-    <Compile Include="Comparators\ContainsComparators\FrameworkVersionComparabilityErrorContainsComparer.cs" />
-    <Compile Include="Comparators\ContainsComparators\FrameworkVersionComparabilityErrorExportContainsComparer.cs" />
-    <Compile Include="Comparators\ContainsComparators\MaxFrameworkVersionConflictWarningContainsComparer.cs" />
-    <Compile Include="Comparators\ContainsComparators\MaxFrameworkVersionDeviantValueExportContainsComparer.cs" />
     <Compile Include="Comparators\SortComparators\ConfigFilePropertyNullErrorSortComparer.cs" />
     <Compile Include="Comparators\SortComparators\ReferenceMatchErrorSortComparer.cs" />
     <Compile Include="Models\ConfigFile\ConfigFileServiceInfo.cs" />
@@ -99,19 +93,18 @@
     <Compile Include="Models\ConfigFile\DTO\ConfigFileProjectDTO.cs" />
     <Compile Include="Models\ConfigFile\ConfigFileProjectRefsConsidering.cs" />
     <Compile Include="Models\ConfigFile\DTO\ConfigFileSolutionDTO.cs" />
-    <Compile Include="Models\FileErrorMessage.cs" />
+    <Compile Include="Models\FileError\FileErrorMessage.cs" />
     <Compile Include="Models\FrameworkVersion\Errors\FrameworkVersionComparabilityError.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionConflictWarning.cs" />
     <Compile Include="Models\FrameworkVersion\Errors\MaxFrameworkVersionDeviantValueError.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionReferenceConflictWarning.cs" />
     <Compile Include="Models\FrameworkVersion\RequiredMaxFrVersion.cs" />
-    <Compile Include="Models\ProjectState.cs" />
+    <Compile Include="Models\Project\ProjectState.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardWarnings.cs" />
     <Compile Include="Models\ConfigFile\ConfigFilePropertyNullError.cs" />
     <Compile Include="Models\RefDepGuard\RefDepGuardErrors.cs" />
     <Compile Include="Models\Reference\Warnings\ReferenceMatchWarning.cs" />
     <Compile Include="Models\Reference\RequiredReference.cs" />
-    <Compile Include="Comparators\ContainsComparators\MaxFrameworkVersionDeviantValueContainsComparer.cs" />
     <Compile Include="Comparators\SortComparators\FrameworkVersionComparabilityErrorSortComparer.cs" />
     <Compile Include="Comparators\SortComparators\MaxFrameworkVersionDeviantValueSortComparer.cs" />
     <Compile Include="Models\RequiredParameters.cs" />
@@ -124,7 +117,6 @@
     <Compile Include="Models\Reference\ReferenceAffiliation.cs" />
     <Compile Include="Comparators\SortComparators\ReferenceErrorSortComparer.cs" />
     <Compile Include="Models\Reference\Errors\ReferenceMatchError.cs" />
-    <Compile Include="Comparators\SortComparators\ReferenceMatchErrorComparer.cs" />
     <Compile Include="Models\ProblemLevel.cs" />
     <Compile Include="Models\Reference\Errors\ReferenceError.cs" />
     <Compile Include="RefDepGuardPackage.cs" />

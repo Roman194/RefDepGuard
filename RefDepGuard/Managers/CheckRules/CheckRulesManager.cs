@@ -33,9 +33,9 @@ namespace RefDepGuard
             ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell
             )
         {
-            ConfigFileGlobalDTO configFileGlobal = configFilesData.configFileGlobal;
-            ConfigFileSolutionDTO configFileSolution = configFilesData.configFileSolution;
-            string solutionName = configFilesData.solutionName;
+            ConfigFileGlobalDTO configFileGlobal = configFilesData.ConfigFileGlobal;
+            ConfigFileSolutionDTO configFileSolution = configFilesData.ConfigFileSolution;
+            string solutionName = configFilesData.SolutionName;
 
             ClearErrorAndWarningLists();
 
@@ -63,7 +63,7 @@ namespace RefDepGuard
             requiredReferencesList.AddRange(solutionRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
 
             if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)//проверка на противоречие с global
-                MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
+                MaxFrameworkRuleChecksSubManager.CheckProjectMaxFrameworkVersionDifferentLevelsConflicts(
                     maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "-", ProblemLevel.Solution, ProblemLevel.Global
                     );
 
@@ -90,7 +90,7 @@ namespace RefDepGuard
                 var projReferences = currentProjState.Value.CurrentReferences;
                 var projFrameworkVersions = currentProjState.Value.CurrentFrameworkVersions;
 
-                if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)//Эта проверка требуется, так как п-ль мог запретить автомат. добавление недостающих проектов
+                if (configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)//Эта проверка требуется, так как п-ль мог запретить автомат. добавление недостающих проектов
                 {
                     ConfigFileProjectDTO currentProjectConfigFileSettings = configFileSolution.projects[projName];
 
@@ -160,12 +160,12 @@ namespace RefDepGuard
                     else//Проверить на противоречие с уровнем solution и global
                     {
                         if (maxSolutionFrameworkVersionByTypes.Count > 0)
-                            MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
+                            MaxFrameworkRuleChecksSubManager.CheckProjectMaxFrameworkVersionDifferentLevelsConflicts(
                                 maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ProblemLevel.Project, ProblemLevel.Solution
                                 );
 
                         if (maxGlobalFrameworkVersionByTypes.Count > 0)
-                            MaxFrameworkRuleChecksSubManager.CheckPrjMaxFrwrkVrsnDifferentLevelsConflicts(
+                            MaxFrameworkRuleChecksSubManager.CheckProjectMaxFrameworkVersionDifferentLevelsConflicts(
                                 maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Project, ProblemLevel.Global
                                 );
 
@@ -183,7 +183,7 @@ namespace RefDepGuard
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value.CurrentReferences;
 
-                if (configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)
+                if (configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {
                     MaxFrameworkRuleChecksSubManager.CheckProjectReferencesOnPotentialReferencesFrameworkVersionConflict(projName, projReferences);
                 }
@@ -256,7 +256,6 @@ namespace RefDepGuard
             if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ProblemLevel.Project && projTypes.Count == 1)
             {
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
-                //TODO: перекинуть на новый тип ошибки framework_max_version illegal template usage error!!!
                 if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
                     maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName));
 
@@ -296,18 +295,16 @@ namespace RefDepGuard
                 if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0]) || String.IsNullOrEmpty(maxFrameworkVersionElementSplited[1]))
                 {
                     //Выкинуть ошибку о некорректном формате
-                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, "", false);
-
-                    if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
-
+                    if(maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel) == null)
+                        maxFrameworkVersionDeviantValueErrorList.Add(new MaxFrameworkVersionDeviantValueError(errorLevel, "", false));
+                    
                     return new Dictionary<string, List<int>>();
                 }
 
-                //Если при TargetFrameworks п-ль указал тип проекта, которого нет в TF или не супертип all, то выдать ошибку
-                //?????? вроде как all уже недопустим на project уровне ) && maxFrameworkVersionElementSplited[0] != "all")
+                //Если при TargetFrameworks п-ль на уровне проекта указал тип проекта, не соответствующих его факт типу (типам) TFM, то 
+                //MaxFrameworkVersionIllegalTemplateUsageError
                 if (errorLevel == ProblemLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]))
-                { //Надо задать на это + где projTypes == 1 новый вид ошибок? (framework_max_version template illegal usage error)
+                {
                     
                     if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
                         maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName));
@@ -340,7 +337,7 @@ namespace RefDepGuard
                         }
                         else
                         {
-                            if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
+                            if (maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel && error.ErrorRelevantProjectName == projName) == null)
                                 maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
                         }
 
@@ -358,10 +355,9 @@ namespace RefDepGuard
 
                 if (maxFrameworkDictionary.ContainsKey(maxFrameworkVersionElementSplited[0])) //Если обнаружен повтор в типах проекта одного шаблона ограничения
                 { //Выдать ошибку о некорректном значении ограничения
-                    MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, true);
+                    if (maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel && error.ErrorRelevantProjectName == projName) == null)
+                        maxFrameworkVersionDeviantValueErrorList.Add(new MaxFrameworkVersionDeviantValueError(errorLevel, projName, true));
 
-                    if (!maxFrameworkVersionDeviantValueErrorList.Contains(potentialMaxFrameworkVersionDeviantValueError, new MaxFrameworkVersionDeviantValueContainsComparer()))
-                        maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);
                     break;
                 }
                 maxFrameworkDictionary.Add(maxFrameworkVersionElementSplited[0], maxFrameworkVersionNumsList);

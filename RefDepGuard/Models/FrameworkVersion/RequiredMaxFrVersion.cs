@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace RefDepGuard.Data.FrameworkVersion
 {
     public class RequiredMaxFrVersion
@@ -20,6 +15,5 @@ namespace RefDepGuard.Data.FrameworkVersion
             ProjectTypeRule = projectTypeRule;
             IsConflictWarningRelevantForThisProject = isConflictWarningRelevantForThisProject;
         }
-
     }
 }

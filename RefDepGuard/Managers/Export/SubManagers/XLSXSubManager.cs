@@ -18,17 +18,17 @@ namespace RefDepGuard
             {
                 exportWorkbook.Worksheets.Add();
             }
-            LoadInfoToProjectAndReferenceWorkbooksHelper.LoadInfoToProjectsWorkbook(excel, configFilesData.solutionName, currentDateTime, commitedProjectsState, 
+            LoadInfoToProjectAndReferenceWorkbooksHelper.LoadInfoToProjectsWorkbook(excel, configFilesData.SolutionName, currentDateTime, commitedProjectsState, 
                 refDepGuardExportParameters);
-            LoadInfoToProjectAndReferenceWorkbooksHelper.LoadInfoToReferencesBook(excel, configFilesData.solutionName, currentDateTime, commitedProjectsState, 
+            LoadInfoToProjectAndReferenceWorkbooksHelper.LoadInfoToReferencesBook(excel, configFilesData.SolutionName, currentDateTime, commitedProjectsState, 
                 refDepGuardExportParameters);
 
-            LoadInfoToProblemWorkbooksHelper.LoadInfoToRefRepGuardErrors(excel, configFilesData.solutionName, currentDateTime, 
+            LoadInfoToProblemWorkbooksHelper.LoadInfoToRefRepGuardErrors(excel, configFilesData.SolutionName, currentDateTime, 
                 refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors);
-            LoadInfoToProblemWorkbooksHelper.LoadInfoToRefDepGuardWarnings(excel, configFilesData.solutionName, currentDateTime,
+            LoadInfoToProblemWorkbooksHelper.LoadInfoToRefDepGuardWarnings(excel, configFilesData.SolutionName, currentDateTime,
                 refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings);
 
-            excel.Application.ActiveWorkbook.SaveAs(currentReportDirectory + "\\" + configFilesData.solutionName + "_references_report.xlsx", Type.Missing,
+            excel.Application.ActiveWorkbook.SaveAs(currentReportDirectory + "\\" + configFilesData.SolutionName + "_references_report.xlsx", Type.Missing,
                 Type.Missing, Type.Missing, Type.Missing, Type.Missing, XlSaveAsAccessMode.xlNoChange, Type.Missing, Type.Missing, Type.Missing, 
                 Type.Missing, Type.Missing);
 

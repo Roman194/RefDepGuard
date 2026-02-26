@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RefDepGuard.Data;
 
 namespace RefDepGuard.Managers.CheckRules.SubManagers
@@ -38,7 +35,6 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                     detectedTransitRefsDict.Add(projName, findedTransitReferencesList);
                 }
             }
-
         }
 
         public static Dictionary<string, List<string>> GetDetectedTransitRefsDict()

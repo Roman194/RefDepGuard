@@ -63,7 +63,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             {
                 string errorRelevantProjectName = (maxFrameworkVersionDeviantValue.ErrorRelevantProjectName != "") ? 
                     maxFrameworkVersionDeviantValue.ErrorRelevantProjectName : "-";
-                string currentErrorLevel = "Global"; //???
+                string currentErrorLevel = "Global";
                 string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ? 
                     "\r\nсодержит один и тот же тип проекта в\r\nшаблоне более одного раза" : 
                     " содержит некорректную запись\r\nсвоего значения";

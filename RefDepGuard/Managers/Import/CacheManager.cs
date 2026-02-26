@@ -1,12 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RefDepGuard.Managers.Applied;
-using RefDepGuard.Models;
 
 namespace RefDepGuard.Managers.Import
 {
@@ -29,8 +23,6 @@ namespace RefDepGuard.Managers.Import
                 configFilesBackupExtendedPackageName.LastIndexOf('\\') - 1));
 
             stuffDirInfo = new DirectoryInfo(rdgStuffDirectory);
-            stuffDirInfo.Create();
-            stuffDirInfo.Attributes |= FileAttributes.Hidden;
 
             string rdgCacheDirectory = configFilesBackupExtendedPackageName.Substring(0, configFilesBackupExtendedPackageName.LastIndexOf('\\'));
             cacheDirInfo = new DirectoryInfo(rdgCacheDirectory);

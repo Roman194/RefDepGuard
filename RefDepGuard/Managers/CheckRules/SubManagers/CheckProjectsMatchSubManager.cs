@@ -17,7 +17,8 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                 projectMatchWarningList.Clear();
         }
 
-        public static Tuple<ConfigFilesData, List<ProjectMatchWarning>> CheckAndUpdateProjectsOnMatch(ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell)
+        public static Tuple<ConfigFilesData, List<ProjectMatchWarning>> CheckAndUpdateProjectsOnMatch(
+            ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell)
         {
             var addedProjectsList = new List<string>();
             var removedProjectsList = new List<string>();
@@ -26,13 +27,13 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
             {
                 var projName = currentProjState.Key;
 
-                if (!configFilesData.configFileSolution?.projects?.ContainsKey(projName) ?? false)
+                if (!configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {
                     addedProjectsList.Add(projName);
                 }
             }
 
-            foreach (var dictValue in configFilesData.configFileSolution?.projects) //проверка на наличие удалённых проектов
+            foreach (var dictValue in configFilesData.ConfigFileSolution?.projects) //проверка на наличие удалённых проектов
             {
                 var projName = dictValue.Key;
                 if (!currentCommitedProjState.ContainsKey(projName))
@@ -57,7 +58,7 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
             string projectNotFindedStr = (isSingleProject) ? "отсутствующий" : "отсутствующие";
             string projectNounStr = (isSingleProject) ? "его" : "их";
 
-            string problemPlaceStr = (isAddedList) ? "config-файле ('" + configFilesData.solutionName + "_config_guard.rdg')" : "solution";
+            string problemPlaceStr = (isAddedList) ? "config-файле ('" + configFilesData.SolutionName + "_config_guard.rdg')" : "solution";
             string findedProjPlaceStr = (isAddedList) ? "solution " : "config-файле ";
             string offeredSolutionStr = (isAddedList) ? ". Добавить " + projectNounStr + " в файл конфигураций?" : ". Удалить "+ projectNounStr +" из файла конфигураций?";
 

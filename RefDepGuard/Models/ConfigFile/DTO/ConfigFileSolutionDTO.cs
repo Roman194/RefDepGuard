@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace RefDepGuard
 {
@@ -13,7 +9,6 @@ namespace RefDepGuard
         public bool report_on_transit_references;
         public List<string> solution_required_references;
         public List<string> solution_unacceptable_references;
-
         public Dictionary<string, ConfigFileProjectDTO> projects;
     }
 }

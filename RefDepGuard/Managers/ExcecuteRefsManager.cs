@@ -2,10 +2,7 @@
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Text;
 using System.Linq;
-using System.Windows.Forms;
 using RefDepGuard.Data;
 
 namespace RefDepGuard
@@ -133,15 +130,6 @@ namespace RefDepGuard
             return message;
         }
 
-        private static string GetReqTabsCount(int count)
-        {
-            string message = "";
-            for (int i = 0; i < count - 2; i++)
-                message += "  ";
-            
-            return message;
-        }
-
         private static string ExcecuteMessageWithTransitRefs(Dictionary<string, List<string>> currentReferencesState)
         {
             string message = "";
@@ -220,6 +208,15 @@ namespace RefDepGuard
                         message += currentStartTabs + "┃\r\n";
                 }
             }
+
+            return message;
+        }
+
+        private static string GetReqTabsCount(int count)
+        {
+            string message = "";
+            for (int i = 0; i < count - 2; i++)
+                message += "  ";
 
             return message;
         }

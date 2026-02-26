@@ -11,7 +11,6 @@ namespace RefDepGuard.Managers.Export.SubManagers
 {
     public class LoadInfoToProjectAndReferenceWorkbooksHelper
     {
-        //Посмотреть что можно оптимизировать в визуальной настройке по аналогии с ProblemsHelper
         public static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
@@ -186,7 +185,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             bool isPotentialVersionConflict = false;
             int widthIndex = 5;
-            int heightIndex = 4;
+            int heightIndex = 4; //Так как названиями столбцов в этой таблице занято на одну строку меньше, то значением индекса на один меньше
             int firstRowIndex = heightIndex + 1;
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[2];
@@ -194,7 +193,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             projectsTable = SetUnionColumnNames(projectsTable, solutionName, currentDateTime);
 
-            projectsTable.Cells[heightIndex, 3] = "Референс"; //А выше подобное heightIndex - 1. Это норм или нет?
+            projectsTable.Cells[heightIndex, 3] = "Референс"; //из-за этого значения heightIndex здесь нету минус 1!
             projectsTable.Cells[heightIndex, 4] = "Проект";
             projectsTable.Cells[heightIndex, 5] = "Тип референса";
 
@@ -210,42 +209,36 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     projectsTable = SetCurrentRowNum(projectsTable, i, heightIndex);
                     projectsTable.Cells[firstRowIndex + i, 3] = projectReference;
                     projectsTable.Cells[firstRowIndex + i, 4] = projectName;
-                    projectsTable.Cells[firstRowIndex + i, 5] = "-";
 
-                    //Выделения типа связи расставлены в порядке обратном порядку приоритезации
+                    //Выделения типа связи расставлены в порядке приоритезации
                     RequiredReference requiredReference = requiredReferences
                         .Where(value => value.ReferenceName == projectReference && (value.RelevantProject == projectName || value.RelevantProject == ""))
                         .FirstOrDefault(); //Должно найтись не более одного такого значения
 
-                    if (requiredReference != null) //Оптимизировать задание стиля!!!
-                    {
-                        projectsTable.Cells[firstRowIndex + i, 5] = "Обязательный";
-                        projectsTable.Cells[firstRowIndex + i, 5].Interior.Color = 0xCEEFC6;
-                        projectsTable.Cells[firstRowIndex + i, 5].Font.Color = 0x006100;
-                    }
-
                     MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReference = maxFrameworkVersionReferenceConflictWarningsList
-                        .Where(value => value.RefName ==  projectReference && value.ProjName == projectName)
+                        .Where(value => value.RefName == projectReference && value.ProjName == projectName)
                         .FirstOrDefault();
-
-                    if (maxFrameworkVersionReference != null) //фон #f7e392 текст #8b6400
-                    {
-                        projectsTable.Cells[firstRowIndex + i, 5] = "Потенциальный\r\nконфликт версий";
-                        projectsTable.Cells[firstRowIndex + i, 5].Interior.Color = 0x92e3f7;
-                        projectsTable.Cells[firstRowIndex + i, 5].Font.Color = 0x00648b;
-
-                        isPotentialVersionConflict = true;
-                    }
 
                     ReferenceError referenceError = refsErrorList
                         .Where(value => value.ErrorRelevantProjectName == projectName && value.ReferenceName == projectReference && value.IsReferenceRequired == false)
                         .FirstOrDefault();
 
-                    if (referenceError != null)
+                    if(referenceError != null)
+                        projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Недопустимый", 0xCEC7FF, 0x062CCE);
+                    else
                     {
-                        projectsTable.Cells[firstRowIndex + i, 5] = "Недопустимый";
-                        projectsTable.Cells[firstRowIndex + i, 5].Interior.Color = 0xCEC7FF;
-                        projectsTable.Cells[firstRowIndex + i, 5].Font.Color = 0x062CCE;
+                        if(maxFrameworkVersionReference != null)
+                        {
+                            projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Потенциальный\r\nконфликт версий", 0x92e3f7, 0x00648b); //фон #f7e392 текст #8b6400
+                            isPotentialVersionConflict = true;
+                        }
+                        else
+                        {
+                            if (requiredReference != null)
+                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Обязательный", 0xCEEFC6, 0x006100);
+                            else
+                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "-");
+                        }
                     }
 
                     i++;
@@ -290,6 +283,17 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 projectsTable.Cells[heightIndex + 1, 2] = "1";
             else
                 projectsTable.Cells[heightIndex + 1 + i, 2].FormulaLocal = $"=B{i + heightIndex} + 1";
+
+            return projectsTable;
+        }
+
+        private static Worksheet SetReferenceTypeStyle(Worksheet projectsTable, int firstRowIndex, int i, string textType, 
+            int interiorColor = 0x0fffff, int fontColor = 0x000000)
+        {
+            projectsTable.Cells[firstRowIndex + i, 5] = textType;
+            if(interiorColor != 0x0fffff)
+                projectsTable.Cells[firstRowIndex + i, 5].Interior.Color = interiorColor;
+            projectsTable.Cells[firstRowIndex + i, 5].Font.Color = fontColor;
 
             return projectsTable;
         }

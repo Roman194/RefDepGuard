@@ -26,7 +26,7 @@ namespace RefDepGuard
 
             try
             {
-                currentReportDirectory = configFilesData.packageExtendedName + "\\reports\\"+ reportType +"\\" + currentDateTime;
+                currentReportDirectory = configFilesData.PackageExtendedName + "\\reports\\"+ reportType +"\\" + currentDateTime;
                 Directory.CreateDirectory(currentReportDirectory);
 
                 switch (reportType)
