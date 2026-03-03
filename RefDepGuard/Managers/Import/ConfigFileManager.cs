@@ -29,7 +29,7 @@ namespace RefDepGuard
 
         private static Dictionary<string, ProjectState> commitedProjState;
 
-        static ConfigFileManager() //My static initializator for use it results in the static methods
+        public static void SetSolutionNameInfoInRightFormat()
         {
             packageExtendedName = SolutionNameManager.GetPackageName();
             solutionName = SolutionNameManager.GetSolutionName();
@@ -86,7 +86,7 @@ namespace RefDepGuard
             string typePrefix = configFileServiceInfo.IsGlobal ? "Глобальный ф" : "Ф"; //Вынести это отдельно?
             
             FileErrorMessage fileErrorMessage = new FileErrorMessage(
-                "Не получилось загрузить " + typePrefix + "файл конфигурации", typePrefix + "файл конфигурации не найден");
+                "Не получилось загрузить " + typePrefix + "айл конфигурации", typePrefix + "файл конфигурации не найден");
 
             if (File.Exists(configFileServiceInfo.SolutionConfigGuardFile))
             {
@@ -136,7 +136,7 @@ namespace RefDepGuard
 
             MessageManager.ShowMessageBox(
                     serviceProvider,
-                    errorReason + solutionNameInfo + ".\r\n " + actionAnnounc,
+                    errorReason + solutionNameInfo + ".\r\n" + actionAnnounc,
                     "RefDepGuard Error: Ошибка загрузки файла конфигурации"
             );
 

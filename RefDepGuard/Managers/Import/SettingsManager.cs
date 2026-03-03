@@ -17,9 +17,9 @@ namespace RefDepGuard.Managers.Import
         private static DirectoryInfo stuffDirInfo;
         private static DirectoryInfo settingsDirInfo;
 
-        static SettingsManager()
+        public static bool CheckIfSolutionIsFamiliarToExt(IVsUIShell uiShell)
         {
-            
+
             UsingSolutionsExtendedName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_settings\\using_solutions.rdg";
             SolutionName = SolutionNameManager.GetSolutionName();
 
@@ -33,11 +33,8 @@ namespace RefDepGuard.Managers.Import
             string rdgSettingsDirectory = UsingSolutionsExtendedName.Substring(0, UsingSolutionsExtendedName.LastIndexOf('\\'));
             settingsDirInfo = new DirectoryInfo(rdgSettingsDirectory);
             settingsDirInfo.Create();
-        }
 
-        public static bool CheckIfSolutionIsFamiliarToExt(IVsUIShell uiShell)
-        {
-            
+
             if (File.Exists(UsingSolutionsExtendedName))
             {
                 //try // Закомментировал try-catch на время тестирования, чтобы понять зачем он вообще м.б. нужен

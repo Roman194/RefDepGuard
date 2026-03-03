@@ -226,6 +226,7 @@ namespace RefDepGuard
         private static void CheckSolutionSettings()
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
+            ConfigFileManager.SetSolutionNameInfoInRightFormat();
 
             isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(uiShell);
         }

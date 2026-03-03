@@ -158,7 +158,10 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="RefDepGuard_icon.ico" />
+    <Content Include="RefDepGuard_icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="UI\Resources\CommitSolState_icon.png" />
     <Content Include="UI\Resources\GraphExport_icon.png" />
     <Content Include="UI\Resources\ShowChanges_icon.png" />
