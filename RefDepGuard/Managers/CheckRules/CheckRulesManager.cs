@@ -233,6 +233,9 @@ namespace RefDepGuard
             if (maxFrameworkVersionDeviantValueWarningList != null)
                 maxFrameworkVersionDeviantValueWarningList.Clear();
 
+            if(maxFrameworkVersionIllegalTemplateUsageErrorsList != null)
+                maxFrameworkVersionIllegalTemplateUsageErrorsList.Clear();
+
             if(maxFrameworkVersionTFMNotFoundWarningList != null)
                 maxFrameworkVersionTFMNotFoundWarningList.Clear();
 
@@ -257,7 +260,7 @@ namespace RefDepGuard
             {
                 //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
                 if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
-                    maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName));
+                    maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName, false));
 
                 return new Dictionary<string, List<int>>();
             }
@@ -303,11 +306,11 @@ namespace RefDepGuard
 
                 //Если при TargetFrameworks п-ль на уровне проекта указал тип проекта, не соответствующих его факт типу (типам) TFM, то 
                 //MaxFrameworkVersionIllegalTemplateUsageError
-                if (errorLevel == ProblemLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]))
+                if (errorLevel == ProblemLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]) && maxFrameworkVersionElementSplited[0] != "all")
                 {
                     
                     if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
-                        maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName));
+                        maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName, true));
 
                     return new Dictionary<string, List<int>>();
                 }

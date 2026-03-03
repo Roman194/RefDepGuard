@@ -242,7 +242,7 @@ namespace RefDepGuard.Managers.CheckRules
                             .ConvertAll(value => Convert.ToInt32(value));
 
                             CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, 
-                                ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, true);
+                                ProblemLevel.Undefined, ProblemLevel.Undefined, projReference);
                         }
                         else
                         {
@@ -262,19 +262,26 @@ namespace RefDepGuard.Managers.CheckRules
                                     default: currMinVersion = minProjTypeVersions.MinUapVer; break;
                                 }
 
-                                if (currMinVersion == "-") //Ни одна версия не поддерживается, есть проблема (хотя скорее всего студия сама предупредит, но пусть будет)
+                                if (currMinVersion == "-") //Ни одна версия не поддерживается, есть проблема
                                 {
                                     AddNewMaxFrameworkVersionOnReferenceConflictWarning(projVersion.VersionText, refVersion.VersionText, projName, projReference, false);
                                     continue;
-                                }  
+                                }
+
+                                List<int> currentRefMaxVersionNums = refVersion.VersionText
+                                    .Split('.')
+                                    .ToList()
+                                    .ConvertAll(value => Convert.ToInt32(value));
 
                                 List<int> currMinVersionNums = currMinVersion //Мин версия, которой должен соответствовать проект, чтобы иметь связь для текущей версии netstandard
                                     .Split('.')
                                     .ToList()
                                     .ConvertAll(value => Convert.ToInt32(value));
 
+                                //Так как нужно проверить, больше ли текущая TFM-версия проекта чем минимально допустимая, то TFM-версия рефа передаётся отедльным параметром
+                                //(она не участвует в сравнении но д.б. зафиксирована в соотв. предупреждении)
                                 CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currMinVersionNums, projName, 
-                                    ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, false);
+                                    ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, currentRefMaxVersionNums); 
                             }
                         }
                     }
@@ -299,8 +306,10 @@ namespace RefDepGuard.Managers.CheckRules
 
         private static void CheckMaxFrameworkVersionCurrentConflict(
             List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, string projName, ProblemLevel lowRuleLevel, ProblemLevel highRuleLevel, 
-            string refName = "", bool isOneProjectsTypeConflict = true)
+            string refName = "", List<int> currentRefFrameworkVersionList = null)
         {
+            var isOneProjectsTypeConflict = (currentRefFrameworkVersionList != null) ? false : true;
+
             var maxHighLevelFrameworkVersionArrayLength = maxHighLevelFrameworkVersionList.Count;
             var maxLowLevelFrameworkVersionArrayLength = maxLowLevelFrameworkVersionList.Count;
 
@@ -315,11 +324,13 @@ namespace RefDepGuard.Managers.CheckRules
                 {
                     var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                     var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
+                    var currentRefFrameworkVersionString = (!isOneProjectsTypeConflict) ? 
+                        GetFrameworkVersionString(currentRefFrameworkVersionList.ConvertAll(num => num.ToString())) : null;
 
                     if (lowRuleLevel != ProblemLevel.Undefined)
                         AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                     else
-                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, 
+                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName, 
                             isOneProjectsTypeConflict);
 
                     return;
@@ -342,12 +353,14 @@ namespace RefDepGuard.Managers.CheckRules
                         //Warning о противоречии между рефами
                         var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                         var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
+                        var currentRefFrameworkVersionString = (!isOneProjectsTypeConflict) ?
+                            GetFrameworkVersionString(currentRefFrameworkVersionList.ConvertAll(num => num.ToString())) : null;
 
                         if (lowRuleLevel != ProblemLevel.Undefined)
                             AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, 
                                 highRuleLevel);
                         else
-                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, refName, 
+                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName, 
                                 isOneProjectsTypeConflict);
 
                         break;

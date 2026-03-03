@@ -94,10 +94,14 @@ namespace RefDepGuard.Managers.CheckRules
 
             foreach (MaxFrameworkVersionIllegalTemplateUsageError maxFrameworkVersionIllegalTemplateUsageError in refDepGuardErrors.MaxFrameworkVersionIllegalTemplateUsageErrorList)
             {
+                string errorDescr = maxFrameworkVersionIllegalTemplateUsageError.IsIllegalTFMUsageError ? 
+                    "а попытка задать ограничение для TFM, не обнаруженного в текущем проекте. Проверьте указанную строку max_framework_version на предмет соответствия релевантных проекту TFM" :
+                    "о использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM). Исправьте значение параметра на допустимое";
+
                 string errorText = "RefDepGuard framework_max_version illegal template usage error: в параметре 'framework_max_version' проекта '" +
                     maxFrameworkVersionIllegalTemplateUsageError.ProjName + 
-                    "' обнаружено использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM). " +
-                    "Исправьте значение параметра на допустимое";
+                    "' обнаружен" + errorDescr;
+
                 string documentName = configFilesData.SolutionName + "_config_guard.rdg";
 
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
@@ -229,7 +233,7 @@ namespace RefDepGuard.Managers.CheckRules
             {
                 string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
                     "большее значение значение параметра 'framework_max_version' " :
-                    "несовместимое значение параметра 'framework_max_version' для проекта типа 'netstandard' ";
+                    "несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' ";
                 string errorText = "RefDepGuard framework_max_version reference conflict warning: значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version' проекта " + maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
                     ", так как имеется референс на проект, имеющий " + errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName

@@ -90,6 +90,8 @@ namespace RefDepGuard
                 var currentProjFrameworkVersionArray = currentProjFrameworkArray[0].Split('.'); //Не все TargetFramework содержат точки! Пример: net45 - Не должно быть проблемой
                 var currentProjFrameworkVersionArrayLength = currentProjFrameworkVersionArray.Length;
 
+                currentProjFrameworkVersionArray[0] = currentProjFrameworkVersionArray[0].Replace(" ", "");//Необходимо убрать все пробелы, иначе match не сработает!
+
                 var currentProjFrameworkMatch = Regex.Match(currentProjFrameworkVersionArray[0], @"^([a-zA-Z]+)(\d+)$");
                 var currentProjFrameworkType = "-";
 

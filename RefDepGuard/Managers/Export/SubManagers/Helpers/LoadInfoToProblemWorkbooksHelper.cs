@@ -84,12 +84,20 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             foreach (MaxFrameworkVersionIllegalTemplateUsageError maxFrameworkVersionIllegalTemplateUsageError in refDepGuardErrors.MaxFrameworkVersionIllegalTemplateUsageErrorList)
             {
+                string errorDescr = maxFrameworkVersionIllegalTemplateUsageError.IsIllegalTFMUsageError ?
+                    "а попытка задать\r\nограничение для TFM, не обнаруженного в текущем проекте" :
+                    "о использование\r\nшаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM)";
+
                 string currentErrorText = "в параметре 'framework_max_version'\r\nпроекта '" + maxFrameworkVersionIllegalTemplateUsageError.ProjName + 
-                    "' обнаружено использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM)";
+                    "' обнаружен" + errorDescr;
+
+                string errorOrderSol = maxFrameworkVersionIllegalTemplateUsageError.IsIllegalTFMUsageError ? 
+                    "Проверьте указанную строку\r\nmax_framework_version на предмет соответствия релевантных проекту TFM" : 
+                    "Исправьте значение параметра на допустимое";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
                     maxFrameworkVersionIllegalTemplateUsageError.ProjName, "-", "framework_max_version illegal template usage", "Project", currentErrorText, 
-                    "Исправьте значение параметра на допустимое", solutionName + "_config_guard.rdg", i);
+                    errorOrderSol, solutionName + "_config_guard.rdg", i);
             }
 
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
@@ -254,7 +262,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             {
                 string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
                     "большее значение значение параметра 'framework_max_version' " :
-                    "несовместимое значение параметра 'framework_max_version' для проекта типа 'netstandard' ";
+                    "несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' ";
 
                 string currentErrorText = "Значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version'\r\nрассматриваемого проекта приводит к\r\nпотенциальному конфликту версий TargetFramework" +
