@@ -103,8 +103,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string currentErrorLevel = "Global";
-                string currentErrorText = "Параметр 'TargetFrameworkVersion'\r\nимеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + 
-                    "', в то время как\r\nмаксимально допустимой для него\r\nверсией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию\r\n'" + frameworkVersionComparabilityError.TargetFrameworkVersion + 
+                    "', в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 string documentName = "";
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)
@@ -404,11 +404,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
             unionRangeTableTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
             unionRangeSolutionWithTime.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
 
-            if (!isErrorsTable)
-            {
-                projectsTable.Columns[7].ColumnWidth = 50;
-                projectsTable.Columns[8].ColumnWidth = 38;
-            }
+            projectsTable.Columns[7].ColumnWidth = 50;
+            projectsTable.Columns[8].ColumnWidth = 38;
             
             return projectsTable;
         }

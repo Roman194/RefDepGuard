@@ -233,10 +233,10 @@ namespace RefDepGuard
             if (maxFrameworkVersionDeviantValueWarningList != null)
                 maxFrameworkVersionDeviantValueWarningList.Clear();
 
-            if(maxFrameworkVersionIllegalTemplateUsageErrorsList != null)
+            if (maxFrameworkVersionIllegalTemplateUsageErrorsList != null)
                 maxFrameworkVersionIllegalTemplateUsageErrorsList.Clear();
 
-            if(maxFrameworkVersionTFMNotFoundWarningList != null)
+            if (maxFrameworkVersionTFMNotFoundWarningList != null)
                 maxFrameworkVersionTFMNotFoundWarningList.Clear();
 
             if (requiredReferencesList != null)
