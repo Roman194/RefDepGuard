@@ -86,7 +86,7 @@ namespace RefDepGuard
             string typePrefix = configFileServiceInfo.IsGlobal ? "Глобальный ф" : "Ф"; //Вынести это отдельно?
             
             FileErrorMessage fileErrorMessage = new FileErrorMessage(
-                "Не получилось загрузить " + typePrefix + "айл конфигурации", typePrefix + "файл конфигурации не найден");
+                "Не получилось загрузить " + typePrefix + "айл конфигурации", typePrefix + "айл конфигурации не найден");
 
             if (File.Exists(configFileServiceInfo.SolutionConfigGuardFile))
             {

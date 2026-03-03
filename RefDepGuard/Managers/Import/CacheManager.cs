@@ -13,7 +13,7 @@ namespace RefDepGuard.Managers.Import
         private static DirectoryInfo stuffDirInfo;
         private static DirectoryInfo cacheDirInfo;
 
-        static CacheManager()
+        public static void SetSolutionNameInfoInRightFormat()
         {
             configFilesBackupExtendedPackageName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_cache\\";
             globalConfigBackupName = configFilesBackupExtendedPackageName + "global_config_guard.rdg";
