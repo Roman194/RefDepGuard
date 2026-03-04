@@ -22,6 +22,38 @@ namespace RefDepGuard.Data
             return new List<string> { "net", "netf", "netcoreapp", "uap" };
         }
 
+        public static Tuple<string, List<int>> GetNearestExistingNetstandartVersion(List<int> currentMaxFrVersion)
+        {
+            var existingNetStdVersion = new List<List<int>> {
+                new List<int> { 1, 0},
+                new List<int> { 1, 1},
+                new List<int> { 1, 2},
+                new List<int> { 1, 3},
+                new List<int> { 1, 4},
+                new List<int> { 1, 5},
+                new List<int> { 1, 6},
+                new List<int> { 2, 0},
+                new List<int> { 2, 1}
+            };
+
+            if (currentMaxFrVersion[0] > 2)
+                return new Tuple<string, List<int>>("2.1", existingNetStdVersion.Last());
+
+            if (currentMaxFrVersion[0] < 1)
+                return new Tuple<string, List<int>>("1.0", existingNetStdVersion.First());
+
+            var minDelta = existingNetStdVersion
+                .Where(el => el[0] == currentMaxFrVersion[0])
+                .Min(el => Math.Abs(el[1] - currentMaxFrVersion[1])
+                );
+
+            var nearestNetStdVersion = existingNetStdVersion.First(el => 
+                el[0] == currentMaxFrVersion[0] &&
+                minDelta == Math.Abs(el[1] - currentMaxFrVersion[1]));
+
+            return new Tuple<string, List<int>>(nearestNetStdVersion[0] + "." + nearestNetStdVersion[1], nearestNetStdVersion);
+        }
+
         public static Dictionary<string, NetstandardMinProjTypeVersions> MinProjTypeVersionsPerNetstandardVersion()
         {
             return new Dictionary<string, NetstandardMinProjTypeVersions>

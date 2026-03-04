@@ -38,8 +38,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
             {
                 string errorRelevantProjectName = (currentMatchError.ProjectName != "") ? currentMatchError.ProjectName : "-";
                 string currentProblemText = currentMatchError.IsProjNameMatchError ? 
-                    "Референс совпадает с именем проекта" : 
-                    "Референс одновременно заявлен как \r\nобязательный и недопустимый";
+                    "Референс совпадает с именем проекта" :
+                    "Референс одновременно заявлен как обязательный и\r\nнедопустимый";
                 string currentDocName = (currentMatchError.ReferenceLevelValue == ProblemLevel.Global) ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
@@ -64,9 +64,9 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string errorRelevantProjectName = (maxFrameworkVersionDeviantValue.ErrorRelevantProjectName != "") ? 
                     maxFrameworkVersionDeviantValue.ErrorRelevantProjectName : "-";
                 string currentErrorLevel = "Global";
-                string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ? 
-                    "\r\nсодержит один и тот же тип проекта в\r\nшаблоне более одного раза" : 
-                    " содержит некорректную запись\r\nсвоего значения";
+                string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ?
+                    " содержит один и тот\r\nже тип проекта в шаблоне более одного раза" :
+                    " содержит\r\nнекорректную запись своего значения";
                 string currentAction = "Проверьте его на предмет отсутствия \r\nсинтаксических ошибок и соответствия \r\nшаблону файла конфигурации";
                 string currentDocumentName = "";
 
@@ -103,8 +103,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string currentErrorLevel = "Global";
-                string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию\r\n'" + frameworkVersionComparabilityError.TargetFrameworkVersion + 
-                    "', в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion +
+                    "', в\r\nто время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 string documentName = "";
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)
@@ -147,7 +147,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string lowReferenceLevelText = "";
                 string referenceTypeText = referenceMatchWarning.IsReferenceStraight ? 
                     (referenceMatchWarning.IsHighLevelReq ? " является\r\nобязательным и" : " является\r\nнедопустимым и") : 
-                    (referenceMatchWarning.IsHighLevelReq ? "является\r\nнедопустимым и" : "является\r\nобязательным и"); //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
+                    (referenceMatchWarning.IsHighLevelReq ? " является\r\nнедопустимым и" : " является\r\nобязательным и"); //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
                 string warningDescription = referenceMatchWarning.IsReferenceStraight ? 
                     " дубирует правило с одноимённым референсом " : " противоречит правилу с одноимённым референсом ";
                 string warningAction = referenceMatchWarning.IsReferenceStraight ? "Устраните дублирование правила" : "Устраните противоречие в правиле";
@@ -204,7 +204,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string relevantProject = maxFrameworkVersionDeviantValue.WarningRelevantProjectName != "" ? 
                     maxFrameworkVersionDeviantValue.WarningRelevantProjectName : "-";
                 string warningLevel = "Global";
-                string currentErrorText = "Параметр 'framework_max_version' содержит\r\nзначение '" + maxFrameworkVersionDeviantValue.DeviantValue + 
+                string currentErrorText = "Параметр 'framework_max_version' содержит значение\r\n'" + maxFrameworkVersionDeviantValue.DeviantValue + 
                     "', а должен содержать значение с точкой (формата 'x.x')";
                 string documentName = (maxFrameworkVersionDeviantValue.WarningLevel == ProblemLevel.Global) ? 
                     "global_config_guard.rdg" : solutionName + "_config_guard.rdg";

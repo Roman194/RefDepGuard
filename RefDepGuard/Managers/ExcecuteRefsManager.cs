@@ -20,7 +20,9 @@ namespace RefDepGuard
 
             var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
-            if (currentReferencesState.Count == 0)
+            var findedRefs = currentReferencesState.Where(el => el.Value.Count > 0).Count(); //Есть ли хотя бы один проект с рефами
+
+            if (findedRefs == 0)
                 message = "На текущий момент в Solution не обнаружены референсы";
             else
             {
@@ -137,6 +139,8 @@ namespace RefDepGuard
             shownProjectsHashSet.Clear();
 
             var stillNotShownProjects  = currentReferencesState.Keys.ToHashSet();
+            var currentStartTabs = "";
+            var isFirstIteration = true;
 
             while(stillNotShownProjects.Count() > 0)
             {
@@ -144,13 +148,23 @@ namespace RefDepGuard
                     .Where(x => stillNotShownProjects.Contains(x.Key))
                     .Max(x => x.Value.Count);
 
-                var maxRefsProject = currentReferencesState.First(project => project.Value.Count == maxRefsCount);
-                var currentStartTabs = GetReqTabsCount(Convert.ToInt32(maxRefsProject.Key.Length / 2));
+                var maxRefsProject = currentReferencesState.First(project => 
+                    project.Value.Count == maxRefsCount && stillNotShownProjects.Contains(project.Key));
 
-                tabsAtDeepDict.Clear();
-                tabsAtDeepDict.Add(1, currentStartTabs);
+                if (isFirstIteration) //Определяем кол-во табов первого уровня общим для всех проектов по кол-ву символов имени проекта с наибольшим числом рефов
+                {
+                    currentStartTabs = GetReqTabsCount(Convert.ToInt32(maxRefsProject.Key.Length / 2));
+                    tabsAtDeepDict.Clear();
+                    tabsAtDeepDict.Add(1, currentStartTabs);
 
-                message += GetTransitRefsMessageForCurrentProject(maxRefsProject.Key, currentReferencesState, currentStartTabs, 1);
+                    isFirstIteration = false;
+                }
+
+                if (maxRefsProject.Value.Count > 0)
+                    message += (GetTransitRefsMessageForCurrentProject(maxRefsProject.Key, currentReferencesState, currentStartTabs, 1) + "\r\n");
+                else
+                    message += (maxRefsProject.Key + "\r\n-\r\n\r\n");
+
                 shownProjectsHashSet.Add(maxRefsProject.Key);
 
                 stillNotShownProjects = currentReferencesState.Keys.ToHashSet().Except(shownProjectsHashSet).ToHashSet();

@@ -57,7 +57,7 @@ namespace RefDepGuard
             foreach (var currentProject in commitedProjectsState) //Сначала задаём сами ноды (проекты)
             {
                 var currentProjectName = currentProject.Key;
-                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", ProblemLevel.Project, "", false);
+                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", new List<int>(), ProblemLevel.Project, "", false);
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersionsString;
 
                 var currentProjectMaxFrVersionString = "";

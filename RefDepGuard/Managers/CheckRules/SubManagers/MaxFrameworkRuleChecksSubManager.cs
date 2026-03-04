@@ -1,9 +1,10 @@
-﻿using System;
+﻿using RefDepGuard.Data;
+using RefDepGuard.Data.FrameworkVersion;
+using RefDepGuard.Models;
+using RefDepGuard.Models.FrameworkVersion;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Data;
-using RefDepGuard.Data.FrameworkVersion;
-using RefDepGuard.Models.FrameworkVersion;
 
 namespace RefDepGuard.Managers.CheckRules
 {
@@ -30,6 +31,9 @@ namespace RefDepGuard.Managers.CheckRules
 
             if (frameworkVersionComparabilityErrorList != null)
                 frameworkVersionComparabilityErrorList.Clear();
+
+            if (requiredMaxFrVersionsDict != null)
+                requiredMaxFrVersionsDict.Clear();
         }
 
         public static void CheckMaxFrameworkVersionOneLevelConflict(Dictionary<string, List<int>> currentMaxFrameworkVersion, ProblemLevel ruleLevel)
@@ -139,10 +143,10 @@ namespace RefDepGuard.Managers.CheckRules
                 //Загрузка данных об ограничениях на max_fr_version для текущего проекта
                 if (!requiredMaxFrVersionsDict.ContainsKey(projName))//Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
                     requiredMaxFrVersionsDict.Add(projName, 
-                        new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject));
+                        new RequiredMaxFrVersion(maxFrameworkVersionString, currentMaxFrameworkVersionNums, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject));
                 else
                     requiredMaxFrVersionsDict[projName] = 
-                        new RequiredMaxFrVersion(maxFrameworkVersionString, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject);
+                        new RequiredMaxFrVersion(maxFrameworkVersionString, currentMaxFrameworkVersionNums, errorLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject);
 
                 var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
 
@@ -214,10 +218,10 @@ namespace RefDepGuard.Managers.CheckRules
 
             if (requiredMaxFrVersionsDict.ContainsKey(projName) && projectError == null)
             {
-                List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionText
-                .Split('.')
-                .ToList()
-                .ConvertAll(value => Convert.ToInt32(value));
+                List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionNums;
+                //.Split('.')
+                //.ToList()
+                //.ConvertAll(value => Convert.ToInt32(value));
 
                 foreach (var projReference in projReferences)
                 {
@@ -236,10 +240,10 @@ namespace RefDepGuard.Managers.CheckRules
 
                         if (refVersion.ProjectTypeRule == projVersion.ProjectTypeRule || refVersion.ProjectTypeRule == "all" || projVersion.ProjectTypeRule == "all")
                         {
-                            List<int> currentRefMaxVersionNums = refVersion.VersionText
-                            .Split('.')
-                            .ToList()
-                            .ConvertAll(value => Convert.ToInt32(value));
+                            List<int> currentRefMaxVersionNums = refVersion.VersionNums;
+                            //.Split('.')
+                            //.ToList()
+                            //.ConvertAll(value => Convert.ToInt32(value));
 
                             CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, 
                                 ProblemLevel.Undefined, ProblemLevel.Undefined, projReference);
@@ -251,7 +255,12 @@ namespace RefDepGuard.Managers.CheckRules
                             {
                                 if (projVersion.ProjectTypeRule == "net") continue;
 
-                                var minProjTypeVersions = TFMSample.MinProjTypeVersionsPerNetstandardVersion()[refVersion.VersionText];
+                                //Т.к. п-ль может указать абсолютно любую версию, то её нужно привести к одной из Ex версий Netstandard
+                                string nearestExistingNetStdVersion;
+                                List<int> nearestExistingNetStdVersionNums;
+                                (nearestExistingNetStdVersion, nearestExistingNetStdVersionNums) = TFMSample.GetNearestExistingNetstandartVersion(refVersion.VersionNums);
+
+                                var minProjTypeVersions = TFMSample.MinProjTypeVersionsPerNetstandardVersion()[nearestExistingNetStdVersion];
 
                                 string currMinVersion = "";
 
@@ -264,14 +273,14 @@ namespace RefDepGuard.Managers.CheckRules
 
                                 if (currMinVersion == "-") //Ни одна версия не поддерживается, есть проблема
                                 {
-                                    AddNewMaxFrameworkVersionOnReferenceConflictWarning(projVersion.VersionText, refVersion.VersionText, projName, projReference, false);
+                                    AddNewMaxFrameworkVersionOnReferenceConflictWarning(projVersion.VersionText, nearestExistingNetStdVersion, projName, projReference, false);
                                     continue;
                                 }
 
-                                List<int> currentRefMaxVersionNums = refVersion.VersionText
-                                    .Split('.')
-                                    .ToList()
-                                    .ConvertAll(value => Convert.ToInt32(value));
+                                //List<int> currentRefMaxVersionNums = refVersion.VersionText
+                                //    .Split('.')
+                                //    .ToList()
+                                //    .ConvertAll(value => Convert.ToInt32(value));
 
                                 List<int> currMinVersionNums = currMinVersion //Мин версия, которой должен соответствовать проект, чтобы иметь связь для текущей версии netstandard
                                     .Split('.')
@@ -281,7 +290,7 @@ namespace RefDepGuard.Managers.CheckRules
                                 //Так как нужно проверить, больше ли текущая TFM-версия проекта чем минимально допустимая, то TFM-версия рефа передаётся отедльным параметром
                                 //(она не участвует в сравнении но д.б. зафиксирована в соотв. предупреждении)
                                 CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currMinVersionNums, projName, 
-                                    ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, currentRefMaxVersionNums); 
+                                    ProblemLevel.Undefined, ProblemLevel.Undefined, projReference, nearestExistingNetStdVersionNums); 
                             }
                         }
                     }
