@@ -265,8 +265,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     "несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' ";
 
                 string currentErrorText = "Значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
-                    + "' параметра 'framework_max_version'\r\nрассматриваемого проекта приводит к\r\nпотенциальному конфликту версий TargetFramework" +
-                    ",\r\nтак как имеется референс на проект, имеющий\r\n" + errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
+                    + "' параметра 'framework_max_version'\r\nрассматриваемого проекта приводит к потенциальному конфликту версий TargetFramework" +
+                    ",так как имеется референс на проект, имеющий " + errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 

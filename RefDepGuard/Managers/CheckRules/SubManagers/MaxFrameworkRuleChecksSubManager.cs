@@ -133,7 +133,7 @@ namespace RefDepGuard.Managers.CheckRules
                         if (errorLevel == ProblemLevel.Solution && reserveMaxFrameworkVersion != null) //Сделать на уровне Solution предупреждение о том, что не нашлось ни одного подходящего типа Framework ни для одного проекта?
                             CheckProjectTargetFrameworkVersion(currentProjectSupportedFrameworks, reserveMaxFrameworkVersion, projName, ProblemLevel.Global);
 
-                        return;//равносильно "-"
+                        continue;//равносильно "-", continue так как нужно учесть следующие в проекте TFM
                     }
                 }
 
