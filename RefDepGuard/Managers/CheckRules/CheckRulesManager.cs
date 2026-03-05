@@ -273,13 +273,16 @@ namespace RefDepGuard
                         currentMaxFrameworkVersion = projTypes.FirstOrDefault() + ":" + currentMaxFrameworkVersion;
                     else
                     {
+                        string currentMaxFrameworkVersionProjTypeString = "";
                         foreach (var projType in projTypes)
                         {
-                            currentMaxFrameworkVersion += projType + ":" + currentMaxFrameworkVersion;
+                            currentMaxFrameworkVersionProjTypeString += projType + ":" + currentMaxFrameworkVersion;
 
                             if (projTypes.IndexOf(projType) != projTypes.Count - 1)
-                                currentMaxFrameworkVersion += "; ";
+                                currentMaxFrameworkVersionProjTypeString += "; ";
                         }
+
+                        currentMaxFrameworkVersion = currentMaxFrameworkVersionProjTypeString;
                     }
                 }
 

@@ -108,13 +108,17 @@ namespace RefDepGuard.Managers.CheckRules
 
                 string currentMaxFrVersionType = currentProjectFramework;
                 List<int> currentMaxFrameworkVersionNums = new List<int>();
+                string maxFrameworkVersionString;
 
                 List<int> currentProjFrameworkVersionArray = currentProjectSupportedFrameworks[currentProjectFramework];
                 int currentProjFrameworkVersionArrayLength = currentProjFrameworkVersionArray.Count;
 
                 if (maxFrameworkVersion.ContainsKey(currentProjectFramework))
                 {
-                    currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjectFramework];
+                    if(currentProjectFramework == "netstandard") //В случае netstandard сравниваем с ближайшей существующей версией и учитываем эту версию как введёную
+                        (maxFrameworkVersionString, currentMaxFrameworkVersionNums) = TFMSample.GetNearestExistingNetstandartVersion(maxFrameworkVersion[currentProjectFramework]);
+                    else
+                        currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjectFramework];
                 }
                 else
                 { //Если не нашлось правила для типа из TargetFramework
@@ -134,7 +138,7 @@ namespace RefDepGuard.Managers.CheckRules
                 }
 
                 var maxFrameworkVersionArrayLength = currentMaxFrameworkVersionNums.Count;
-                var maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
+                maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
 
                 var isConflictWarningRelevantForProject = maxFrameworkVersionConflictWarningsList.Find(value =>
                     value.LowWarnLevel == errorLevel && (value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-")
@@ -219,9 +223,6 @@ namespace RefDepGuard.Managers.CheckRules
             if (requiredMaxFrVersionsDict.ContainsKey(projName) && projectError == null)
             {
                 List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionNums;
-                //.Split('.')
-                //.ToList()
-                //.ConvertAll(value => Convert.ToInt32(value));
 
                 foreach (var projReference in projReferences)
                 {
@@ -241,9 +242,6 @@ namespace RefDepGuard.Managers.CheckRules
                         if (refVersion.ProjectTypeRule == projVersion.ProjectTypeRule || refVersion.ProjectTypeRule == "all" || projVersion.ProjectTypeRule == "all")
                         {
                             List<int> currentRefMaxVersionNums = refVersion.VersionNums;
-                            //.Split('.')
-                            //.ToList()
-                            //.ConvertAll(value => Convert.ToInt32(value));
 
                             CheckMaxFrameworkVersionCurrentConflict(currentProjMaxFrVersionNums, currentRefMaxVersionNums, projName, 
                                 ProblemLevel.Undefined, ProblemLevel.Undefined, projReference);
@@ -271,16 +269,11 @@ namespace RefDepGuard.Managers.CheckRules
                                     default: currMinVersion = minProjTypeVersions.MinUapVer; break;
                                 }
 
-                                if (currMinVersion == "-") //Ни одна версия не поддерживается, есть проблема
+                                if (currMinVersion == "-") //Ни одна версия не поддерживается - выкинуть варнинг
                                 {
                                     AddNewMaxFrameworkVersionOnReferenceConflictWarning(projVersion.VersionText, nearestExistingNetStdVersion, projName, projReference, false);
                                     continue;
                                 }
-
-                                //List<int> currentRefMaxVersionNums = refVersion.VersionText
-                                //    .Split('.')
-                                //    .ToList()
-                                //    .ConvertAll(value => Convert.ToInt32(value));
 
                                 List<int> currMinVersionNums = currMinVersion //Мин версия, которой должен соответствовать проект, чтобы иметь связь для текущей версии netstandard
                                     .Split('.')

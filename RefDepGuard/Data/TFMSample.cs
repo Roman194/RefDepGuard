@@ -23,7 +23,7 @@ namespace RefDepGuard.Data
         }
 
         public static Tuple<string, List<int>> GetNearestExistingNetstandartVersion(List<int> currentMaxFrVersion)
-        {
+        { //Выдаёт ближайшую существующую netstandard версию с округлением вниз (кроме случаев когда есть ближайшая только сверху)
             var existingNetStdVersion = new List<List<int>> {
                 new List<int> { 1, 0},
                 new List<int> { 1, 1},
