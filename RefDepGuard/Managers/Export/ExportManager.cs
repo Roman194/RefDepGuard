@@ -9,16 +9,28 @@ using RefDepGuard.Data.Reference;
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// This class is responsible for managing the export of reports based on the checking rules data of the solution.
+    /// </summary>
     public class ExportManager
     {
         private static string currentReportDirectory;
 
+        /// <summary>
+        /// Manages of generating the export reports based on the checking rules data of the solution.
+        /// </summary>
+        /// <param name="excel">Application (excel.interop) interface value</param>
+        /// <param name="configFilesData">ConfigFilesData value</param>
+        /// <param name="reportType">graph or table report</param>
+        /// <param name="commitedProjectsState">committed projects state dict</param>
+        /// <param name="refDepGuardExportParameters">RefDepGuardExportParameters values</param>
+        /// <returns>loadError text (if the report wasn't generated successfully)</returns>
         public static string LoadReferencesDataToReport(
             Application excel, ConfigFilesData configFilesData, string reportType, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters
             )
         {
-            string  loadError = "";
+            string loadError = "";
             string currentDateTime = DateTimeManager.GetCurrentDateTimeInRightFormat();
 
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
@@ -49,6 +61,10 @@ namespace RefDepGuard
             return loadError;
         }
 
+        /// <summary>
+        /// Opens the directory where the current report is stored. This method can be called after generating a report to quickly access it by the user.
+        /// </summary>
+        /// <returns>the result of opening the current report directory</returns>
         public static bool OpenCurrentReportDirectory()
         {
             if(currentReportDirectory != null)

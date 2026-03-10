@@ -7,11 +7,20 @@ using RefDepGuard.Data;
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// This class is responsible for managing the execution of the messages with the current and changed references.
+    /// </summary>
     public class ExcecuteRefsManager
     {
         private static Dictionary<int, string> tabsAtDeepDict = new Dictionary<int, string>();
         private static HashSet<string> shownProjectsHashSet = new HashSet<string>();
 
+        /// <summary>
+        /// Gets the current references state of the solution and shows it to the user in a message box.
+        /// </summary>
+        /// <param name="dte">DTE interface value</param>
+        /// <param name="serviceProvider">IServiceProvider interface value</param>
+        /// <param name="showMessageWithTransitRefs">shows if its message box with straight or transit refs</param>
         public static void ExcecuteCurrentRefs(DTE dte, IServiceProvider serviceProvider, bool showMessageWithTransitRefs)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -20,12 +29,12 @@ namespace RefDepGuard
 
             var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
-            var findedRefs = currentReferencesState.Where(el => el.Value.Count > 0).Count(); //Есть ли хотя бы один проект с рефами
+            var findedRefs = currentReferencesState.Where(el => el.Value.Count > 0).Count();
 
-            if (findedRefs == 0)
+            if (findedRefs == 0)//If there are no refs in the solution, then show message about it.
                 message = "На текущий момент в Solution не обнаружены референсы";
             else
-            {
+            {//If there are refs in the solution, then show them in the message box (in streaight or transit format).
                 message = showMessageWithTransitRefs ? 
                     ExcecuteMessageWithTransitRefs(currentReferencesState) : 
                     ExcecuteMessageWithoutTransitRefs(currentReferencesState);
@@ -35,6 +44,12 @@ namespace RefDepGuard
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
 
+        /// <summary>
+        /// Compares the current references state of the solution with the commited references state and shows the changes to the user in a message box.
+        /// </summary>
+        /// <param name="dte">DTE interface value</param>
+        /// <param name="serviceProvider">IServiceProvider interface value</param>
+        /// <param name="commitedProjState">commited project state dictionary</param>
         public static void ExcecuteChangedRefs(DTE dte, IServiceProvider serviceProvider, Dictionary<string, ProjectState> commitedProjState)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -47,12 +62,12 @@ namespace RefDepGuard
 
             var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
-            foreach (var currentReferencesKeyValues in currentReferencesState)
+            foreach (var currentReferencesKeyValues in currentReferencesState)//for each project in the current state
             {
                 string currentProject = currentReferencesKeyValues.Key;
                 List<string> currentReferences = currentReferencesKeyValues.Value;
 
-                //Если проект был добавлен посе коммита, то просто инициализируем его коммит-рефы как пустые
+                //If the project was added after the commit, then we just initialize its commit refs as an empty
                 var vsCommitedProjRefsList = commitedProjState.ContainsKey(currentProject) ? commitedProjState[currentProject].CurrentReferences : new List<string>();
                 var vsCommitedProjRefsHashSet = new HashSet<string>(vsCommitedProjRefsList);
                 var vsCurrentProjHashSet = new HashSet<string>();
@@ -66,18 +81,18 @@ namespace RefDepGuard
                 vsCurrentProjHashSet.RemoveWhere(commonRefsHashSet.Contains);
                 vsCommitedProjRefsHashSet.RemoveWhere(commonRefsHashSet.Contains);
 
-                if (vsCurrentProjHashSet.Count > 0)
+                if (vsCurrentProjHashSet.Count > 0)//adds added refs to the addedRefs dict
                 {
                     addedRefs.Add(currentProject, vsCurrentProjHashSet.ToList());
                 }
 
-                if (vsCommitedProjRefsHashSet.Count > 0)
+                if (vsCommitedProjRefsHashSet.Count > 0)// remove deleted refs to the removedRefs dict
                 {
                     removedRefs.Add(currentProject, vsCommitedProjRefsHashSet.ToList());
                 }
             }
 
-            //Если проект был удалён после коммита, то добавляем все его рефы в список удалённых
+            //If the project was deleted after the commit, then we just initialize its current refs as an empty and add all its commited refs to the removedRefs dict
             var deletedProjectKeys = commitedProjState.Keys.Except(currentReferencesState.Keys).ToList();
             foreach (var currentKey in deletedProjectKeys)
             {
@@ -96,6 +111,11 @@ namespace RefDepGuard
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
 
+        /// <summary>
+        /// Formats the current references state of the solution to the string message without transit refs and returns it.
+        /// </summary>
+        /// <param name="currentReferencesState">current references state dictionary</param>
+        /// <returns>message string</returns>
         private static string ExcecuteMessageWithoutTransitRefs(Dictionary<string, List<string>> currentReferencesState)
         {
             string message = "";
@@ -132,6 +152,11 @@ namespace RefDepGuard
             return message;
         }
 
+        /// <summary>
+        /// Formats the current references state of the solution to the string message with transit refs and returns it.
+        /// </summary>
+        /// <param name="currentReferencesState">current references state dictionary</param>
+        /// <returns>message string</returns>
         private static string ExcecuteMessageWithTransitRefs(Dictionary<string, List<string>> currentReferencesState)
         {
             string message = "";
@@ -151,8 +176,10 @@ namespace RefDepGuard
                 var maxRefsProject = currentReferencesState.First(project => 
                     project.Value.Count == maxRefsCount && stillNotShownProjects.Contains(project.Key));
 
-                if (isFirstIteration) //Определяем кол-во табов первого уровня общим для всех проектов по кол-ву символов имени проекта с наибольшим числом рефов
+                if (isFirstIteration)
                 {
+                    //Determines the number of tabs of the first level message as the union number of spaces for all projects by the count of project name symbols
+                    //with the max refs count.
                     currentStartTabs = GetReqTabsCount(Convert.ToInt32(maxRefsProject.Key.Length / 2));
                     tabsAtDeepDict.Clear();
                     tabsAtDeepDict.Add(1, currentStartTabs);
@@ -160,7 +187,7 @@ namespace RefDepGuard
                     isFirstIteration = false;
                 }
 
-                if (maxRefsProject.Value.Count > 0)
+                if (maxRefsProject.Value.Count > 0)//If project has refs, then we need to show them with transit refs.
                     message += (GetTransitRefsMessageForCurrentProject(maxRefsProject.Key, currentReferencesState, currentStartTabs, 1) + "\r\n");
                 else
                     message += (maxRefsProject.Key + "\r\n-\r\n\r\n");
@@ -173,6 +200,15 @@ namespace RefDepGuard
             return message;
         }
 
+        /// <summary>
+        /// Formats the current references of the project to the string message with transit refs and returns it. 
+        /// It is recursive function which calls itself for each ref of the project.
+        /// </summary>
+        /// <param name="currentProject">current project string</param>
+        /// <param name="currentReferencesState">current refs state dict</param>
+        /// <param name="currentStartTabs">current start tabs string</param>
+        /// <param name="refDeep">current references deep int value</param>
+        /// <returns>a string message with transit refs</returns>
         private static string GetTransitRefsMessageForCurrentProject(string currentProject, Dictionary<string, List<string>> currentReferencesState, string currentStartTabs, int refDeep)
         {
             string message = "";
@@ -182,15 +218,16 @@ namespace RefDepGuard
             if (refDeep == 1) 
                 message += (currentProject + "\r\n");
 
-            if (currentReferences.Count > 0)
+            if (currentReferences.Count > 0)//If the project has refs
             {
                 string nextIterationExtraTabs = "";
 
                 var nextIterationProjectsWithRefs = currentReferencesState
                         .Where(project => currentReferences.Contains(project.Key) && project.Value.Count > 0);
 
-                if (nextIterationProjectsWithRefs.Count() > 0)
+                if (nextIterationProjectsWithRefs.Count() > 0)//If there are projects with refs on the next iteration,
                 {
+                    //then we need to determine the number of tabs for them based on the average count of symbols in their names.
                     if (tabsAtDeepDict.ContainsKey(futureRefDeep))
                     {
                         nextIterationExtraTabs = tabsAtDeepDict[futureRefDeep];
@@ -207,8 +244,9 @@ namespace RefDepGuard
                     }
                 }
 
-                foreach (var currRef in currentReferences)
+                foreach (var currRef in currentReferences)//for each ref of the project
                 {
+                    //add its to a message string with the right tabs and symbols based on the deep.
                     bool isCurrRefNotLast = currentReferences.Last() != currRef;
                     string currentRefInjectSymbol = (isCurrRefNotLast) ? "┣━" : "┗━";
                     string nextDeepStartTabs = (isCurrRefNotLast) ? currentStartTabs + "┃" + nextIterationExtraTabs : currentStartTabs + " " + nextIterationExtraTabs;
@@ -226,6 +264,11 @@ namespace RefDepGuard
             return message;
         }
 
+        /// <summary>
+        /// Determines the number of tabs for the message based on the count of symbols in the project names and returns the string with the needed count of tabs.
+        /// </summary>
+        /// <param name="count">count int value</param>
+        /// <returns>string message with required tabs</returns>
         private static string GetReqTabsCount(int count)
         {
             string message = "";
@@ -235,6 +278,12 @@ namespace RefDepGuard
             return message;
         }
 
+        /// <summary>
+        /// Formats the current refs dict to the string message with added or removed refs and returns it.
+        /// </summary>
+        /// <param name="currentRefs">current refs dict</param>
+        /// <param name="isAddedRefsDict">shows if its added or removed refs</param>
+        /// <returns></returns>
         private static string ConvertCurrentRefsDictToStringFormat(Dictionary<string, List<string>> currentRefs, bool isAddedRefsDict)
         {
             string outputMessage = "";
@@ -256,5 +305,3 @@ namespace RefDepGuard
         }
     }
 }
-
-

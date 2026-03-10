@@ -7,15 +7,32 @@ using RefDepGuard.Models;
 
 namespace RefDepGuard.Managers.CheckRules.SubManagers
 {
+    /// <summary>
+    /// This class is responsible for checking if the projects in the solution match the projects listed in the configuration file.
+    /// </summary>
     public class CheckProjectsMatchSubManager
     {
         private static List<ProjectMatchWarning> projectMatchWarningList = new List<ProjectMatchWarning>();
 
+        /// <summary>
+        /// Clears the list of project match warnings. This method can be called before performing a new check.
+        /// </summary>
         public static void ClearErrorLists()
         {
             if(projectMatchWarningList != null)
                 projectMatchWarningList.Clear();
         }
+
+        /// <summary>
+        /// The main method of the SSubManager. Checks if the projects in the solution match the projects listed in the configuration file. 
+        /// If there are discrepancies (added or removed projects), it prompts the user to either update the configuration file accordingly 
+        /// or to ignore the discrepancies and add warnings to the list.
+        /// </summary>
+        /// <param name="configFilesData">ConfigFilesData commited value</param>
+        /// <param name="currentCommitedProjState">Solution projects commited state</param>
+        /// <param name="uIShell">IVsUIShell interface value</param>
+        /// <returns>ConfigFilesData value and list of current ProjectMatchWarning</returns>
+        /// <see cref="ShowPromptAndSolveDifferProblems"/>
 
         public static Tuple<ConfigFilesData, List<ProjectMatchWarning>> CheckAndUpdateProjectsOnMatch(
             ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell)
@@ -23,7 +40,7 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
             var addedProjectsList = new List<string>();
             var removedProjectsList = new List<string>();
 
-            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//проверка на наличие добавленных проектов
+            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//Check on added to solution projects
             {
                 var projName = currentProjState.Key;
 
@@ -33,7 +50,7 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                 }
             }
 
-            foreach (var dictValue in configFilesData.ConfigFileSolution?.projects) //проверка на наличие удалённых проектов
+            foreach (var dictValue in configFilesData.ConfigFileSolution?.projects) //Check on deleted projects
             {
                 var projName = dictValue.Key;
                 if (!currentCommitedProjState.ContainsKey(projName))
@@ -42,14 +59,26 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
                 }
             }
 
+            //If there are added or removed projects, we show the prompt to the user and offer to update the config file.
             if (addedProjectsList.Count > 0)
                 configFilesData = ShowPromptAndSolveDifferProblems(configFilesData, addedProjectsList, uIShell, true);
 
-            if (removedProjectsList.Count > 0) //Проект есть в config, но его нет в Solution - значит он был удалён
+            if (removedProjectsList.Count > 0)
                 configFilesData = ShowPromptAndSolveDifferProblems(configFilesData, removedProjectsList, uIShell, false);
 
             return new Tuple<ConfigFilesData, List<ProjectMatchWarning>>(configFilesData, projectMatchWarningList);
         }
+
+        /// <summary>
+        /// Shows a prompt to the user about the detected discrepancies between the projects in the solution and the projects listed in the configuration file.
+        /// If the user agrees to update the configuration file, it calls the method to update the config file with the added or removed projects.
+        /// If the user chooses not to update the configuration file, it adds warnings about the discrepancies to the list of project match warnings.
+        /// </summary>
+        /// <param name="configFilesData">ConfigFileData current value</param>
+        /// <param name="currentProjList">List of current project names in the solution</param>
+        /// <param name="uIShell">IVsUIShell interface value</param>
+        /// <param name="isAddedList">Shows whether it added or removed projects problem</param>
+        /// <returns>ConfigFilesData current value</returns>
 
         private static ConfigFilesData ShowPromptAndSolveDifferProblems(ConfigFilesData configFilesData, List<string> currentProjList, IVsUIShell uIShell, bool isAddedList)
         {
@@ -75,14 +104,14 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
             message += projectNotFindedStr + " в " + problemPlaceStr + offeredSolutionStr;
             
 
-            if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))
+            if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
             {
-                //Добавить в config-файл или удалить проекты из него
+                //Update config file with added or removed projects
                 configFilesData = ConfigFileManager.UpdateSolutionConfigFile(configFilesData, currentProjList, isAddedList);
             }
             else
             {
-                //вывести warning типа "RefDepGuard projects match warning"
+                //add "projects match warning"
                 foreach (var currentProjectElements in currentProjList)
                 {
                     projectMatchWarningList.Add(
@@ -93,6 +122,5 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
 
             return configFilesData;
         }
-
     }
 }

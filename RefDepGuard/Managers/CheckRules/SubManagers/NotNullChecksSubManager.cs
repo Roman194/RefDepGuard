@@ -4,31 +4,46 @@ using RefDepGuard.Data.Reference;
 
 namespace RefDepGuard.Managers.CheckRules
 {
+    /// <summary>
+    /// This class is responsible for checking if the properties of the configuration files are not null. 
+    /// It checks both the global and solution configuration files, as well as the projects within the solution configuration file. 
+    /// If any property is found to be null, it adds an error to the list of ConfigFilePropertyNullError, which is used to inform the user about missing or 
+    /// incomplete configuration data.
+    /// </summary>
     public class NotNullChecksSubManager
     {
         private static List<ConfigFilePropertyNullError> configPropertyNullErrorList = new List<ConfigFilePropertyNullError>();
 
+        /// <summary>
+        /// Clears the list of ConfigFilePropertyNullError. This method can be called before performing a new check.
+        /// </summary>
         public static void ClearConfigPropertyNullErrorList()
         {
             if (configPropertyNullErrorList != null)
                 configPropertyNullErrorList.Clear();
         }
+
+        /// <summary>
+        /// The main method of the SubManager. Checks if the properties of the configuration files are not null.
+        /// </summary>
+        /// <param name="configFilesData">ConfigFilesData current value</param>
+        /// <returns></returns>
         public static List<ConfigFilePropertyNullError> CheckConfigPropertiesOnNotNull(ConfigFilesData configFilesData)
         {
             ConfigFileGlobalDTO configFileGlobal = configFilesData.ConfigFileGlobal;
             ConfigFileSolutionDTO configFileSolution = configFilesData.ConfigFileSolution;
 
-            if (configFileSolution != null)
+            if (configFileSolution != null)//If solution config file contains some data
             {
-                CheckConfigFileSolutionProperties(configFileSolution);
+                CheckConfigFileSolutionProperties(configFileSolution);//Check solution config file properties on not null
 
-                if (configFileSolution.projects != null)
+                if (configFileSolution.projects != null)//If this file contains some projects
                 {
-                    foreach (var project in configFileSolution.projects)
+                    foreach (var project in configFileSolution.projects)//for each project
                     {
                         if (project.Value != null)
-                            CheckConfigFileProjectProperties(project.Key, project.Value);
-
+                            CheckConfigFileProjectProperties(project.Key, project.Value);//Check project config file properties on not null
+                        //If there is something missing, add relevant error to the list of ConfigFilePropertyNullError
                         else
                             configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("project_value", false, project.Key));
                     }
@@ -40,14 +55,19 @@ namespace RefDepGuard.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError(configFilesData.SolutionName, false, ""));
 
 
-            if (configFileGlobal != null)
-                CheckConfigFileGlobalProperties(configFileGlobal);
+            if (configFileGlobal != null) //If global config file contains some data
+                CheckConfigFileGlobalProperties(configFileGlobal); //Check global config file properties on not null
             else
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("Global", true, ""));
 
             return configPropertyNullErrorList;
         }
 
+        /// <summary>
+        /// Checks if the properties of the solution configuration file are not null. If any property is found to be null, it adds an error to the list of 
+        /// ConfigFilePropertyNullError,
+        /// </summary>
+        /// <param name="configFileSolution">current ConfigFileSolutionDTO value</param>
         private static void CheckConfigFileSolutionProperties(ConfigFileSolutionDTO configFileSolution) 
             //How to make it better? Reflection doesn't work
         {
@@ -64,6 +84,11 @@ namespace RefDepGuard.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("solution_unacceptable_references", false, ""));
         }
 
+        /// <summary>
+        /// Checks if the properties of a project in the solution configuration file are not null. If any property is found to be null, it adds an error
+        /// </summary>
+        /// <param name="projectKey">current project name string</param>
+        /// <param name="currentProject">currtent project DTO value</param>
         private static void CheckConfigFileProjectProperties(string projectKey, ConfigFileProjectDTO currentProject)
         {
             if (currentProject.framework_max_version is null)
@@ -79,6 +104,10 @@ namespace RefDepGuard.Managers.CheckRules
                 configPropertyNullErrorList.Add(new ConfigFilePropertyNullError("unacceptable_references", false, projectKey));
         }
 
+        /// <summary>
+        /// Checks if the properties of the global configuration file are not null. If any property is found to be null, it adds an error
+        /// </summary>
+        /// <param name="configFileGlobal">DTO of global config file value</param>
         private static void CheckConfigFileGlobalProperties(ConfigFileGlobalDTO configFileGlobal)
         {
             if (configFileGlobal.name is null)

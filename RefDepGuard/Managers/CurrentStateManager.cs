@@ -8,13 +8,27 @@ using RefDepGuard.Data;
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// This class is responsible for managing the current state of the solution.
+    /// </summary>
     public class CurrentStateManager
     {
+        /// <summary>
+        /// Gets the current state of the projects in the solution. It includes the target framework(s) and references of each project.
+        /// </summary>
+        /// <param name="dte">DTE interface value</param>
+        /// <returns>current projects state dictionary</returns>
         public static Dictionary<string, ProjectState> GetCurrentProjectState(DTE dte)
         {
             return GetCurrentRequiredState(dte, false);
         }
 
+        /// <summary>
+        /// Gets the current state of the project references in the solution. 
+        /// It includes only the references of each project (without target framework(s) info).
+        /// </summary>
+        /// <param name="dte">DTE interface value</param>
+        /// <returns>current references state dictionary</returns>
         public static Dictionary<string, List<string>> GetCurrentReferencesState(DTE dte)
         {
             Dictionary<string, List<string>> currentReferences = 
@@ -26,6 +40,13 @@ namespace RefDepGuard
             return currentReferences;
         }
 
+        /// <summary>
+        /// Gets the current required state of the projects in the solution (with or without TF-s). It includes the target framework(s) and references of each 
+        /// project.
+        /// </summary>
+        /// <param name="dte">DTE interface value</param>
+        /// <param name="isOnlyRefsNeeded">shows if only refs is needed or also TF-s</param>
+        /// <returns>current projects state dictionary</returns>
         private static Dictionary<string, ProjectState> GetCurrentRequiredState(DTE dte, bool isOnlyRefsNeeded)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -33,9 +54,9 @@ namespace RefDepGuard
             Dictionary<string, ProjectState> commitedProjState = new Dictionary<string, ProjectState>();
             EnvDTE.Solution solution = dte.Solution;
 
-            foreach (EnvDTE.Project project in solution.Projects)
+            foreach (EnvDTE.Project project in solution.Projects)//For each project of the solution
             {
-                if (project.FullName != null && project.FullName.Length != 0)
+                if (project.FullName != null && project.FullName.Length != 0)//If the project is loaded
                 {
                     string projectFrameworkVersions = "";
                     Dictionary<string, List<int>> projectFrameworkNumVersions = new Dictionary<string, List<int>>();
@@ -57,7 +78,7 @@ namespace RefDepGuard
                             if (vRef.SourceProject != null)
                                 refsList.Add(vRef.Name);
                         }
-
+                        //adds the project state to the dictionary with the project name as a key and the ProjectState object as a value (optionally adds TF-s info)
                         commitedProjState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkNumVersions, projectFrameworkVersions, refsList));
                     }
                 }
@@ -66,51 +87,57 @@ namespace RefDepGuard
             return commitedProjState;
         }
 
+        /// <summary>
+        /// Converts the target framework string to a dictionary format that can be easily compared with the target frameworks from the rules.
+        /// </summary>
+        /// <param name="targetFrameworkString">current target framework string</param>
+        /// <returns>target framework string in a dictionary format</returns>
         private static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)
         {
             Dictionary<string, List<int>> currentTargetFrameworksDict = new Dictionary<string, List<int>>();
-            
 
-            if (String.IsNullOrEmpty(targetFrameworkString)) //Если не получилось спарсить строку с таргетами, то возвращаем пустой словарь
+            if (String.IsNullOrEmpty(targetFrameworkString)) //if the string is empty, then we return an empty dictionary
                 return currentTargetFrameworksDict;
-            
 
-            //В случае если строка идёт из TargetFrameworks (Maui и пр.) нужно предварительное деление по ";"
-            //Нужно проверить каждый из таргетов на предмет противоречия макс версии.
-            //Если версии таргетов и их макс ограничения совпадают (как в Maui), то у них будет одна общая ошибка (при превышении макс версии)
+            //In case when string came from TargetFrameworks, we needs to firstly split it by ";"
             var currentProjectSupportedFrameworksArray = targetFrameworkString.Split(';');
 
-            foreach (string currentProjectFramework in currentProjectSupportedFrameworksArray)
+            foreach (string currentProjectFramework in currentProjectSupportedFrameworksArray)//For each TargetFramework parameter
             {
-                //Предварительный сплит на тире!!! Пример: net5.0-windows1.2
-
+                //Split the TargetFramework by "-" to separate the main TF version and the additional TF info (if it exists).
+                //Example: net5.0-windows1.2 -> net5.0 и windows1.2
                 var currentProjFrameworkArray = currentProjectFramework.Split('-');
 
-                //Формирование списка из цифр версии фреймворка и определение его типа
-                var currentProjFrameworkVersionArray = currentProjFrameworkArray[0].Split('.'); //Не все TargetFramework содержат точки! Пример: net45 - Не должно быть проблемой
+                //Creates a list of nums of the TF version and determines its type
+                //Important: not all TF-s contain dots! Example: net45 - it shouldn't be a problem, because we will split it by each num later
+                //and get the same result as for net4.5
+                var currentProjFrameworkVersionArray = currentProjFrameworkArray[0].Split('.');
                 var currentProjFrameworkVersionArrayLength = currentProjFrameworkVersionArray.Length;
 
-                currentProjFrameworkVersionArray[0] = currentProjFrameworkVersionArray[0].Replace(" ", "");//Необходимо убрать все пробелы, иначе match не сработает!
+                //We need to remove all space to make match work correctly!
+                currentProjFrameworkVersionArray[0] = currentProjFrameworkVersionArray[0].Replace(" ", "");
 
                 var currentProjFrameworkMatch = Regex.Match(currentProjFrameworkVersionArray[0], @"^([a-zA-Z]+)(\d+)$");
                 var currentProjFrameworkType = "-";
 
-                if (currentProjFrameworkMatch.Success)
+                if (currentProjFrameworkMatch.Success)//If the match is successful,  
                 {
+                    //then we can determine the type of the framework and get the version numbers without any letters.
                     currentProjFrameworkType = currentProjFrameworkMatch.Groups[1].Value;
                     currentProjFrameworkVersionArray[0] = currentProjFrameworkMatch.Groups[2].Value;
 
                     switch (currentProjFrameworkType)
-                    {
+                    {//cases with old and new .net framework project with TargetFrameworkVersion and .NET needs to be determined separately
                         case "v":
                             currentProjFrameworkType = "netf";
-                            break; //В случае если встретился старый .net framework проект с TargetFrameworkVersion
+                            break;
                         case "net":
                             currentProjFrameworkType = currentProjFrameworkVersionArrayLength < 2 ? "netf" : "net";
                             break;
-                            //Т.к. .NET и .NET Framework имеют одно название типа, то для фреймворка в проге условно введён тип "netf"!
+                            //As .NET and .NET Framework has the same TFM-s, the "netf" for .net framework TFM were determined inside this extention!
                     }
-                    //Т.к. у нового стиля netf версия записывается без точек и обычный split на неё не действует
+                    //As the new "netf" is writes without dots, we need to customly split it by each num to get the same result as for old "netf" with dots.
+                    //Example: net5 -> net5.0
                     if (currentProjFrameworkType == "netf" && currentProjFrameworkVersionArrayLength < 2)
                         currentProjFrameworkVersionArray = SplitStrByEachNum(currentProjFrameworkVersionArray[0]);
 
@@ -118,12 +145,14 @@ namespace RefDepGuard
 
                 List<int> currentProjFrameworkVersionList = ConvertTargetFrameworkVersionToIntNums(currentProjFrameworkVersionArray);
 
-                // НА текущий момент, если встретилась ошибка парсинга цифр TargetFramework, то вернётся словарь с уже записанными версиями (если такие имеются) 
+                // At this point if the currentProjFrameworkVersionList is empty, it means that we couldn't parse the TF version to int nums, so we just returns
+                //previous successful parsed TF-s incide the dictionary
                 if (currentProjFrameworkVersionList.Count == 0) 
                     return currentTargetFrameworksDict;
 
-                if (currentTargetFrameworksDict.ContainsKey(currentProjFrameworkType))
-                { //Если уже есть какая-то TF-версия для этого типа проекта, то нужно их сравнить и закоммитить MAX-ую из них
+                if (currentTargetFrameworksDict.ContainsKey(currentProjFrameworkType))//If there is already some TF version for this project type,
+                {
+                    //then we need to compare them and commit the MAX one of them
                     List<int> commitedTargetFrameworkVersionList = currentTargetFrameworksDict[currentProjFrameworkType];
                     for(int i = 0; i < currentProjFrameworkVersionList.Count; i++)
                     {
@@ -138,7 +167,7 @@ namespace RefDepGuard
                     }
                 }
                 else
-                {
+                {   //Alernatively just add the TF version to the dictionary
                     currentTargetFrameworksDict.Add(currentProjFrameworkType, currentProjFrameworkVersionList);
                 }
             }
@@ -146,6 +175,12 @@ namespace RefDepGuard
             return currentTargetFrameworksDict;
         }
 
+        /// <summary>
+        /// Splits the string by each num. Example: net5 -> net, 5; net5.0 -> net, 5, 0. 
+        /// It is needed to make the comparison of the TF versions correct, because not all TF-s contain dots and we need to get the same result for net50 and net5.0.
+        /// </summary>
+        /// <param name="currentString">current string value</param>
+        /// <returns>result string array</returns>
         private static string[] SplitStrByEachNum(string currentString)
         {
             int currentStringLength = currentString.Length;
@@ -157,6 +192,11 @@ namespace RefDepGuard
             return resultString;
         }
 
+        /// <summary>
+        /// Converts the target framework version string array to a list of int nums. Example: net5.0 -> 5, 0; net45 -> 4, 5.
+        /// </summary>
+        /// <param name="targetFrameworkVersionsArray">target framework version array</param>
+        /// <returns>list of ints of target framework versions nums</returns>
         private static List<int> ConvertTargetFrameworkVersionToIntNums(string[] targetFrameworkVersionsArray)
         {
             List<int> targetFrameworkVersionsNums = new List<int>();
@@ -172,6 +212,5 @@ namespace RefDepGuard
 
             return targetFrameworkVersionsNums; 
         }
-
     }
 }

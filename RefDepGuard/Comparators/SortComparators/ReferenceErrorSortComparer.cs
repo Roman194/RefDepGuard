@@ -2,6 +2,10 @@
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// This class implements the IComparer interface to provide a custom sorting logic for ReferenceError objects.
+    /// <see cref="ReferenceError"/> for details on the properties of the objects being compared.
+    /// </summary>
     public class ReferenceErrorSortComparer : IComparer<ReferenceError>
     {
         public int Compare(ReferenceError x, ReferenceError y)

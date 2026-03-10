@@ -7,14 +7,31 @@ using RefDepGuard.Managers.Export.SubManagers;
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// This class is responsible for managing the table exports based on the checking rules data of the solution. 
+    /// It contains methods for loading data into Excel workbooks and saving them as reports. 
+    /// </summary>
     public class XLSXSubManager
     {
+        /// <summary>
+        /// The main method. Creates a new Excel workbook, populates it with data about projects and references, as well as any errors or warnings found during the 
+        /// checks, and then saves the workbook to a specified directory. 
+        /// This class serves as a central point for handling the export of reference data in a tabular format.
+        /// </summary>
+        /// <param name="excel">Application (excel.interop) interface value</param>
+        /// <param name="configFilesData">ConfigFilesData value</param>
+        /// <param name="currentReportDirectory">current report directory string</param>
+        /// <param name="currentDateTime">current DateTime of report generation in string format</param>
+        /// <param name="commitedProjectsState">committed projects state dict</param>
+        /// <param name="refDepGuardExportParameters">RefDepGuardExportParameters values</param>
         public static void LoadReferencesDataToTableReport(Application excel, ConfigFilesData configFilesData, string currentReportDirectory, string currentDateTime, 
             Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             Workbook exportWorkbook = excel.Workbooks.Add(Type.Missing);
 
-            while(exportWorkbook.Worksheets.Count < 4) //На некоторых ПК эксель по дефолту создаёт 1 лист, а не 4. Тогда нужно создать нехватающие листы вручную
+            //On some devices Excel creates 1 sheet by default, on others - 3 sheets.
+            //We need to have 4 sheets to load all the data, so if there are less than 4 sheets, we need to add the missing sheets manually
+            while (exportWorkbook.Worksheets.Count < 4)
             {
                 exportWorkbook.Worksheets.Add();
             }

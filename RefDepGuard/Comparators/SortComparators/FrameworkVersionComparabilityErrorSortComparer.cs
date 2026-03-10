@@ -3,7 +3,11 @@ using RefDepGuard.Data.FrameworkVersion;
 
 namespace RefDepGuard
 {
-    internal class FrameworkVersionComparabilityErrorSortComparer : IComparer<FrameworkVersionComparabilityError>
+    /// <summary>
+    /// This class implements the IComparer interface to provide a custom sorting logic for FrameworkVersionComparabilityError objects.
+    /// <see cref="FrameworkVersionComparabilityError"/> for details on the properties of the objects being compared.
+    /// </summary>
+    public class FrameworkVersionComparabilityErrorSortComparer : IComparer<FrameworkVersionComparabilityError>
     {
         public int Compare(FrameworkVersionComparabilityError x, FrameworkVersionComparabilityError y)
         {

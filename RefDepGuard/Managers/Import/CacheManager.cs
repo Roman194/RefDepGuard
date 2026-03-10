@@ -4,6 +4,10 @@ using RefDepGuard.Managers.Applied;
 
 namespace RefDepGuard.Managers.Import
 {
+    /// <summary>
+    /// This class is responsible for managing the cache files of the extension. 
+    /// It contains methods for saving and loading the backup of the config files data in json format.
+    /// </summary>
     public class CacheManager
     {
         private static string configFilesBackupExtendedPackageName;
@@ -13,6 +17,9 @@ namespace RefDepGuard.Managers.Import
         private static DirectoryInfo stuffDirInfo;
         private static DirectoryInfo cacheDirInfo;
 
+        /// <summary>
+        /// Sets the names of the cache files in the right format based on the solution name and package name.
+        /// </summary>
         public static void SetSolutionNameInfoInRightFormat()
         {
             configFilesBackupExtendedPackageName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_cache\\";
@@ -29,6 +36,11 @@ namespace RefDepGuard.Managers.Import
             cacheDirInfo.Create();
         }
 
+        /// <summary>
+        /// Saves the backup of the config file data in json format to the cache file. If the cache file doesn't exist, it will be created.
+        /// </summary>
+        /// <param name="json">string data that will be saved</param>
+        /// <param name="isGlobal">shows if it global config file or not</param>
         public static void UpdateConfigFilesBackup(string json, bool isGlobal)
         {
             if (!Directory.Exists(configFilesBackupExtendedPackageName))
@@ -42,6 +54,11 @@ namespace RefDepGuard.Managers.Import
             FileStreamManager.WriteInfoToFile(GetCurrentBackupFileName(isGlobal), json);
         }
 
+        /// <summary>
+        /// Gets the backup of the config file data in json format from the cache file. If the cache file doesn't exist or is empty, it returns an empty string.
+        /// </summary>
+        /// <param name="isGlobal">shows if it global config file or not</param>
+        /// <returns>empty string or string with the current file content</returns>
         public static string GetInfoFromBackupFile(bool isGlobal)
         {
             if (globalConfigBackupName == null || solutionConfigBackupName == null)
@@ -62,6 +79,12 @@ namespace RefDepGuard.Managers.Import
             return "";
         }
 
+        /// <summary>
+        /// Gets the name of the cache file based on the isGlobal parameter. 
+        /// If isGlobal is true, it returns the name of the global config backup file, otherwise - the name of the solution config backup file.
+        /// </summary>
+        /// <param name="isGlobal">shows if it global config file or not</param>
+        /// <returns>globalConfigBackupName or solutionConfigBackupName string</returns>
         private static string GetCurrentBackupFileName(bool isGlobal)
         {
             return isGlobal ? globalConfigBackupName : solutionConfigBackupName;

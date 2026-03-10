@@ -3,7 +3,11 @@ using RefDepGuard.Data.FrameworkVersion;
 
 namespace RefDepGuard
 {
-    internal class MaxFrameworkVersionDeviantValueSortComparer : IComparer<MaxFrameworkVersionDeviantValueError>
+    /// <summary>
+    /// This class implements the IComparer interface to provide a custom sorting logic for MaxFrameworkVersionDeviantValueError objects.
+    /// <see cref="MaxFrameworkVersionDeviantValueError"/> for details on the properties of the objects being compared.
+    /// </summary>
+    public class MaxFrameworkVersionDeviantValueSortComparer : IComparer<MaxFrameworkVersionDeviantValueError>
     {
         public int Compare(MaxFrameworkVersionDeviantValueError x, MaxFrameworkVersionDeviantValueError y)
         {

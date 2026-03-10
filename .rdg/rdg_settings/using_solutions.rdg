@@ -1,0 +1,13 @@
+{
+  "name": "Using_solutions",
+  "using_solutions": [
+    "Mir.Controller.Cfg",
+    "WinFormsApp_solutions_test",
+    "SISR_PO_9",
+    "WinFormApp"
+  ],
+  "ignoring_solutions": [
+    "WinFormsApp_solutions_test_one",
+    "RefDepGuard"
+  ]
+}

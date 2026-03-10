@@ -9,8 +9,22 @@ using RefDepGuard.Models.FrameworkVersion;
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
+    /// <summary>
+    /// This class is responsible for loading data about errors and warnings found during the checks to the relevant Excel workbooks.
+    /// </summary>
     public class LoadInfoToProblemWorkbooksHelper
     {
+        /// <summary>
+        /// The method for loading data about errors found during the checks to the relevant Excel workbook. 
+        /// It populates the workbook with detailed information about each error, including the project and reference involved, the type and level of the error, 
+        /// a description, and recommended actions for resolving the issue. 
+        /// If no errors are found, it displays a message indicating that no problems were detected. 
+        /// This method ensures that all relevant information is clearly presented to the user in an organized manner.
+        /// </summary>
+        /// <param name="excel">Application (excel.interop) interface value</param>
+        /// <param name="solutionName">solution name string</param>
+        /// <param name="currentDateTime">current DateTime of report generation in string format</param>
+        /// <param name="refDepGuardErrors">RefDepGuardErrors value</param>
         public static void LoadInfoToRefRepGuardErrors(Application excel, string solutionName, string currentDateTime, RefDepGuardErrors refDepGuardErrors)
         {
             Worksheet projectsTable = (Worksheet)excel.Worksheets[3];
@@ -22,8 +36,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             int i = 0;
 
-            //Форичи должны идти в порядке, указанном в моделях RefDepGuard Errors и Warnings!
-
+            //For each of every type of errors
+            //Foreach must go in the order, specified in RefDepGuard Errors and Warnings models, to provide correct order of errors display in the report!
             foreach (ReferenceError currentError in refDepGuardErrors.RefsErrorList)
             {
                 string currentErrorText = currentError.IsReferenceRequired ? "Отсутствует обязательный референс" : "Присутствует недопустимый референс";
@@ -120,7 +134,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             }
 
             if (i == 0)
-            {
+            {//if there are no errors, set message about it in the table
                 projectsTable = SetMessageOnZeroFindedWorkbookProblems(projectsTable, true);
                 i = 1;
             }
@@ -128,6 +142,13 @@ namespace RefDepGuard.Managers.Export.SubManagers
             projectsTable = SetProblemsFullTableStyle(projectsTable, i, unionRangeTableTitle, unionRangeSolutionWithTime, true);
         }
 
+        /// <summary>
+        /// The main method for loading data about warnings found during the checks to the relevant Excel workbook.
+        /// </summary>
+        /// <param name="excel">Application (excel.interop) interface value</param>
+        /// <param name="solutionName">solution name string</param>
+        /// <param name="currentDateTime">current DateTime of report generation in string format</param>
+        /// <param name="refDepGuardWarnings">RefDepGuardWarnings value</param>
         public static void LoadInfoToRefDepGuardWarnings(Application excel, string solutionName, string currentDateTime, RefDepGuardWarnings refDepGuardWarnings){
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[4];
@@ -139,6 +160,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             int i = 0;
 
+            //For each of every type of warnings
+            //Foreach must go in the order, specified in RefDepGuard Errors and Warnings models, to provide correct order of errors display in the report!
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
             {
                 string relevantProject = referenceMatchWarning.ProjectName == "" ? "-" : referenceMatchWarning.ProjectName;
@@ -328,6 +351,14 @@ namespace RefDepGuard.Managers.Export.SubManagers
             projectsTable = SetProblemsFullTableStyle(projectsTable, i, unionRangeTableTitle, unionRangeSolutionWithTime, false);
         }
 
+        /// <summary>
+        /// Sets the hat of the table in the workbook with the main information about the solution and generation time, and also with the titles of columns.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="solutionName">Solution name string</param>
+        /// <param name="currentDateTime">Current DateTime of report generation in string format</param>
+        /// <param name="isErrorsTable">Shows if it's an error table or not</param>
+        /// <returns>Worksheet and Ranges of current project table<returns>
         private static Tuple<Worksheet, Range, Range> SetProblemsTableHat(Worksheet projectsTable, string solutionName, string currentDateTime, bool isErrorsTable)
         {
             projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
@@ -356,6 +387,20 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return new Tuple<Worksheet, Range, Range>(projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle);
         }
 
+        /// <summary>
+        /// Sets the elements of the current row in the table with the information about the current error/warning. 
+        /// Also sets the formula for the first column with numeration of errors/warnings.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="relevantProject">relevant project string</param>
+        /// <param name="relevantReference">relevant reference string</param>
+        /// <param name="problemType">problem type string</param>
+        /// <param name="problemLevel">problem level string</param>
+        /// <param name="description">description string</param>
+        /// <param name="offeredAction">offerde action string</param>
+        /// <param name="relevantDocumentName">relevant doc name string</param>
+        /// <param name="i">current row int index</param>
+        /// <returns>workcsheet witn row index</returns>
         private static Tuple<Worksheet, int> SetCurrentRowElements(Worksheet projectsTable, string relevantProject, string relevantReference, string problemType, string problemLevel,
             string description, string offeredAction, string relevantDocumentName, int i)
         {
@@ -377,6 +422,12 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return new Tuple<Worksheet, int>(projectsTable, i);
         }
 
+        /// <summary>
+        /// Sets the message about zero finded errors/warnings in the table, if there are no errors/warnings to display.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="isErrorsTable">shows if it's an error table or not</param>
+        /// <returns>Worksheet of the projectsTable</returns>
         private static Worksheet SetMessageOnZeroFindedWorkbookProblems(Worksheet projectsTable, bool isErrorsTable)
         {
             projectsTable.Cells[5, 2] = (isErrorsTable ? "Ошибки" : "Предупреждения") + " на момент экспорта не обнаружены";
@@ -388,6 +439,15 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return projectsTable;
         }
 
+        /// <summary>
+        /// Sets the style of the table with errors/warnings in the workbook, after it was populated with all the relevant data.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="i">current row int index</param>
+        /// <param name="unionRangeTableTitle">unionRangeTableTitle value</param>
+        /// <param name="unionRangeSolutionWithTime">unionRangeSolutionWithTime value</param>
+        /// <param name="isErrorsTable">Shows if it's an error table or not</param>
+        /// <returns>Worksheet of the projectsTable</returns>
         private static Worksheet SetProblemsFullTableStyle(Worksheet projectsTable, int i, Range unionRangeTableTitle, Range unionRangeSolutionWithTime, bool isErrorsTable)
         {
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + 4, 9]];

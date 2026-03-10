@@ -9,8 +9,20 @@ using RefDepGuard.Data.Reference;
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
+    /// <summary>
+    /// This class is responsible for loading data about projects and references, as well as any errors or warnings found during the checks, into Excel workbooks.
+    /// </summary>
     public class LoadInfoToProjectAndReferenceWorkbooksHelper
     {
+
+        /// <summary>
+        /// Loads data about projects, as well as any errors or warnings found during the checks, into the first sheet of the Excel workbook.
+        /// </summary>
+        /// <param name="excel">Application (excel.interop) interface value</param>
+        /// <param name="solutionName">Solution name string</param>
+        /// <param name="currentDateTime">current DateTime of report generation in string format</param>
+        /// <param name="commitedProjectsState">committed projects state dict</param>
+        /// <param name="refDepGuardExportParameters">RefDepGuardExportParameters values</param>
         public static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
@@ -23,13 +35,13 @@ namespace RefDepGuard.Managers.Export.SubManagers
             List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList;
 
             int widthIndex = 11;
-            int heightIndex = 5; //кол-во строк, которые нужно отсчитать от начала, чтобы перейти за пределы "шапки" таблицы
+            int heightIndex = 5; //count of rows that need to be counted from the beginning to go beyond the "header" of the table
             int firstRowIndex = heightIndex + 1;
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[1];
             projectsTable.Name = "Выборка по проектам";
 
-            //Загрузка и стилизация шапки таблицы
+            //Load and style of the table hat
             projectsTable = SetUnionColumnNames(projectsTable, solutionName, currentDateTime);
             projectsTable.Cells[heightIndex - 1, 3] = "Проект";
             projectsTable.Cells[heightIndex - 1, 4] = "Целевая рабочая\nсреда";
@@ -64,9 +76,9 @@ namespace RefDepGuard.Managers.Export.SubManagers
             unionRangeRequiredRefsErrors.Merge();
             unionRangeUnacceptableRefsErrorsTitle.Merge();
 
-            //Загрузка данных в саму таблицу
+            //Loads data to the table
             int i = 0;
-            foreach (var currentProject in commitedProjectsState)
+            foreach (var currentProject in commitedProjectsState)//for each project in the commited projects state dictionary
             {
                 string currentProjectName = currentProject.Key;
                 List<string> currentPorjectRefs = currentProject.Value.CurrentReferences;
@@ -90,7 +102,6 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 Range currentMaxFrVersionCellRange = projectsTable.Range[projectsTable.Cells[firstRowIndex + i, 5], projectsTable.Cells[firstRowIndex + i, 5]];
                 currentMaxFrVersionCellRange.NumberFormat = "@";
 
-                //Проверить при ошибке на уровнях выше Project
                 if (requiredMaxFrVersions.ContainsKey(currentProjectName))
                 {
                     var currentMaxFrVersionRule = requiredMaxFrVersions[currentProjectName];
@@ -126,7 +137,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
                 if (requiredRefsErrorsCount > 0)
                 {
-                    projectsTable.Cells[firstRowIndex + i, 8].Interior.Color = projectsTable.Cells[firstRowIndex + i, 9].Interior.Color = 0xCEC7FF;//На самом деле это #FFC7CE, просто Interop зачем-то "разворачивает" это значение
+                    //Actually this is not #CEC7FF, this is #FFC7CE, but Interop for some reason "reverses" this value
+                    projectsTable.Cells[firstRowIndex + i, 8].Interior.Color = projectsTable.Cells[firstRowIndex + i, 9].Interior.Color = 0xCEC7FF;
                     projectsTable.Cells[firstRowIndex + i, 8].Font.Color = projectsTable.Cells[firstRowIndex + i, 9].Font.Color = 0x062CCE;
                 }
 
@@ -142,7 +154,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 var unacceptableRefsErrorsProjectString = GetProjectsString(unacceptableRefsErrors);
                 projectsTable.Cells[firstRowIndex + i, 11] = unacceptableRefsErrorsProjectString;
 
-                //Смена формата ячейки для того, чтобы при большом количестве рефов содержимое не выходило за пределы ячейки
+                //Change cell format to prevent content from overflowing the cell if there are too many refs errors
                 if (unacceptableRefsErrorsProjectString.Length > 15)
                 {
                     Range currentCellRange = projectsTable.Range[projectsTable.Cells[firstRowIndex + i, 11], projectsTable.Cells[firstRowIndex + i, 11]];
@@ -152,7 +164,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 i++;
             }
 
-            //Работа с границами
+            //Working with borders
             projectsTable = SetUnionTableStyle(projectsTable, unionRangeSolutionNameAndGenerateTime, unionRangeTableTitle, i, heightIndex, widthIndex, false);
 
             Range unionRangeProjectName = projectsTable.Range[projectsTable.Cells[firstRowIndex, 3], projectsTable.Cells[i + heightIndex, 3]];
@@ -162,7 +174,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             Range unionRangeRequiredRefsErrorsCount = projectsTable.Range[projectsTable.Cells[firstRowIndex, 8], projectsTable.Cells[i + heightIndex, 8]];
             Range unionRangeUnacceptableRefsErrorsCount = projectsTable.Range[projectsTable.Cells[firstRowIndex, 10], projectsTable.Cells[i + heightIndex, 10]];
 
-            //Работа с центровкой числовых столбцов
+            //Warking with alignment and auto fit of columns
             unionRangeProjectName.EntireColumn.AutoFit();
             unionRangeMaxFrVersionWithTitle.HorizontalAlignment = XlVAlign.xlVAlignCenter;
 
@@ -176,6 +188,14 @@ namespace RefDepGuard.Managers.Export.SubManagers
             unionRangeUnacceptableRefsErrorsCount.EntireColumn.AutoFit();
         }
 
+        /// <summary>
+        /// Loads data about references, as well as any errors or warnings found during the checks, into the second sheet of the Excel workbook.
+        /// </summary>
+        /// <param name="excel">Application (excel.interop) interface value</param>
+        /// <param name="solutionName">Solution name string</param>
+        /// <param name="currentDateTime">current DateTime of report generation in string format</param>
+        /// <param name="commitedProjectsState">committed projects state dict</param>
+        /// <param name="refDepGuardExportParameters">RefDepGuardExportParameters values</param>
         public static void LoadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             List<ReferenceError> refsErrorList = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.RefsErrorList;
@@ -185,7 +205,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             bool isPotentialVersionConflict = false;
             int widthIndex = 5;
-            int heightIndex = 4; //Так как названиями столбцов в этой таблице занято на одну строку меньше, то значением индекса на один меньше
+            int heightIndex = 4; //As long as the names of columns in this table take up one row less, the index value is one less too
             int firstRowIndex = heightIndex + 1;
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[2];
@@ -193,7 +213,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             projectsTable = SetUnionColumnNames(projectsTable, solutionName, currentDateTime);
 
-            projectsTable.Cells[heightIndex, 3] = "Референс"; //из-за этого значения heightIndex здесь нету минус 1!
+            projectsTable.Cells[heightIndex, 3] = "Референс"; //for this reason heightIndex is call without minus one, as in the projects table
             projectsTable.Cells[heightIndex, 4] = "Проект";
             projectsTable.Cells[heightIndex, 5] = "Тип референса";
 
@@ -201,7 +221,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             (unionRangeSolutionWithTime, unionRangeTableTitle) = SetUnionTableHatRanges(projectsTable, widthIndex, heightIndex);
 
             int i = 0;
-            foreach (var currentProject in commitedProjectsState)
+            foreach (var currentProject in commitedProjectsState)//for each project in the commited projects state dictionary
             {
                 string projectName = currentProject.Key;
                 foreach (var projectReference in currentProject.Value.CurrentReferences)
@@ -210,10 +230,10 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     projectsTable.Cells[firstRowIndex + i, 3] = projectReference;
                     projectsTable.Cells[firstRowIndex + i, 4] = projectName;
 
-                    //Выделения типа связи расставлены в порядке приоритезации
+                    //The choose of reference type is done according in the priority order.
                     RequiredReference requiredReference = requiredReferences
                         .Where(value => value.ReferenceName == projectReference && (value.RelevantProject == projectName || value.RelevantProject == ""))
-                        .FirstOrDefault(); //Должно найтись не более одного такого значения
+                        .FirstOrDefault();//Should be finded no more than one value
 
                     MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReference = maxFrameworkVersionReferenceConflictWarningsList
                         .Where(value => value.RefName == projectReference && value.ProjName == projectName)
@@ -251,6 +271,13 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 projectsTable.Columns[5].ColumnWidth = 16;
         }
 
+        /// <summary>
+        /// Sets the column names for the projects and references tables, as well as the solution name and report generation time, and styles them.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="solutionName">Solution name string</param>
+        /// <param name="currentDateTime">Current DateTime of report generation in string format</param>
+        /// <returns>projectsTable: Worksheet value</returns>
         private static Worksheet SetUnionColumnNames(Worksheet projectsTable, string solutionName, string currentDateTime)
         {
             projectsTable.Cells[2, 2] = "Solution: \"" + solutionName + "\"";
@@ -261,6 +288,13 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return projectsTable;
         }
 
+        /// <summary>
+        /// Sets Ranges that are union for the table hats of both tables.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="widthIndex">int widthIndex of the table</param>
+        /// <param name="heightIndex">int heightIndex of the table</param>
+        /// <returns>two ranges: solution with time and table title</returns>
         private static Tuple<Range, Range> SetUnionTableHatRanges(Worksheet projectsTable, int widthIndex, int heightIndex)
         {
             Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, widthIndex]];
@@ -277,6 +311,14 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return new Tuple<Range, Range>(unionRangeSolutionWithTime, unionRangeTableTitle);
         }
 
+        /// <summary>
+        /// Sets the current row number in the first column of the table. 
+        /// If it's the first row, sets "1", if not, sets formula to increase the previous row number by 1.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="i">row index int</param>
+        /// <param name="heightIndex">table height int index</param>
+        /// <returns>Worksheet value</returns>
         private static Worksheet SetCurrentRowNum(Worksheet projectsTable, int i, int heightIndex)
         {
             if (i == 0)
@@ -287,6 +329,17 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return projectsTable;
         }
 
+        /// <summary>
+        /// Sets the reference type text and style in the current row of the references table based on the reference type 
+        /// (required, unacceptable, potential version conflict or none of these).
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="firstRowIndex">first row index int</param>
+        /// <param name="i">row index int</param>
+        /// <param name="textType">text type string</param>
+        /// <param name="interiorColor">interior color int</param>
+        /// <param name="fontColor">font color int</param>
+        /// <returns></returns>
         private static Worksheet SetReferenceTypeStyle(Worksheet projectsTable, int firstRowIndex, int i, string textType, 
             int interiorColor = 0x0fffff, int fontColor = 0x000000)
         {
@@ -298,6 +351,17 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return projectsTable;
         }
 
+        /// <summary>
+        /// Sets the style for the whole table based on the union ranges of the table hat, as well as the range of all the table with data.
+        /// </summary>
+        /// <param name="projectsTable">Worksheet value</param>
+        /// <param name="unionRangeSolutionWithTime">RangeSolutionWithTime</param>
+        /// <param name="unionRangeTableTitle">RangeTableTitle</param>
+        /// <param name="i">row index int</param>
+        /// <param name="extraColumnIndex">extracolumn int index</param>
+        /// <param name="widthIndex">width int index</param>
+        /// <param name="isReferencesWorkbook">shows if it's references workbook or not</param>
+        /// <returns>Worksheet value</returns>
         private static Worksheet SetUnionTableStyle(Worksheet projectsTable, Range unionRangeSolutionWithTime, Range unionRangeTableTitle, int i, int extraColumnIndex, int widthIndex, bool isReferencesWorkbook)
         {
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + extraColumnIndex, widthIndex]];
@@ -318,6 +382,11 @@ namespace RefDepGuard.Managers.Export.SubManagers
             return projectsTable;
         }
 
+        /// <summary>
+        /// Gets the string with project names from the list of project names. If there are more than 2 project names, they will be separated by comma and space.
+        /// </summary>
+        /// <param name="projectNames">list of strings of project names</param>
+        /// <returns>projects string</returns>
         private static string GetProjectsString(List<String> projectNames)
         {
             string projectString = "";

@@ -15,8 +15,14 @@ using RefDepGuard.Models.FrameworkVersion;
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// This class is responsible for managing the checking of rules based on the configuration files and the current state of the projects in the solution.
+    /// </summary>
     public class CheckRulesManager
     {
+        //Some of the "problems" list are stored here because they are generated during the process of parsing the config files, and some of them are generated
+        //during the process of generating max_fr_ver dictionary.
+        //Other are stored in corresponding submanagers, but they are all collected and sorted in the end of the main method of this manager and then exported to ELP together.
         private static List<MaxFrameworkVersionDeviantValueError> maxFrameworkVersionDeviantValueErrorList = new List<MaxFrameworkVersionDeviantValueError>();
         private static List<MaxFrameworkVersionIllegalTemplateUsageError> maxFrameworkVersionIllegalTemplateUsageErrorsList = new List<MaxFrameworkVersionIllegalTemplateUsageError>();
         private static List<MaxFrameworkVersionDeviantValueWarning> maxFrameworkVersionDeviantValueWarningList = new List<MaxFrameworkVersionDeviantValueWarning>();
@@ -24,11 +30,28 @@ namespace RefDepGuard
 
         private static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
 
+        //Lists with all errors and warnings, that will be exported to ELP in the end of the main method of this manager.
         private static RefDepGuardErrors refDepGuardErrors;
         private static RefDepGuardWarnings refDepGuardWarnings;
+
+        //This field is used to store the parameters that will be exported to ELP and used in other parts of the extension, such as the exports.
         private static RequiredParameters requiredExportParameters;
         private static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
+
+        /// <summary>
+        /// This is the main method of checking rules module.
+        /// It is responsible for checking the rules based on the configuration files and the current state of the projects in the solution. 
+        /// It performs various checks, such as not null checks, max framework version checks, references checks, and transit references detection. 
+        /// It collects all the errors and warnings found during the process and exports them to ELP together with the required parameters for other parts 
+        /// of the extension.
+        /// </summary>
+        /// <param name="configFilesData">ConfigFilesData current commited value</param>
+        /// <param name="errorListProvider">ELP class value</param>
+        /// <param name="currentCommitedProjState">Current commited projects state values</param>
+        /// <param name="uIShell">IVsUIShell interface value</param>
+        /// <returns>RefDepGuardExportParameters and ConfigFilesData (to provide "Single source of truth" and "One flow through modules" principes)</returns>
+        /// <see cref="RefDepGuardExportParameters"/>
         public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckRulesFromConfigFiles(
             ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell
             )
@@ -37,6 +60,7 @@ namespace RefDepGuard
             ConfigFileSolutionDTO configFileSolution = configFilesData.ConfigFileSolution;
             string solutionName = configFilesData.SolutionName;
 
+            //before starting the checks, we need to clear the lists with errors and warnings, that are stored in this manager and corresponding submanagers, to avoid duplicates
             ClearErrorAndWarningLists();
 
             var configPropertyNullErrorList = NotNullChecksSubManager.CheckConfigPropertiesOnNotNull(configFilesData);
@@ -44,6 +68,10 @@ namespace RefDepGuard
             var maxGlobalFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileGlobal?.framework_max_version ?? "-", ProblemLevel.Global);
             var maxSolutionFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(configFileSolution?.framework_max_version ?? "-", ProblemLevel.Solution);
 
+            //A checks for conflicts between max framework versions of the same level (if there are several) on global and solution levels.
+            //
+            //On project level such conflicts are not possible, because if there are several max framework version restrictions, they must be specified by user in
+            //the form of a template with types,and if there is a template with types, then it is not possible to specify several restrictions for the same type on the same level.
             MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxGlobalFrameworkVersionByTypes, ProblemLevel.Global);
             MaxFrameworkRuleChecksSubManager.CheckMaxFrameworkVersionOneLevelConflict(maxSolutionFrameworkVersionByTypes, ProblemLevel.Solution);
 
@@ -62,47 +90,49 @@ namespace RefDepGuard
             requiredReferencesList.AddRange(globalRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
             requiredReferencesList.AddRange(solutionRequiredReferences.ConvertAll(value => new RequiredReference(value, "")));
 
-            if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)//проверка на противоречие с global
+            //A check for conflict between max framework versions on global and solution levels
+            if (maxGlobalFrameworkVersionByTypes.Count > 0 && maxSolutionFrameworkVersionByTypes.Count > 0)
                 MaxFrameworkRuleChecksSubManager.CheckProjectMaxFrameworkVersionDifferentLevelsConflicts(
                     maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "-", ProblemLevel.Solution, ProblemLevel.Global
                     );
 
-            //Проверка на наличие незафиксированных в конфиге и уже удалённых в solution проектов
+            //A check on difference between projects in the solution and projects specified in the config file and updating the config data if needed (if the user allowed automatic update of projects list in config file)
             var projectMatchWarningList = new List<ProjectMatchWarning>();
             (configFilesData, projectMatchWarningList) = CheckProjectsMatchSubManager.CheckAndUpdateProjectsOnMatch(configFilesData, currentCommitedProjState, uIShell);
 
+            //A check on exsisting of the projects that are specified as the references in the config file on the global/solution level
             (globalRequiredReferences, globalUnacceptableReferences) = 
                 RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(globalRequiredReferences, globalUnacceptableReferences, currentCommitedProjState, ProblemLevel.Global);
 
             (solutionRequiredReferences, solutionUnacceptableReferences) = 
                 RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(solutionRequiredReferences, solutionUnacceptableReferences, currentCommitedProjState, ProblemLevel.Solution);
 
-
+            //A check for conflicts between referneces on the solution and global levels
             RefsRuleChecksSubManager.CheckRulesOnMatchConflicts(
                 solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences
                 );
 
             bool isTransitReferencesDetectionNeeded = (configFileGlobal?.report_on_transit_references ?? false) && (configFileSolution?.report_on_transit_references ?? false);
 
-            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//для каждого project
+            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//foreach project
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value.CurrentReferences;
                 var projFrameworkVersions = currentProjState.Value.CurrentFrameworkVersions;
 
-                if (configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)//Эта проверка требуется, так как п-ль мог запретить автомат. добавление недостающих проектов
+                if (configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)//If the project exsists (still needs this check as the user can disable auto adding of missing in config file projects)
                 {
                     ConfigFileProjectDTO currentProjectConfigFileSettings = configFileSolution.projects[projName];
 
-                    bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true; //Проверка на отключение глобальных и solution рефов для проекта
+                    bool isConsiderRequiredReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.required ?? true;
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
-                    //Вывод предупреждений о транзитоивной связи должен производиться только если это нужно на конкретном проекте и нет блока на уровнях выше
+                    //Transit references detection is needed on project level if it is allowed on global and solution levels and if the user didn't disable it for the project specifically
                     bool isTransitReferencesDetectionNeededOnThisProj = (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
 
                     Dictionary<string, List<int>> projTypes = currentCommitedProjState[projName].CurrentFrameworkVersions;
-                    var maxFrameworkVersionByTypes = GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList());
-                    //На уровне Project не может быть противоречий одного уровня!!!
+                    var maxFrameworkVersionByTypes = 
+                        GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList());
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -114,51 +144,59 @@ namespace RefDepGuard
 
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
 
+                    //A check on exsisting of the projects that are specified as the references in the config file on the project level
                     (requiredReferences, unacceptableReferences) = 
                         RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedProjState, ProblemLevel.Project, projName);
 
+                    //A check for conflicts between referneces on the project level and solution/global levels
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
                         solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences, requiredReferences, 
                         unacceptableReferences, projName, isConsiderRequiredReferences, isConsiderUnacceptableReferences);
 
+                    //A check an accordance of the current projects state references to the project level rules from the config file
                     RefsRuleChecksSubManager.CheckRulesForProjectReferences(projName, projReferences, requiredReferences, true);
                     RefsRuleChecksSubManager.CheckRulesForProjectReferences(projName, projReferences, unacceptableReferences, false);
 
                     foreach (ReferenceAffiliation referenceAffiliation in unionSolutionAndGlobalReferencesByType)
                     {
-                        if (isConsiderRequiredReferences)//если заявлено
-                            //применяем глобальные референсы
+                        if (isConsiderRequiredReferences)//if it is allowed to use global/solution required references
+                            //then check an accordance of the current projects state references to the global and solution level rules from the config file
                             RefsRuleChecksSubManager.CheckRulesForSolutionOrGlobalReferences(
                                 projName, projReferences, referenceAffiliation.RequiredReferences, referenceAffiliation.ReferenceTypeValue, 
                                 true, configFileProjectAndSolutionReferences);
 
-                        if (isConsiderUnacceptableReferences)
+                        if (isConsiderUnacceptableReferences)//if it is allowed to use global/solution unacceptable references
+                            //then check an accordance of the current projects state references to the global and solution level rules from the config file
                             RefsRuleChecksSubManager.CheckRulesForSolutionOrGlobalReferences(
                                 projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.ReferenceTypeValue, 
                                 false, configFileProjectAndSolutionReferences);
                     }
 
-                    if(isTransitReferencesDetectionNeededOnThisProj)
+                    //A check for transit references if it is needed for the current project
+                    if (isTransitReferencesDetectionNeededOnThisProj)
                         TransitRefsDetectSubManager.CheckCurrentProjectOnTransitReferences(projName, currentCommitedProjState);
 
-                    if (maxFrameworkVersionByTypes.Count == 0)
+                    //A checks on max_framework_version rules
+                    if (maxFrameworkVersionByTypes.Count == 0)//If no rules on project level
                     {
-                        if (maxSolutionFrameworkVersionByTypes.Count > 0)
-                        {
+                        if (maxSolutionFrameworkVersionByTypes.Count > 0)//If there are rules on solution level
+                        { //then check project TFM versions on accordance with solution level rules
                             MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
                                 projFrameworkVersions, maxSolutionFrameworkVersionByTypes, projName, ProblemLevel.Solution, maxGlobalFrameworkVersionByTypes
                                 );
                         }
                         else
                         {
-                            if (maxGlobalFrameworkVersionByTypes.Count > 0)
+                            if (maxGlobalFrameworkVersionByTypes.Count > 0) //If there are rules on global level
+                                //then check project TFM versions on accordance with global level rules
                                 MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
                                     projFrameworkVersions, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Global
                                     );
                         }
                     }
-                    else//Проверить на противоречие с уровнем solution и global
+                    else
                     {
+                        //Firstly check if there are conflicts between max framework version rules on project level and solution/global levels
                         if (maxSolutionFrameworkVersionByTypes.Count > 0)
                             MaxFrameworkRuleChecksSubManager.CheckProjectMaxFrameworkVersionDifferentLevelsConflicts(
                                 maxFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes, projName, ProblemLevel.Project, ProblemLevel.Solution
@@ -169,6 +207,7 @@ namespace RefDepGuard
                                 maxFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Project, ProblemLevel.Global
                                 );
 
+                        //Then check project TFM versions on accordance with project level rules
                         MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
                             projFrameworkVersions, maxFrameworkVersionByTypes, projName, ProblemLevel.Project
                             );
@@ -176,8 +215,8 @@ namespace RefDepGuard
                 }
             }
 
-            //Для корректной проверки конфликтов рефов по макс версиям требуется предварительно собрать инфу обо всех проектах, их макс версиях и конфликтов между макс версиями
-            //Поэтому проверка вынесена в отдельный цикл
+            //For a correct check of potential conflicts between max framework versions on the exsisting references it is needed to collect info about projects, their max versions and conflicts between them.
+            //That's why this check is performed after the main loop through projects.
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)
             {
                 var projName = currentProjState.Key;
@@ -189,6 +228,7 @@ namespace RefDepGuard
                 }
             }
 
+            //After all checks are performed, we collect all the errors and warnings from different submanagers and sort them before exporting to ELP.
             var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
             var detectedTransitRefs = TransitRefsDetectSubManager.GetDetectedTransitRefsDict();
@@ -197,7 +237,7 @@ namespace RefDepGuard
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
             var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
 
-            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorSortComparer());//Сортируются только "ошибки"?
+            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorSortComparer());//Sorts only errors!
             refsRuleCheckErrors.RefsMatchErrorList.Sort(new ReferenceMatchErrorSortComparer());
             configPropertyNullErrorList.Sort(new ConfigFilePropertyNullErrorSortComparer());
             maxFrameworkVersionDeviantValueErrorList.Sort(new MaxFrameworkVersionDeviantValueSortComparer());
@@ -215,6 +255,7 @@ namespace RefDepGuard
 
             refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
 
+            //Export to ELP to show all finded problems in the error list of the IDE.
             ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData, errorListProvider);
 
             requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
@@ -225,6 +266,10 @@ namespace RefDepGuard
             );
         }
 
+        /// <summary>
+        /// This method is responsible for clearing the lists with errors and warnings that are stored in this manager and corresponding submanagers, 
+        /// to avoid duplicates when the main method is called several times during the lifecycle of the extension.
+        /// </summary>
         private static void ClearErrorAndWarningLists()
         {
             if (maxFrameworkVersionDeviantValueErrorList != null)
@@ -249,6 +294,14 @@ namespace RefDepGuard
             TransitRefsDetectSubManager.ClearDetectedTransitRefsDict();
         }
 
+        /// <summary>
+        /// This method is responsible for transforming the max framework version string from a config file to a dictionary format for easier access and checks.
+        /// </summary>
+        /// <param name="currentMaxFrameworkVersion">A string max_framework_version value</param>
+        /// <param name="errorLevel">A current level of the max_fr_ver rules</param>
+        /// <param name="projName">A name of the current project</param>
+        /// <param name="projTypes">TFM-s of this project</param>
+        /// <returns>Max framework version rules in dictionary format</returns>
         private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ProblemLevel errorLevel, string projName = "", List<string> projTypes = null)
         {
             projTypes = projTypes ?? new List<string>();
@@ -257,22 +310,22 @@ namespace RefDepGuard
                 return new Dictionary<string, List<int>>();
 
             if ((currentMaxFrameworkVersion.Contains(';') || currentMaxFrameworkVersion.Contains(':')) && errorLevel == ProblemLevel.Project && projTypes.Count == 1)
-            {
-                //Выкинуть ошибку о некорректном формате (На уровне project не допускается перечисление версий фреймворка пользователем, если это не позволяет проект)
+            {//If it is project level and there is a template with types, but only one type is specified in the project TFM-s
+                //then add error about illegal usage of template and return an empty dictionary.
                 if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
                     maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName, false));
 
                 return new Dictionary<string, List<int>>();
             }
 
-            if (!currentMaxFrameworkVersion.Contains(':')) //Приведение всех ограничений к шаблону
+            if (!currentMaxFrameworkVersion.Contains(':')) //If it isn't template usage then we need to convert it to template format
             {
-                if (errorLevel == ProblemLevel.Project) //Если встречается ограничение на проект, то надо подставить тип этого проекта (или несколько типов)!!!
+                if (errorLevel == ProblemLevel.Project)
                 {
-                    if (projTypes.Count == 1) //И получается, что на проектном уровне всё же используется шаблон различных огр-ий, но только если у нас TargetFrameworks!
+                    if (projTypes.Count == 1) //If there is only one TFM specified for the project, then we can just add it to the beginning of the string.
                         currentMaxFrameworkVersion = projTypes.FirstOrDefault() + ":" + currentMaxFrameworkVersion;
                     else
-                    {
+                    {//If there are several TFMs, then we need to create a template with types for each of them.
                         string currentMaxFrameworkVersionProjTypeString = "";
                         foreach (var projType in projTypes)
                         {
@@ -285,57 +338,55 @@ namespace RefDepGuard
                         currentMaxFrameworkVersion = currentMaxFrameworkVersionProjTypeString;
                     }
                 }
-
-                else
+                else //If it is not project level, then we just add "all" type to the beginning of the string.
                     currentMaxFrameworkVersion = "all:" + currentMaxFrameworkVersion;
             }
 
-            var currentMaxFrameworkVersionArray = currentMaxFrameworkVersion.Split(';');
+            var currentMaxFrameworkVersionArray = currentMaxFrameworkVersion.Split(';');//Split by template elements if there are several of them
             var maxFrameworkDictionary = new Dictionary<string, List<int>>();
 
-            foreach (string maxFrameworkVersion in currentMaxFrameworkVersionArray) //Для каждого из ограничений
+            foreach (string maxFrameworkVersion in currentMaxFrameworkVersionArray) //Foreach template element
             {
                 var maxFrameworkVersionElementSplited = maxFrameworkVersion.Replace(" ", "").Split(':');
 
-                //Если не указано название типа фреймворка или/и в правой части нет ничего
+                //If there is a template element with incorrect format (have empty project type or its version)
                 if (String.IsNullOrEmpty(maxFrameworkVersionElementSplited[0]) || String.IsNullOrEmpty(maxFrameworkVersionElementSplited[1]))
                 {
-                    //Выкинуть ошибку о некорректном формате
-                    if(maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel) == null)
+                    //then add error about incorrect format of max_framework_version element and return empty dictionary, because we can't be sure about the correctness of the data to perform checks with it.
+                    if (maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel) == null)
                         maxFrameworkVersionDeviantValueErrorList.Add(new MaxFrameworkVersionDeviantValueError(errorLevel, "", false));
                     
                     return new Dictionary<string, List<int>>();
                 }
 
-                //Если при TargetFrameworks п-ль на уровне проекта указал тип проекта, не соответствующих его факт типу (типам) TFM, то 
-                //MaxFrameworkVersionIllegalTemplateUsageError
+                //If user used template with types on project level, but specified in it a type that doesn't exist in the project TFMs and this type isn't "all",
                 if (errorLevel == ProblemLevel.Project && !projTypes.Contains(maxFrameworkVersionElementSplited[0]) && maxFrameworkVersionElementSplited[0] != "all")
                 {
-                    
+                    //then add error about illegal usage of template and return an empty dictionary
                     if (maxFrameworkVersionIllegalTemplateUsageErrorsList.Find(error => error.ProjName == projName) == null)
                         maxFrameworkVersionIllegalTemplateUsageErrorsList.Add(new MaxFrameworkVersionIllegalTemplateUsageError(projName, true));
 
                     return new Dictionary<string, List<int>>();
                 }
 
-                //Проверка на то, что обнаруженный TFM существует. Иначе добавляется варнинг и TFM в словарь не добавляется
+                //If user used templaty with type that doesn't exist then add warning about that
                 if (!TFMSample.PossibleTargetFrameworkMonikiers().Contains(maxFrameworkVersionElementSplited[0])){
                     if(maxFrameworkVersionTFMNotFoundWarningList.Find(warning =>
                             warning.TFMName == maxFrameworkVersionElementSplited[0] && warning.WarningLevel == errorLevel && warning.ProjName == projName) == null)
                         maxFrameworkVersionTFMNotFoundWarningList.Add(new MaxFrameworkVersionTFMNotFoundWarning(maxFrameworkVersionElementSplited[0], errorLevel, projName));
 
-                    continue;
+                    continue; //but we continue processing this element, because maybe other types in the template are correct and we can use them for checks. Just skip incorrect type with warning.
                 }
 
-                var maxFrameworkVersionNumbers = maxFrameworkVersionElementSplited[1].Split('.');
+                var maxFrameworkVersionNumbers = maxFrameworkVersionElementSplited[1].Split('.');//Split template element version by dot to get version numbers
                 var maxFrameworkVersionNumsList = new List<int>();
 
-                foreach (var maxFrameworkVersionNumber in maxFrameworkVersionNumbers)
+                foreach (var maxFrameworkVersionNumber in maxFrameworkVersionNumbers)//Foreach number of version in template element
                 {
                     int maxVersionCurrentNum;
-                    if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Попытка парсинга очередного числа версии макс фреймворка
+                    if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Try to parse it to int
                     {
-                        //Ошибка когда найдено некорректное значение max_framework_version в config-файле 
+                        //if it is not possible, then adds deviant value error and return an empty dictionary
                         MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
                         if (errorLevel == ProblemLevel.Project)
                         {
@@ -349,25 +400,28 @@ namespace RefDepGuard
 
                         return new Dictionary<string, List<int>>();
                     }
-                    maxFrameworkVersionNumsList.Add(maxVersionCurrentNum);
+                    maxFrameworkVersionNumsList.Add(maxVersionCurrentNum);//If it is possible, then add this number to the list of version numbers for this template element
                 }
 
-                if (maxFrameworkVersionNumsList.Count == 1)//Если числовое ограничение указано в формате без точки
+                if (maxFrameworkVersionNumsList.Count == 1)//If there is only one num in version
                 {
-                    //добавить новую framework_max_version deviant value warning и незначащий ноль в конец
+                    //then add warning about that and add 0 as a second number to make it in a correct format for checks.
                     maxFrameworkVersionNumsList.Add(0);
                     maxFrameworkVersionDeviantValueWarningList.Add(new MaxFrameworkVersionDeviantValueWarning(errorLevel, projName, maxFrameworkVersionElementSplited[1]));
                 }
 
-                if (maxFrameworkDictionary.ContainsKey(maxFrameworkVersionElementSplited[0])) //Если обнаружен повтор в типах проекта одного шаблона ограничения
-                { //Выдать ошибку о некорректном значении ограничения
+                if (maxFrameworkDictionary.ContainsKey(maxFrameworkVersionElementSplited[0]))//If there are several template elements with the same type
+                { //then add error about that and return an empty dictionary
                     if (maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel && error.ErrorRelevantProjectName == projName) == null)
                         maxFrameworkVersionDeviantValueErrorList.Add(new MaxFrameworkVersionDeviantValueError(errorLevel, projName, true));
 
                     break;
                 }
+
+                //If everything is correct, then add this template element with version numbers to the dictionary
                 maxFrameworkDictionary.Add(maxFrameworkVersionElementSplited[0], maxFrameworkVersionNumsList);
             }
+
             return maxFrameworkDictionary;
         }
     }
