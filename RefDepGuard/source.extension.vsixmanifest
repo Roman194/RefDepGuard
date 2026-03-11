@@ -4,7 +4,9 @@
         <Identity Id="Ref.Dep.Guard.Ramonn_KN.dc3a31f3-52dd-4a3f-b68c-474a8a06109a" Version="1.0" Language="ru-RU" Publisher="Ramonn_KN" />
         <DisplayName>Ref Dep Guard</DisplayName>
         <Description xml:space="preserve">Данное расширение позволяет отслеживать изменения зависимостей между проектами и сопоставлять эти зависимости с правилами заданными в специальном конфигурационном файле. В случае несоответствия зависимостей заданным правилам, расширение выдаёт предупреждение о некорректных связях и не даёт сборке завершитьсяДанное </Description>
+        <License>LICENSE.txt</License>
         <Icon>UI\Resources\RefDepGuard_icon.ico</Icon>
+        <PreviewImage>UI\Resources\RefDepGuard_icon.png</PreviewImage>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[17.0, 18.0)">
