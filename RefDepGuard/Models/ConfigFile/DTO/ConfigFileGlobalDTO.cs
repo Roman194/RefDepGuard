@@ -2,6 +2,9 @@
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// It's a DTO for the global config file instances
+    /// </summary>
     public class ConfigFileGlobalDTO
     {
         public string name;

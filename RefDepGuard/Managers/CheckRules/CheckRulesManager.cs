@@ -162,13 +162,13 @@ namespace RefDepGuard
                         if (isConsiderRequiredReferences)//if it is allowed to use global/solution required references
                             //then check an accordance of the current projects state references to the global and solution level rules from the config file
                             RefsRuleChecksSubManager.CheckRulesForSolutionOrGlobalReferences(
-                                projName, projReferences, referenceAffiliation.RequiredReferences, referenceAffiliation.ReferenceTypeValue, 
+                                projName, projReferences, referenceAffiliation.RequiredReferences, referenceAffiliation.RulesLevel, 
                                 true, configFileProjectAndSolutionReferences);
 
                         if (isConsiderUnacceptableReferences)//if it is allowed to use global/solution unacceptable references
                             //then check an accordance of the current projects state references to the global and solution level rules from the config file
                             RefsRuleChecksSubManager.CheckRulesForSolutionOrGlobalReferences(
-                                projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.ReferenceTypeValue, 
+                                projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.RulesLevel, 
                                 false, configFileProjectAndSolutionReferences);
                     }
 

@@ -5,7 +5,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>RefDepGuard_icon.ico</ApplicationIcon>
+    <ApplicationIcon>UI\Resources\RefDepGuard_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -91,10 +91,10 @@
     <Compile Include="Models\ConfigFile\ConfigFileServiceInfo.cs" />
     <Compile Include="Models\ConfigFile\DTO\ConfigFileGlobalDTO.cs" />
     <Compile Include="Models\ConfigFile\DTO\ConfigFileProjectDTO.cs" />
-    <Compile Include="Models\ConfigFile\ConfigFileProjectRefsConsidering.cs" />
+    <Compile Include="Models\ConfigFile\DTO\ConfigFileProjectRefsConsideringDTO.cs" />
     <Compile Include="Models\ConfigFile\DTO\ConfigFileSolutionDTO.cs" />
     <Compile Include="Models\FileError\FileErrorMessage.cs" />
-    <Compile Include="Models\FrameworkVersion\Errors\FrameworkVersionComparabilityError.cs" />
+    <Compile Include="Models\FrameworkVersion\Errors\FrameworkVersionComparatibilityError.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionConflictWarning.cs" />
     <Compile Include="Models\FrameworkVersion\Errors\MaxFrameworkVersionDeviantValueError.cs" />
     <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionReferenceConflictWarning.cs" />
@@ -158,7 +158,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="RefDepGuard_icon.ico">
+    <Content Include="UI\Resources\RefDepGuard_icon.ico">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>

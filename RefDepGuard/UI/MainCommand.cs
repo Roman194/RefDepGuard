@@ -16,7 +16,8 @@ using Task = System.Threading.Tasks.Task;
 namespace RefDepGuard
 {
     /// <summary>
-    /// Command handler
+    /// Main command handler class. It's an entry point for the managers starts. It's also handles all user/IDE events and manages extention behaviour by the starting managers
+    /// and analyse their results
     /// </summary>
     internal sealed class MainCommand
     {
@@ -38,6 +39,8 @@ namespace RefDepGuard
 
         /// <summary>
         /// VS Package that provides this command, not null.
+        /// Also there are IServiceProvider, IVsUIShell, DTE, ErrorListProvider and Excel.Application interfaces values initialization.
+        /// It's the only place in program where such an init can be helds
         /// </summary>
         private readonly AsyncPackage package;
         private static IServiceProvider serviceProvider;
@@ -46,6 +49,9 @@ namespace RefDepGuard
         private static ErrorListProvider errorListProvider;
         private static Excel.Application excel = new Excel.Application();
 
+        /// <summary>
+        /// Extention global flags and variables
+        /// </summary>
         private static bool isExtentionInitialized = false;
         private static bool isSuccessfulCheckingRules = true;
         private static bool isSolutionFamiliar = true;
@@ -54,6 +60,9 @@ namespace RefDepGuard
         private static ConfigFilesData configFilesData;
         private static RefDepGuardExportParameters refDepGuardExportParameters;
 
+        /// <summary>
+        /// OleMenuInputCommand variables determine
+        /// </summary>
         private static OleMenuCommand getCurrentRefsMenuItem;
         private static OleMenuCommand getExtCurrentRefsMenuItem;
         private static OleMenuCommand getChangedRefsMenuItem;
@@ -127,12 +136,13 @@ namespace RefDepGuard
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            // Switch to the main thread - the call to AddCommand in Command1's constructor requires
+            // Switch to the main thread - the call to AddCommand in MainCommand's constructor requires
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
             OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
             errorListProvider = new ErrorListProvider(package);
 
+            //DTE initilaization with subscribe on events
             dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
             dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
             dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
@@ -140,14 +150,21 @@ namespace RefDepGuard
 
             Instance = new MainCommand(package, commandService);
 
+            //IVsUIShell initialization
             uiShell = (IVsUIShell)await package.GetServiceAsync(typeof(SVsUIShell));
         }
 
+        /// <summary>
+        /// A function to update the properties of the refs menu item.
+        /// It was taken out from the <see cref="ExtActivationQueryStatus"/> as an attempt to fix bug with still seing this item when extentin is deactivated
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="e">Evnet args</param>
         private void GetCurrentRefsQueryStatus(object sender, EventArgs e)
         {
             if (isSolutionFamiliar)
             {
-                getCurrentRefsMenuItem.Visible = true; //То что это вынесено отдельно это вроде бы моя попытка пофиксить баг
+                getCurrentRefsMenuItem.Visible = true;
                 getCurrentRefsMenuItem.Enabled = true;
             }
             else
@@ -157,6 +174,11 @@ namespace RefDepGuard
             }
         }
 
+        /// <summary>
+        /// A function to update the properties of the other menu items
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="e">Evnet args</param>
         private void ExtActivationQueryStatus(object sender, EventArgs e)
         {
             if (isSolutionFamiliar)
@@ -193,6 +215,11 @@ namespace RefDepGuard
             }
         }
 
+        /// <summary>
+        /// A func to acgtivate the extention after the user command
+        /// </summary>
+        /// <param name="sender">Event sender</param>
+        /// <param name="e">Evnet args</param>
         private void ActivateExtention(object sender, EventArgs e)
         {
             isSolutionFamiliar = SettingsManager.UpdateSettingsByMakingSolutionFamiliar();
@@ -206,6 +233,11 @@ namespace RefDepGuard
             );
         }
 
+        /// <summary>
+        /// A function that is always calls after the new solution opened. It checks solution settings and starts updating solution state if needed
+        /// <see cref="CheckSolutionSettings"/>
+        /// <see cref="UpdateSolutionState"/>
+        /// </summary>
         private static async void onSolutionOpened()
         {
             isExtentionInitialized = false;
@@ -223,6 +255,11 @@ namespace RefDepGuard
             }
         }
 
+        /// <summary>
+        /// This function checks whether this solution is familiar to extention or not.
+        /// It also calls all the "SetSolutionNameInfoInRightFormat" functions
+        /// just to prevent them from calling on every solution state update, but still to provide them to call it after every solution opens
+        /// </summary>
         private static void CheckSolutionSettings()
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
@@ -232,18 +269,31 @@ namespace RefDepGuard
             isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(uiShell);
         }
 
+        /// <summary>
+        /// This function is handels on build begined extention actions: starts solution state update if solution is familiar to extention
+        /// </summary>
+        /// <param name="scope">vsBuildScope value</param>
+        /// <param name="buildAction">vsBuildAction value</param>
         private static void BuildBegined(vsBuildScope scope, vsBuildAction buildAction)
         {
             if (isSolutionFamiliar)
                 UpdateSolutionState(true);
         }
 
+        /// <summary>
+        /// This func is close working with Excel.Application and clear its cash data after the user starts solution closing
+        /// </summary>
         private static void BeforeSolutionClosed()
         {
             excel.Quit();
             GC.Collect();
         }
 
+        /// <summary>
+        /// This func checks if extention is already initialized or not. If yes - starts an action, if not - shows not yet init message
+        /// <see cref="NotInitializedYetMessage"/>
+        /// </summary>
+        /// <param name="currentAction">Action value</param>
         private void ExecuteIfInitialized(Action currentAction)
         {
             if (isExtentionInitialized)
@@ -253,9 +303,13 @@ namespace RefDepGuard
         }
 
         /// <summary>
-        /// This function is the callback used to execute the command when the menu item is clicked.
+        /// This function and <see cref="ExecuteExtentionCurrentRefs"/>, <see cref="ExcecuteRefsChanges"/>, <see cref="ForceCommitCurrentSolutionState"/>,
+        /// <see cref="ExportRefsToXSLX"/>, <see cref="ExportRefsToHTML"/>
+        /// are the callbacks used to execute the command when the menu item is clicked.
         /// See the constructor to see how the menu item is associated with this function using
         /// OleMenuCommandService service and MenuCommand class.
+        /// 
+        /// This func is used to start excecuting functions on user decided to show Message box with current streight refs 
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
@@ -266,6 +320,11 @@ namespace RefDepGuard
                 );
         }
 
+        /// <summary>
+        /// This func is used to start excecuting functions on user decided to show Message box with current transitive refs 
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
         private void ExecuteExtentionCurrentRefs(object sender, EventArgs e)
         {
             ExecuteIfInitialized(() =>
@@ -273,6 +332,11 @@ namespace RefDepGuard
                 );
         }
 
+        /// <summary>
+        /// This func is used to start excecuting functions on user decided to show Message box with current changed after last commit refs 
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
         private void ExcecuteRefsChanges(object sender, EventArgs e)
         {
             ExecuteIfInitialized(() =>
@@ -280,6 +344,11 @@ namespace RefDepGuard
                 );
         }
 
+        /// <summary>
+        /// This func is used to start force commit of the current refs, update config files settings and check rules on updated info 
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
         private void ForceCommitCurrentSolutionState(object sender, EventArgs e)
         {
             ExecuteIfInitialized(() =>
@@ -294,6 +363,11 @@ namespace RefDepGuard
             );
         }
 
+        /// <summary>
+        /// This func is used to update solution state: commit current project state, get config files info and check rules if refs added correctly (if not shows problems
+        /// with config file message)
+        /// </summary>
+        /// <param name="isBuildCheck">shows if its a build event check or not</param>
         private static void UpdateSolutionState(bool isBuildCheck)
         {
             CommitCurrentProjectState();
@@ -301,7 +375,7 @@ namespace RefDepGuard
 
             if (IsReferencesAddedCorrectly())
             {
-                CheckRulesFromConfigFile(isBuildCheck); //Отслеживание соответствия референсов правилам
+                CheckRulesFromConfigFile(isBuildCheck);
                 isSuccessfulCheckingRules = true;
             }
             else
@@ -313,12 +387,21 @@ namespace RefDepGuard
             ShowProblemsWithConfigFiles();
         }
 
+        /// <summary>
+        /// This function starts and helds commitimg the current project state
+        /// </summary>
         private static void CommitCurrentProjectState()
         {
             commitedProjState = CurrentStateManager.GetCurrentProjectState(dte);
         }
 
-        private static bool IsReferencesAddedCorrectly() //Срабатывает не только в случаях, когда не успели прогрузиться рефы, но и когда рефов попросту нет (что на самом деле странно и тоже заслуживает предупреждения)
+        /// <summary>
+        /// Checks if there are some refs in the solution right now.
+        /// If there are not its a signal that something went wrong (solution is not init yet or just hasn't refs what is quite weird for a solution that is going to be used
+        /// by such extention as this)
+        /// </summary>
+        /// <returns>the result of the check</returns>
+        private static bool IsReferencesAddedCorrectly() 
         {
             foreach (KeyValuePair<string, ProjectState> keyValuePair in commitedProjState)
             {
@@ -328,11 +411,18 @@ namespace RefDepGuard
             return false;
         }
 
+        /// <summary>
+        /// Helds an updating or getting the info from the config files
+        /// </summary>
         private static void GetConfigFileInfo()
         {
             configFilesData = ConfigFileManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
         }
 
+        /// <summary>
+        /// Helds a checking rules that have gotten from the config files with updated solution commit state
+        /// </summary>
+        /// <param name="isBuildCheck">shows if its a build event check or not</param>
         private static void CheckRulesFromConfigFile(bool isBuildCheck)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -340,17 +430,20 @@ namespace RefDepGuard
             (refDepGuardExportParameters, configFilesData) = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
 
             if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty())
-                ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider); //Вывод сообщения о том, что проблемы не найдены
+                ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider);
             else
             {
-                if(isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //В случае если buildCheck и обнаружены ошибки
-                    dte.ExecuteCommand("Build.Cancel"); //Отмена билда
+                if(isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //If there are errors when event is build check
+                    dte.ExecuteCommand("Build.Cancel"); //Build should be cancel
             }
         }
 
+        /// <summary>
+        /// This func show a problems with config files depended on the FileParseError value
+        /// </summary>
         private static void ShowProblemsWithConfigFiles()
         {
-            //Вывод обнаруженных проблем по ограничениям конфиг-файлов
+            //Вывод обнаруженных проблем по ограничениям конфиг-файлов 
             FileParseError parseErrors = configFilesData.ParseError;
 
             if (parseErrors != FileParseError.None) //Вывод предупреждений о неудаче парсинга конфиг-файлов
@@ -363,21 +456,38 @@ namespace RefDepGuard
             }
         }
 
+        /// <summary>
+        /// This func is used to start export in the table report format 
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
         private void ExportRefsToXSLX(object sender, EventArgs e)
         {
             ExecuteIfInitialized(() => ExportRefsGeneral("table_type"));
         }
 
+        /// <summary>
+        /// This func is used to start export in the graph report format 
+        /// </summary>
+        /// <param name="sender">Event sender.</param>
+        /// <param name="e">Event args.</param>
         private void ExportRefsToHTML(object sender, EventArgs e)
         {
             ExecuteIfInitialized(() => ExportRefsGeneral("graph_type"));
         }
 
+        /// <summary>
+        /// Shows a message box with info that the extention is not initialized yet
+        /// </summary>
         private void NotInitializedYetMessage()
         {
             MessageManager.ShowMessageBox(serviceProvider, "Расширение ещё не загружено. Дождитесь его загрузки, чтобы выполнить действие", "RefDepGuard");
         }
 
+        /// <summary>
+        /// This is a general export method for a starting graph or table export
+        /// </summary>
+        /// <param name="reportType">report type string: graph or table</param>
         private void ExportRefsGeneral(string reportType)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -402,11 +512,11 @@ namespace RefDepGuard
 
                 var loadError = ExportManager.LoadReferencesDataToReport(excel, configFilesData, reportType, commitedProjState, refDepGuardExportParameters);
 
-                if (loadError == "")
+                if (loadError == "")//If export is successful
                 {
-                    if(MessageManager.ShowYesNoPrompt(uiShell, reportSuccessText, reportTitleText)) //Если пользователь согласен
+                    if(MessageManager.ShowYesNoPrompt(uiShell, reportSuccessText, reportTitleText)) //If user agrees
                     {
-                        ExportManager.OpenCurrentReportDirectory(); //то открываем ему папку с текущим экспортом
+                        ExportManager.OpenCurrentReportDirectory(); //open directory with current successful export
                     }
                 }
                 else

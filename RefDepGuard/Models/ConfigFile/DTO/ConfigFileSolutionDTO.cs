@@ -2,6 +2,9 @@
 
 namespace RefDepGuard
 {
+    /// <summary>
+    /// It's a DTO model for the solution config file instances 
+    /// </summary>
     public class ConfigFileSolutionDTO
     {
         public string name;

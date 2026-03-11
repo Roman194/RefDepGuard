@@ -35,7 +35,7 @@ namespace RefDepGuard.Managers.CheckRules
                 string referenceLevelText = "";
                 string documentName = error.ErrorRelevantProjectName + ".csproj";
 
-                switch (error.CurrentReferenceLevel)
+                switch (error.CurrentRuleLevel)
                 {
                     case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
                     case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
@@ -53,10 +53,10 @@ namespace RefDepGuard.Managers.CheckRules
                 string matchErrorDescription = referenceMatchError.IsProjNameMatchError ? 
                     " совпадает с именем проекта" : " одновременно заявлен как обязательный и недопустимый";
                 string errorText = "";
-                string documentName = (referenceMatchError.ReferenceLevelValue == ProblemLevel.Global) ? 
+                string documentName = (referenceMatchError.RuleLevel == ProblemLevel.Global) ? 
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
-                switch (referenceMatchError.ReferenceLevelValue)
+                switch (referenceMatchError.RuleLevel)
                 {
                     case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
                     case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
@@ -116,7 +116,7 @@ namespace RefDepGuard.Managers.CheckRules
                 StoreErrorTask(errorListProvider, errorText, documentName, TaskErrorCategory.Error);
             }
 
-            foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
+            foreach (FrameworkVersionComparatibilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string ruleLevel = "ограничение глобального уровня";
                 string errorText = "";

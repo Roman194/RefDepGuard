@@ -7,6 +7,9 @@ using RefDepGuard.Models.Reference;
 
 namespace RefDepGuard.Data
 {
+    /// <summary>
+    /// It's an abstraction of all lists of the possible extention warnings. Shows all finded warnings after the rules check
+    /// </summary>
     public class RefDepGuardWarnings
     {
         public List<ReferenceMatchWarning> RefsMatchWarningList;
@@ -19,6 +22,15 @@ namespace RefDepGuard.Data
         public List<string> UntypedWarningsList;
         public Dictionary<string, List<string>> DetectedTransitRefsDict;
 
+        /// <param name="refsMatchWarningList">list of ReferenceMatchWarning values</param>
+        /// <param name="projectNotFoundWarningList">list of ProjectNotFoundWarning values</param>
+        /// <param name="projectMatchWarningList">list of ProjectMatchWarning values</param>
+        /// <param name="maxFrameworkVersionDeviantValueWarningList">list of MaxFrameworkVersionDeviantValueWarning values</param>
+        /// <param name="maxFrameworkVersionConflictWarningsList">list of MaxFrameworkVersionConflictWarning values</param>
+        /// <param name="maxFrameworkVersionReferenceConflictWarningsList">list of MaxFrameworkVersionReferenceConflictWarning values</param>
+        /// <param name="maxFrameworkVersionTFMNotFoundWarningList">list of MaxFrameworkVersionTFMNotFoundWarning values</param>
+        /// <param name="untypedWarningsList">list of string values</param>
+        /// <param name="detectedTransitRefsDict">dictionary of list of string values</param>
         public RefDepGuardWarnings(List<ReferenceMatchWarning> refsMatchWarningList, List<ProjectNotFoundWarning> projectNotFoundWarningList,
             List<ProjectMatchWarning> projectMatchWarningList,
             List<MaxFrameworkVersionDeviantValueWarning> maxFrameworkVersionDeviantValueWarningList,
@@ -38,6 +50,10 @@ namespace RefDepGuard.Data
             DetectedTransitRefsDict = detectedTransitRefsDict;
         }
 
+        /// <summary>
+        /// Shows if there is no any warnings inside extention after the rule check
+        /// </summary>
+        /// <returns>a bool result on the is empty question</returns>
         public bool IsEmpty()
         {
             if (RefsMatchWarningList.Count == 0 && ProjectNotFoundWarningList.Count == 0 && ProjectMatchWarningList.Count == 0 && 

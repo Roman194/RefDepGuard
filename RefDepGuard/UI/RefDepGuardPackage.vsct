@@ -159,8 +159,8 @@
     </Bitmaps>
   </Commands>
 
-	
 
+	<!--The KeyBindings section is used to define the "HotKeys" are used insted of the menu command buttons.-->
   <KeyBindings>
 	  <KeyBinding guid="guidRefDepGuardPackageCmdSet" id="GetCurrentRefsId"
 		  editor="guidVSStd97"

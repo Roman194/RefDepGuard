@@ -16,7 +16,7 @@ namespace RefDepGuard.Managers.CheckRules
         private static List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = new List<MaxFrameworkVersionReferenceConflictWarning>();
 
         private static List<string> untypedWarningsList = new List<string>();
-        private static List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparabilityError>();
+        private static List<FrameworkVersionComparatibilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparatibilityError>();
 
         private static Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersionsDict = new Dictionary<string, RequiredMaxFrVersion>();
 
@@ -199,7 +199,7 @@ namespace RefDepGuard.Managers.CheckRules
                                 error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantProjectName == projName) == null
                             )
                             frameworkVersionComparabilityErrorList.Add(
-                                new FrameworkVersionComparabilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
+                                new FrameworkVersionComparatibilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
                                 );
 
                         i = 0;
@@ -233,7 +233,7 @@ namespace RefDepGuard.Managers.CheckRules
                                 error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantProjectName == projName) == null
                             )
                                 frameworkVersionComparabilityErrorList.Add(
-                                    new FrameworkVersionComparabilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
+                                    new FrameworkVersionComparatibilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
                                     );
 
                             break;

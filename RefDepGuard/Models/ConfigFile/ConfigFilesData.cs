@@ -2,6 +2,9 @@
 
 namespace RefDepGuard.Data.ConfigFile
 {
+    /// <summary>
+    /// It's a model that incapsulate all important data from the ConfigFileManager for the other parts of the program
+    /// </summary>
     public class ConfigFilesData
     {
         public ConfigFileSolutionDTO ConfigFileSolution;
@@ -11,13 +14,17 @@ namespace RefDepGuard.Data.ConfigFile
         public string SolutionName;
         public string PackageExtendedName;
 
-
+        /// <param name="configFileSolution">ConfigFileSolutionDTO value</param>
+        /// <param name="configFileGlobal">ConfigFileGlobalDTO value</param>
+        /// <param name="parseError">FileParseError value</param>
+        /// <param name="solutionName">solution name string</param>
+        /// <param name="packageExtendedName">package extended name string</param>
         public ConfigFilesData(ConfigFileSolutionDTO configFileSolution, ConfigFileGlobalDTO configFileGlobal, FileParseError parseError, string solutionName, string packageExtendedName)
         {
             ConfigFileSolution = configFileSolution;
             ConfigFileGlobal = configFileGlobal;
             ParseError = parseError;
-            SolutionName = solutionName; //Nam-ы парсятся не из конфиг-файла
+            SolutionName = solutionName; //Important: names are not parsed from the ConfigFileManager, but still it's easier to transfer them inside ConfigFilesData
             PackageExtendedName = packageExtendedName;
         }
     }

@@ -44,7 +44,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string currentOfferedAction = currentError.IsReferenceRequired ? "Добавить через обозреватель решений" : "Удалить через обозреватель решений";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    currentError.ErrorRelevantProjectName, currentError.ReferenceName, "Reference", currentError.CurrentReferenceLevel.ToString(), currentErrorText, 
+                    currentError.ErrorRelevantProjectName, currentError.ReferenceName, "Reference", currentError.CurrentRuleLevel.ToString(), currentErrorText, 
                     currentOfferedAction, currentError.ErrorRelevantProjectName + ".csproj", i);
             }
 
@@ -54,10 +54,10 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string currentProblemText = currentMatchError.IsProjNameMatchError ? 
                     "Референс совпадает с именем проекта" :
                     "Референс одновременно заявлен как обязательный и\r\nнедопустимый";
-                string currentDocName = (currentMatchError.ReferenceLevelValue == ProblemLevel.Global) ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
+                string currentDocName = (currentMatchError.RuleLevel == ProblemLevel.Global) ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    errorRelevantProjectName, currentMatchError.ReferenceName, "Match", currentMatchError.ReferenceLevelValue.ToString(), currentProblemText, 
+                    errorRelevantProjectName, currentMatchError.ReferenceName, "Match", currentMatchError.RuleLevel.ToString(), currentProblemText, 
                     "Устраните противоречие в правиле", currentDocName, i);
             }
 
@@ -114,7 +114,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     errorOrderSol, solutionName + "_config_guard.rdg", i);
             }
 
-            foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
+            foreach (FrameworkVersionComparatibilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string currentErrorLevel = "Global";
                 string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion +

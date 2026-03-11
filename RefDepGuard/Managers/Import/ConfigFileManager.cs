@@ -120,11 +120,11 @@ namespace RefDepGuard
             FileErrorMessage fileErrorMessage = new FileErrorMessage(
                 "Не получилось загрузить " + typePrefix + "айл конфигурации", typePrefix + "айл конфигурации не найден");
 
-            if (File.Exists(configFileServiceInfo.SolutionConfigGuardFile))
+            if (File.Exists(configFileServiceInfo.CurrentConfigGuardFile))
             {
                 try
                 {
-                    string currentFileContent = FileStreamManager.ReadInfoFromFile(configFileServiceInfo.SolutionConfigGuardFile);
+                    string currentFileContent = FileStreamManager.ReadInfoFromFile(configFileServiceInfo.CurrentConfigGuardFile);
 
                     if (String.IsNullOrEmpty(currentFileContent))
                         throw new Exception();
@@ -151,7 +151,7 @@ namespace RefDepGuard
                 if(backupFileInfo != "")
                     CopyInfoFromBackupToConfigFile(configFileServiceInfo, backupFileInfo);
                 else
-                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+                    CreateNewConfigFile(configFileServiceInfo.CurrentConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
         }
 
@@ -223,12 +223,12 @@ namespace RefDepGuard
             if (rollbackAction)
             {
                 if(!isSecondAttempt)
-                    RestoreInfoToRollbackFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.SolutionConfigGuardRollbackFile);
+                    RestoreInfoToRollbackFile(configFileServiceInfo.CurrentConfigGuardFile, configFileServiceInfo.CurrentConfigGuardRollbackFile);
 
                 if (backupFileInfo != "")
                     CopyInfoFromBackupToConfigFile(configFileServiceInfo, backupFileInfo);
                 else
-                    CreateNewConfigFile(configFileServiceInfo.SolutionConfigGuardFile, configFileServiceInfo.IsGlobal);
+                    CreateNewConfigFile(configFileServiceInfo.CurrentConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
             else
             {
@@ -257,7 +257,7 @@ namespace RefDepGuard
         /// <param name="backupFileInfo">backup file info string</param>
         private static void CopyInfoFromBackupToConfigFile(ConfigFileServiceInfo configFileServiceInfo, string backupFileInfo)
         {
-            FileStreamManager.WriteInfoToFile(configFileServiceInfo.SolutionConfigGuardFile, backupFileInfo);
+            FileStreamManager.WriteInfoToFile(configFileServiceInfo.CurrentConfigGuardFile, backupFileInfo);
             GetCurrentConfigFileInfo(configFileServiceInfo, true); //Second attempt to read config file
         }
 
@@ -373,7 +373,7 @@ namespace RefDepGuard
         /// <returns>default ConfigFileProjectDTO value</returns>
         private static ConfigFileProjectDTO GenerateDefaultConfigFileProject()
         {
-            ConfigFileProjectRefsConsidering configFileProjectRefsConsidering = new ConfigFileProjectRefsConsidering();
+            ConfigFileProjectRefsConsideringDTO configFileProjectRefsConsidering = new ConfigFileProjectRefsConsideringDTO();
             configFileProjectRefsConsidering.required = true;
             configFileProjectRefsConsidering.unacceptable = true;
 

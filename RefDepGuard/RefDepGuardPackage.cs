@@ -58,8 +58,8 @@ namespace RefDepGuard
             IVsSolution solution = GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
             if (solution != null)
             {
-                // Регистрируем подписку на события загрузки решения
-                solution.AdviseSolutionEvents(this, out _solutionLoadEventsCookie);//Большая часть ивентов не отрабатывают => не удалось подписаться должным образом
+                // Register a subscription on the user events
+                solution.AdviseSolutionEvents(this, out _solutionLoadEventsCookie);//Big parts of the functions doesn't work, so they are not calling and can be deleted
             }
 
         }

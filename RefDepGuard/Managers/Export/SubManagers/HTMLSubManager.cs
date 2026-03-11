@@ -73,7 +73,7 @@ namespace RefDepGuard
             Dictionary<string, RequiredMaxFrVersion> requiredExportParameters = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
-            List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
+            List<FrameworkVersionComparatibilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrVersionRefConflictWarning = refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
 
             string outputMermaidCode = "flowchart LR\r\n";

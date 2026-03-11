@@ -3,12 +3,17 @@ using RefDepGuard.Data.FrameworkVersion;
 
 namespace RefDepGuard.Models.FrameworkVersion
 {
+    /// <summary>
+    /// Shows a max_fr_ver/TargetFramework(-s) rule problems: comparatibility errors and untyped warnings
+    /// </summary>
     public class MaxFrameworkRuleProblems
     {
-        public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
+        public List<FrameworkVersionComparatibilityError> FrameworkVersionComparabilityErrorList;
         public List<string> UntypedWarningsList;
 
-        public MaxFrameworkRuleProblems(List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, List<string> untypedWarningsList)
+        /// <param name="frameworkVersionComparabilityErrorList">list of FrameworkVersionComparatibilityError values</param>
+        /// <param name="untypedWarningsList">list of string values</param>
+        public MaxFrameworkRuleProblems(List<FrameworkVersionComparatibilityError> frameworkVersionComparabilityErrorList, List<string> untypedWarningsList)
         {
             FrameworkVersionComparabilityErrorList = frameworkVersionComparabilityErrorList;
             UntypedWarningsList = untypedWarningsList;

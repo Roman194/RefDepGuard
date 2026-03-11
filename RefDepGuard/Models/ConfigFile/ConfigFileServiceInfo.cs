@@ -1,16 +1,22 @@
 ﻿
 namespace RefDepGuard.Data
 {
+    /// <summary>
+    /// It's a model that shows a service info to the detection of the current config file and its rollback
+    /// </summary>
     public class ConfigFileServiceInfo
     {
         public bool IsGlobal;
-        public string SolutionConfigGuardFile;
-        public string SolutionConfigGuardRollbackFile;
+        public string CurrentConfigGuardFile;
+        public string CurrentConfigGuardRollbackFile;
 
-        public ConfigFileServiceInfo(bool isGlobal, string solutionConfigGuardFile, string solutionConfigGuardRollbackFile) {
+        /// <param name="isGlobal">shows if its a global or solution config file</param>
+        /// <param name="currentConfigGuardFile">curr config file string</param>
+        /// <param name="currentConfigGuardRollbackFile">curr rollback config file string</param>
+        public ConfigFileServiceInfo(bool isGlobal, string currentConfigGuardFile, string currentConfigGuardRollbackFile) {
             IsGlobal = isGlobal;
-            SolutionConfigGuardFile = solutionConfigGuardFile;  
-            SolutionConfigGuardRollbackFile = solutionConfigGuardRollbackFile;
+            CurrentConfigGuardFile = currentConfigGuardFile;  
+            CurrentConfigGuardRollbackFile = currentConfigGuardRollbackFile;
         }
     }
 }

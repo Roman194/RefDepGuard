@@ -132,13 +132,13 @@ namespace RefDepGuard.Managers.CheckRules.SubManagers
             //If there are no match errors on the project level, but there are intersects between project refs and solution/global refs, it's match warning.
             if ((isRequiredHighLevelRefsConsidered || isUnacceptableHighLevelRefsConsidered) && projectReferencesIntersect.Count == 0)
             {
-                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ProblemLevel.Global) == null)
+                if (refsMatchErrorList.Find(value => value.RuleLevel == ProblemLevel.Global) == null)
                 {
                     AddReferenceMatchWarningsToList(ProblemLevel.Global, ProblemLevel.Project, projName, false, projectGlobalCrossLevelIntersects);
                     AddReferenceMatchWarningsToList(ProblemLevel.Global, ProblemLevel.Project, projName, true, projectGlobalStraightLevelIntersects);
                 }
 
-                if (refsMatchErrorList.Find(value => value.ReferenceLevelValue == ProblemLevel.Solution) == null)
+                if (refsMatchErrorList.Find(value => value.RuleLevel == ProblemLevel.Solution) == null)
                 {
                     AddReferenceMatchWarningsToList(ProblemLevel.Solution, ProblemLevel.Project, projName, false, projectSolutionCrossLevelIntesects);
                     AddReferenceMatchWarningsToList(ProblemLevel.Solution, ProblemLevel.Project, projName, true, projectSolutionStraightLevelIntersects);

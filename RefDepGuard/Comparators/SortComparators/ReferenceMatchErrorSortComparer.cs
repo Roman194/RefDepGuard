@@ -15,7 +15,7 @@ namespace RefDepGuard.Comparators
             if (y == null) return 1;
 
             // Enum values order defined as Global = 0, Solution = 1, Project = 2 by default
-            return x.ReferenceLevelValue.CompareTo(y.ReferenceLevelValue);
+            return x.RuleLevel.CompareTo(y.RuleLevel);
         }
     }
 }
