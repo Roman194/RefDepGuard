@@ -278,6 +278,7 @@ namespace RefDepGuard
         {
             if (isSolutionFamiliar)
                 UpdateSolutionState(true);
+
         }
 
         /// <summary>
@@ -435,6 +436,7 @@ namespace RefDepGuard
             {
                 if(isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //If there are errors when event is build check
                     dte.ExecuteCommand("Build.Cancel"); //Build should be cancel
+                
             }
         }
 
