@@ -59,17 +59,17 @@ namespace RefDepGuard
         /// </summary>
         /// <param name="currentServiceProvider">IServiceProvider interface value</param>
         /// <param name="currentUiShell">IVsUIShell interface value</param>
-        /// <param name="currentCommitedProjState">commited projects state dictionary</param>
+        /// <param name="currentCommitedSolState">commited projects state dictionary</param>
         /// <returns>ConfigFilesData value</returns>
         public static ConfigFilesData GetInfoFromConfigFiles(
-            IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, Dictionary<string, ProjectState> currentCommitedProjState)
+            IServiceProvider currentServiceProvider, IVsUIShell currentUiShell, Dictionary<string, ProjectState> currentCommitedSolState)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             serviceProvider = currentServiceProvider;
             uiShell = currentUiShell;
 
-            commitedProjState = currentCommitedProjState;
+            commitedProjState = currentCommitedSolState;
             parseError = FileParseError.None;
 
             GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);

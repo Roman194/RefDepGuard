@@ -2,73 +2,85 @@
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Construction;
+using RefDepGuard.Console.Models;
+using RefDepGuard.Console.Managers;
 
 namespace RefDepGuard.Console
 {
     class MainCommand
     {
+        private static Dictionary<string, ProjectState> currentSolState = new Dictionary<string, ProjectState>();
+        private static ConfigFilesData configFilesData;
+
+        private static string rootDirectory = "";
+        private static string solutionName = "";
+
         private static void Main(string[] args)
         {
             System.Console.WriteLine("Вас приветсвует консольный RefDepGuard! Дождитесь полного завершения проверки");
 
             //return -1;
 
-            //MSBuildLocator.RegisterMSBuildPath(@"C:\Program Files\dotnet\sdk\9.0.302");
             MSBuildLocator.RegisterDefaults();
             
-            LoadProject();
-            
+            GetCurrentSolutionState();
+            GetConfigFilesData();
+            CheckRules();
         }
 
-        private static void LoadProject()
+        private static void GetCurrentSolutionState()
         {
             //Console.WriteLine(Directory.GetCurrentDirectory());
 
-            string rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
-            string solutionName = rootDirectory.Split("\\").Last() + ".sln";
+            rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
+            solutionName = rootDirectory.Split("\\").Last();
 
             System.Console.WriteLine("Выполняется проверка для Solution: " + solutionName + "\r\n");
             System.Console.WriteLine("1. Парсинг состояния решения");
 
-            var solutionFile = SolutionFile.Parse(rootDirectory + @"\" + solutionName);//@"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg\Mir.Controller.Cfg.sln"
+            currentSolState = CurrentStateConsoleManager.GetCurrentSolutionState(rootDirectory + @"\" + solutionName + ".sln");
 
-            var projects = solutionFile.ProjectsInOrder;
-
-            if (projects.Count > 0)
+            if(currentSolState.Count == 0)
             {
-                System.Console.WriteLine("В решении обнаружены следующие проекты и связи между ними:");
+                System.Console.WriteLine("-> Парсинг состояния решения - Fail");
+                //Show File not found error / File deviant value error
 
-                foreach (var project in projects)
-                {
-                    //Console.WriteLine(project.ProjectName + ": " + project.AbsolutePath);
-
-                    var projectCollection = new ProjectCollection();
-
-                    var currentProject = projectCollection.LoadProject(project.AbsolutePath);
-                    string targetFramework = "";
-                    List<ProjectItem> projectReferences = new List<ProjectItem>();
-
-
-                    if (currentProject != null)
-                    {
-                        targetFramework = currentProject.GetPropertyValue("TargetFramework") ?? "-";
-
-                        System.Console.WriteLine("Проект: " + project.ProjectName + " (" + targetFramework + ")");
-
-                        projectReferences = currentProject.GetItems("ProjectReference").ToList();
-
-                        foreach (var projectReference in projectReferences)
-                        {
-                            string refName = projectReference.EvaluatedInclude.Split("\\").Last().Replace(".csproj", "");
-                            System.Console.WriteLine("   -" + refName);
-                        }
-
-                    }
-                }
-
-                System.Console.WriteLine("-> Парсинг состояния решения - Success");
+                Environment.Exit(-1); //Завершение проги с ошибкой
             }
+
+            System.Console.WriteLine("-> Парсинг состояния решения - Success");
         }
-    }
-   
+
+        private static void GetConfigFilesData()
+        {
+            System.Console.WriteLine("\r\n2. Парсинг значений конфиг-файлов");
+
+            configFilesData = ConfigFileConsoleManager.GetInfoFromConfigFiles(rootDirectory, solutionName);
+
+            if(configFilesData.ParseError != FileParseError.None)
+            {
+                System.Console.WriteLine("-> Парсинг значений конфиг-файлов - Fail");
+
+                //Show problems with config files errors (syntax error / file not found)
+
+                Environment.Exit(-1);
+            }
+
+            System.Console.WriteLine("-> Парсинг значений конфиг-файлов - Success");
+        }
+
+        private static void CheckRules()
+        {
+            System.Console.WriteLine("\r\n3. Проверка соответствия состояния заявленным правилам");
+
+            //Вызов соотв. метода (CheckRulesManager)
+
+            System.Console.WriteLine("-> Проверка соответствия состояния заявленным правилам - Success");
+
+            //Если обнаружены какие-то "проблемы"
+            System.Console.WriteLine("\r\nОбнаруженные в результате проверки 'проблемы': (ошибок - 3; предупреждений - 0)");
+
+            //Вызов соотв метода (ProblemsUploadToConsoleManager)
+        }
+    }  
 }

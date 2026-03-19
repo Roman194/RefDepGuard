@@ -393,7 +393,7 @@ namespace RefDepGuard
         /// </summary>
         private static void CommitCurrentProjectState()
         {
-            commitedProjState = CurrentStateManager.GetCurrentProjectState(dte);
+            commitedProjState = CurrentStateManager.GetCurrentSolutionState(dte);
         }
 
         /// <summary>
