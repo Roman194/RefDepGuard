@@ -1,24 +1,25 @@
-﻿using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+﻿using RefDepGuard.CheckRules.Data;
+using RefDepGuard.CheckRules.Models;
+using RefDepGuard.CheckRules.Models.ConfigFile;
+using RefDepGuard.CheckRules.Models.ConfigFile.DTO;
+using RefDepGuard.CheckRules.Models.ExportModels;
+using RefDepGuard.CheckRules.Models.FrameworkVersion;
+using RefDepGuard.CheckRules.Models.FrameworkVersion.Errors;
+using RefDepGuard.CheckRules.Models.FrameworkVersion.Warnings;
+using RefDepGuard.CheckRules.Models.Project;
+using RefDepGuard.CheckRules.Models.RefDepGuard;
+using RefDepGuard.CheckRules.Models.Reference;
+using RefDepGuard.CheckRules.SubManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Comparators;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
-using RefDepGuard.Data.FrameworkVersion;
-using RefDepGuard.Data.Reference;
-using RefDepGuard.Managers.CheckRules;
-using RefDepGuard.Managers.CheckRules.SubManagers;
-using RefDepGuard.Models;
-using RefDepGuard.Models.FrameworkVersion;
 
-namespace RefDepGuard
+namespace RefDepGuard.CheckRules
 {
     /// <summary>
     /// This class is responsible for managing the checking of rules based on the configuration files and the current state of the projects in the solution.
     /// </summary>
-    public class CheckRulesManager
+    public static class CheckRulesManager
     {
         //Some of the "problems" list are stored here because they are generated during the process of parsing the config files, and some of them are generated
         //during the process of generating max_fr_ver dictionary.
@@ -29,13 +30,14 @@ namespace RefDepGuard
         private static List<MaxFrameworkVersionTFMNotFoundWarning> maxFrameworkVersionTFMNotFoundWarningList = new List<MaxFrameworkVersionTFMNotFoundWarning>();
 
         private static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
+        private static List<RequiredMaxFrVersion> requiredMaxFrVersionList = new List<RequiredMaxFrVersion>();
 
         //Lists with all errors and warnings, that will be exported to ELP in the end of the main method of this manager.
         private static RefDepGuardErrors refDepGuardErrors;
         private static RefDepGuardWarnings refDepGuardWarnings;
 
         //This field is used to store the parameters that will be exported to ELP and used in other parts of the extension, such as the exports.
-        private static RequiredParameters requiredExportParameters;
+        private static RequiredExportParameters requiredExportParameters;
         private static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
 
@@ -47,14 +49,25 @@ namespace RefDepGuard
         /// of the extension.
         /// </summary>
         /// <param name="configFilesData">ConfigFilesData current commited value</param>
-        /// <param name="errorListProvider">ELP class value</param>
-        /// <param name="currentCommitedProjState">Current commited projects state values</param>
-        /// <param name="uIShell">IVsUIShell interface value</param>
+        /// <param name="currentCommitedSolState">Current commited projects state values</param>
         /// <returns>RefDepGuardExportParameters and ConfigFilesData (to provide "Single source of truth" and "One flow through modules" principes)</returns>
         /// <see cref="RefDepGuardExportParameters"/>
-        public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckRulesFromConfigFiles(
-            ConfigFilesData configFilesData, ErrorListProvider errorListProvider, Dictionary<string, ProjectState> currentCommitedProjState, IVsUIShell uIShell
-            )
+        public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckConfigFileRulesForExtention(
+            ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedSolState)
+        {
+
+            refDepGuardFindedProblems = CheckConfigFileRulesForConsole(configFilesData, currentCommitedSolState);
+
+            var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
+            requiredExportParameters = new RequiredExportParameters(requiredReferencesList, requiredMaxFrVersionsDict);
+
+            return new Tuple<RefDepGuardExportParameters, ConfigFilesData>(
+                new RefDepGuardExportParameters(refDepGuardFindedProblems, requiredExportParameters),
+                configFilesData
+            );
+        }
+
+        public static RefDepGuardFindedProblems CheckConfigFileRulesForConsole(ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedSolState)
         {
             ConfigFileGlobalDTO configFileGlobal = configFilesData.ConfigFileGlobal;
             ConfigFileSolutionDTO configFileSolution = configFilesData.ConfigFileSolution;
@@ -96,16 +109,16 @@ namespace RefDepGuard
                     maxSolutionFrameworkVersionByTypes, maxGlobalFrameworkVersionByTypes, "-", ProblemLevel.Solution, ProblemLevel.Global
                     );
 
-            //A check on difference between projects in the solution and projects specified in the config file and updating the config data if needed (if the user allowed automatic update of projects list in config file)
-            var projectMatchWarningList = new List<ProjectMatchWarning>();
-            (configFilesData, projectMatchWarningList) = CheckProjectsMatchSubManager.CheckAndUpdateProjectsOnMatch(configFilesData, currentCommitedProjState, uIShell);
+            //A check on difference between projects in the solution and projects specified in the config file and updating the config data if needed
+            //(if the user allowed automatic update of projects list in config file)
+            var projectMatchWarningList = CheckProjectsMatchSubManager.CheckSolutionNConfigFileProjectsOnMatch(configFilesData, currentCommitedSolState);
 
             //A check on exsisting of the projects that are specified as the references in the config file on the global/solution level
-            (globalRequiredReferences, globalUnacceptableReferences) = 
-                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(globalRequiredReferences, globalUnacceptableReferences, currentCommitedProjState, ProblemLevel.Global);
+            (globalRequiredReferences, globalUnacceptableReferences) =
+                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(globalRequiredReferences, globalUnacceptableReferences, currentCommitedSolState, ProblemLevel.Global);
 
-            (solutionRequiredReferences, solutionUnacceptableReferences) = 
-                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(solutionRequiredReferences, solutionUnacceptableReferences, currentCommitedProjState, ProblemLevel.Solution);
+            (solutionRequiredReferences, solutionUnacceptableReferences) =
+                RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(solutionRequiredReferences, solutionUnacceptableReferences, currentCommitedSolState, ProblemLevel.Solution);
 
             //A check for conflicts between referneces on the solution and global levels
             RefsRuleChecksSubManager.CheckRulesOnMatchConflicts(
@@ -114,7 +127,7 @@ namespace RefDepGuard
 
             bool isTransitReferencesDetectionNeeded = (configFileGlobal?.report_on_transit_references ?? false) && (configFileSolution?.report_on_transit_references ?? false);
 
-            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//foreach project
+            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)//foreach project
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value.CurrentReferences;
@@ -130,8 +143,8 @@ namespace RefDepGuard
                     //Transit references detection is needed on project level if it is allowed on global and solution levels and if the user didn't disable it for the project specifically
                     bool isTransitReferencesDetectionNeededOnThisProj = (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
 
-                    Dictionary<string, List<int>> projTypes = currentCommitedProjState[projName].CurrentFrameworkVersions;
-                    var maxFrameworkVersionByTypes = 
+                    Dictionary<string, List<int>> projTypes = currentCommitedSolState[projName].CurrentFrameworkVersions;
+                    var maxFrameworkVersionByTypes =
                         GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList());
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
@@ -145,12 +158,12 @@ namespace RefDepGuard
                     requiredReferencesList.AddRange(requiredReferences.ConvertAll(value => new RequiredReference(value, projName)));
 
                     //A check on exsisting of the projects that are specified as the references in the config file on the project level
-                    (requiredReferences, unacceptableReferences) = 
-                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedProjState, ProblemLevel.Project, projName);
+                    (requiredReferences, unacceptableReferences) =
+                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedSolState, ProblemLevel.Project, projName);
 
                     //A check for conflicts between referneces on the project level and solution/global levels
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
-                        solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences, requiredReferences, 
+                        solutionRequiredReferences, solutionUnacceptableReferences, globalRequiredReferences, globalUnacceptableReferences, requiredReferences,
                         unacceptableReferences, projName, isConsiderRequiredReferences, isConsiderUnacceptableReferences);
 
                     //A check an accordance of the current projects state references to the project level rules from the config file
@@ -162,19 +175,19 @@ namespace RefDepGuard
                         if (isConsiderRequiredReferences)//if it is allowed to use global/solution required references
                             //then check an accordance of the current projects state references to the global and solution level rules from the config file
                             RefsRuleChecksSubManager.CheckRulesForSolutionOrGlobalReferences(
-                                projName, projReferences, referenceAffiliation.RequiredReferences, referenceAffiliation.RulesLevel, 
+                                projName, projReferences, referenceAffiliation.RequiredReferences, referenceAffiliation.RulesLevel,
                                 true, configFileProjectAndSolutionReferences);
 
                         if (isConsiderUnacceptableReferences)//if it is allowed to use global/solution unacceptable references
                             //then check an accordance of the current projects state references to the global and solution level rules from the config file
                             RefsRuleChecksSubManager.CheckRulesForSolutionOrGlobalReferences(
-                                projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.RulesLevel, 
+                                projName, projReferences, referenceAffiliation.UnacceptableReferences, referenceAffiliation.RulesLevel,
                                 false, configFileProjectAndSolutionReferences);
                     }
 
                     //A check for transit references if it is needed for the current project
                     if (isTransitReferencesDetectionNeededOnThisProj)
-                        TransitRefsDetectSubManager.CheckCurrentProjectOnTransitReferences(projName, currentCommitedProjState);
+                        TransitRefsDetectSubManager.CheckCurrentProjectOnTransitReferences(projName, currentCommitedSolState);
 
                     //A checks on max_framework_version rules
                     if (maxFrameworkVersionByTypes.Count == 0)//If no rules on project level
@@ -217,7 +230,7 @@ namespace RefDepGuard
 
             //For a correct check of potential conflicts between max framework versions on the exsisting references it is needed to collect info about projects, their max versions and conflicts between them.
             //That's why this check is performed after the main loop through projects.
-            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)
+            foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)
             {
                 var projName = currentProjState.Key;
                 var projReferences = currentProjState.Value.CurrentReferences;
@@ -237,11 +250,16 @@ namespace RefDepGuard
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
             var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
 
-            refsRuleCheckErrors.RefsErrorList.Sort(new ReferenceErrorSortComparer());//Sorts only errors!
-            refsRuleCheckErrors.RefsMatchErrorList.Sort(new ReferenceMatchErrorSortComparer());
-            configPropertyNullErrorList.Sort(new ConfigFilePropertyNullErrorSortComparer());
-            maxFrameworkVersionDeviantValueErrorList.Sort(new MaxFrameworkVersionDeviantValueSortComparer());
-            maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList.Sort(new FrameworkVersionComparabilityErrorSortComparer());
+            refsRuleCheckErrors.RefsErrorList.Sort((x, y) => //Sorts only errors!
+                x.CurrentRuleLevel.CompareTo(y.CurrentRuleLevel));
+            refsRuleCheckErrors.RefsMatchErrorList.Sort((x, y) =>
+                x.RuleLevel.CompareTo(y.RuleLevel));
+            configPropertyNullErrorList.Sort((x, y) =>
+                x.IsGlobal.CompareTo(y.IsGlobal)); //Проверить насколько хорошо сортирует! А насколько вообще нужно их сортировать?
+            maxFrameworkVersionDeviantValueErrorList.Sort((x, y) =>
+                x.ErrorLevel.CompareTo(y.ErrorLevel));
+            maxFrameworkRuleProblems.FrameworkVersionComparabilityErrorList.Sort((x, y) => 
+                x.ErrorLevel.CompareTo(y.ErrorLevel));
 
             refDepGuardErrors = new RefDepGuardErrors(
                 refsRuleCheckErrors.RefsErrorList, refsRuleCheckErrors.RefsMatchErrorList, configPropertyNullErrorList, maxFrameworkVersionDeviantValueErrorList,
@@ -249,21 +267,11 @@ namespace RefDepGuard
 
             refDepGuardWarnings = new RefDepGuardWarnings(
                 refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList, projectMatchWarningList,
-                maxFrameworkVersionDeviantValueWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList, 
+                maxFrameworkVersionDeviantValueWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList,
                 maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkVersionTFMNotFoundWarningList,
                 maxFrameworkRuleProblems.UntypedWarningsList, detectedTransitRefs);
 
-            refDepGuardFindedProblems = new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
-
-            //Export to ELP to show all finded problems in the error list of the IDE.
-            ELPStoreManager.StoreErrorListProviderByValues(refDepGuardFindedProblems, configFilesData, errorListProvider);
-
-            requiredExportParameters = new RequiredParameters(requiredReferencesList, requiredMaxFrVersionsDict);
-
-            return new Tuple<RefDepGuardExportParameters, ConfigFilesData>(
-                new RefDepGuardExportParameters(refDepGuardFindedProblems, requiredExportParameters), 
-                configFilesData
-            );
+            return new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
         }
 
         /// <summary>
@@ -355,7 +363,7 @@ namespace RefDepGuard
                     //then add error about incorrect format of max_framework_version element and return empty dictionary, because we can't be sure about the correctness of the data to perform checks with it.
                     if (maxFrameworkVersionDeviantValueErrorList.Find(error => error.ErrorLevel == errorLevel) == null)
                         maxFrameworkVersionDeviantValueErrorList.Add(new MaxFrameworkVersionDeviantValueError(errorLevel, "", false));
-                    
+
                     return new Dictionary<string, List<int>>();
                 }
 
@@ -370,8 +378,9 @@ namespace RefDepGuard
                 }
 
                 //If user used template with type that doesn't exist then add warning about that
-                if (!TFMSample.PossibleTargetFrameworkMonikiers().Contains(maxFrameworkVersionElementSplited[0])){
-                    if(maxFrameworkVersionTFMNotFoundWarningList.Find(warning =>
+                if (!TFMSample.PossibleTargetFrameworkMonikiers().Contains(maxFrameworkVersionElementSplited[0]))
+                {
+                    if (maxFrameworkVersionTFMNotFoundWarningList.Find(warning =>
                             warning.TFMName == maxFrameworkVersionElementSplited[0] && warning.WarningLevel == errorLevel && warning.ProjName == projName) == null)
                         maxFrameworkVersionTFMNotFoundWarningList.Add(new MaxFrameworkVersionTFMNotFoundWarning(maxFrameworkVersionElementSplited[0], errorLevel, projName));
 

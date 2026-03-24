@@ -12,6 +12,11 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" Version="17.3.2" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.5.5" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RefDepGuard.CheckRules\RefDepGuard.CheckRules.csproj" />
   </ItemGroup>
 
 </Project>

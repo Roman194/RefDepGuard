@@ -1,97 +1,67 @@
-﻿using EnvDTE;
-using Microsoft.VisualStudio.Shell;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.Build.Construction;
+using Microsoft.Build.Evaluation;
+using RefDepGuard.CheckRules.Models.Project;
 using System.Text.RegularExpressions;
-using RefDepGuard.Data;
 
-namespace RefDepGuard
+namespace RefDepGuard.Console.Managers
 {
-    /// <summary>
-    /// This class is responsible for managing the current state of the solution.
-    /// </summary>
-    public class CurrentStateManager
+    public class CurrentStateConsoleManager
     {
-        /// <summary>
-        /// Gets the current state of the projects in the solution. It includes the target framework(s) and references of each project.
-        /// </summary>
-        /// <param name="dte">DTE interface value</param>
-        /// <returns>current projects state dictionary</returns>
-        public static Dictionary<string, ProjectState> GetCurrentSolutionState(DTE dte)
-        {
-            return GetCurrentRequiredState(dte, false);
-        }
 
-        /// <summary>
-        /// Gets the current state of the project references in the solution. 
-        /// It includes only the references of each project (without target framework(s) info).
-        /// </summary>
-        /// <param name="dte">DTE interface value</param>
-        /// <returns>current references state dictionary</returns>
-        public static Dictionary<string, List<string>> GetCurrentReferencesState(DTE dte)
+        public static Dictionary<string, ProjectState> GetCurrentSolutionState(string solutionFileFullPath)
         {
-            Dictionary<string, List<string>> currentReferences = 
-                GetCurrentRequiredState(dte, true).ToDictionary(
-                    project => project.Key, 
-                    project => project.Value.CurrentReferences
-                );  
-
-            return currentReferences;
-        }
-
-        /// <summary>
-        /// Gets the current required state of the projects in the solution (with or without TF-s). It includes the target framework(s) and references of each 
-        /// project.
-        /// </summary>
-        /// <param name="dte">DTE interface value</param>
-        /// <param name="isOnlyRefsNeeded">shows if only refs is needed or also TF-s</param>
-        /// <returns>current projects state dictionary</returns>
-        private static Dictionary<string, ProjectState> GetCurrentRequiredState(DTE dte, bool isOnlyRefsNeeded)
-        {
-            ThreadHelper.ThrowIfNotOnUIThread();
 
             Dictionary<string, ProjectState> commitedSolState = new Dictionary<string, ProjectState>();
-            EnvDTE.Solution solution = dte.Solution;
 
-            foreach (EnvDTE.Project project in solution.Projects)//For each project of the solution
+            if (File.Exists(solutionFileFullPath))
             {
-                if (project.FullName != null && project.FullName.Length != 0)//If the project is loaded
+                var solutionFile = SolutionFile.Parse(solutionFileFullPath);//@"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg\Mir.Controller.Cfg.sln"
+                var projects = solutionFile.ProjectsInOrder;
+
+                if (projects.Count > 0)
                 {
-                    string projectFrameworkVersions = "";
-                    Dictionary<string, List<int>> projectFrameworkNumVersions = new Dictionary<string, List<int>>();
+                    System.Console.WriteLine("В решении обнаружены следующие проекты и связи между ними:");
 
-                    if (!isOnlyRefsNeeded)
+                    foreach (var project in projects)
                     {
-                        projectFrameworkVersions = MSBuildManager.GetTargetFrameworkForProject(project.FullName);
-                        projectFrameworkNumVersions = ConvertTargetFrameworkToTransferFormat(projectFrameworkVersions);
-                    }
+                        var projectCollection = new ProjectCollection();
+                        var currentProject = projectCollection.LoadProject(project.AbsolutePath);
+                        var projectName = project.ProjectName;
 
-                    VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;
+                        List<ProjectItem> projectReferences = new List<ProjectItem>();
+                        string targetFramework = "";
+                        Dictionary<string, List<int>> targetFrameworkNums = new Dictionary<string, List<int>>();
 
-                    if (vSProject != null)
-                    {
-                        var refsList = new List<string>();//пЕРЕНЕСТИ ПОВЫШЕ К ИНИЦИАЛИЗАЦИИ ПРОЧИХ ЛОКАЛЬНЫХ ПЕРЕМЕННЫХ?   
 
-                        foreach (VSLangProj.Reference vRef in vSProject.References)
+                        if (currentProject != null)
                         {
-                            if (vRef.SourceProject != null)
-                                refsList.Add(vRef.Name);
+                            targetFramework = MSBuildManager.GetTargetFrameworkForProject(currentProject);
+                            targetFrameworkNums = ConvertTargetFrameworkToTransferFormat(targetFramework);
+
+                            System.Console.WriteLine("\r\nПроект: " + projectName + " (" + targetFramework + ")");
+
+                            projectReferences = currentProject.GetItems("ProjectReference").ToList();
+
+                            List<string> referenceNames = projectReferences.ConvertAll(projReference =>
+                                    projReference.EvaluatedInclude
+                                        .Split("\\").Last()
+                                        .Split("/").Last() //Т.к. встречаются рефы, которые почему-то записаны через обратный слэш
+                                        .Replace(".csproj", "")
+                                );
+
+                            referenceNames.ForEach(referenceName =>
+                                System.Console.WriteLine("   -" + referenceName)
+                                );
+
+                            commitedSolState.Add(projectName, new ProjectState(targetFrameworkNums, targetFramework, referenceNames));//А если tF и tFN идут null?
                         }
-                        //adds the project state to the dictionary with the project name as a key and the ProjectState object as a value (optionally adds TF-s info)
-                        commitedSolState.Add(vSProject.Project.Name, new ProjectState(projectFrameworkNumVersions, projectFrameworkVersions, refsList));
                     }
                 }
             }
-
+            
             return commitedSolState;
         }
 
-        /// <summary>
-        /// Converts the target framework string to a dictionary format that can be easily compared with the target frameworks from the rules.
-        /// </summary>
-        /// <param name="targetFrameworkString">current target framework string</param>
-        /// <returns>target framework string in a dictionary format</returns>
         private static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)
         {
             Dictionary<string, List<int>> currentTargetFrameworksDict = new Dictionary<string, List<int>>();
@@ -147,14 +117,14 @@ namespace RefDepGuard
 
                 // At this point if the currentProjFrameworkVersionList is empty, it means that we couldn't parse the TF version to int nums, so we just returns
                 //previous successful parsed TF-s incide the dictionary
-                if (currentProjFrameworkVersionList.Count == 0) 
+                if (currentProjFrameworkVersionList.Count == 0)
                     return currentTargetFrameworksDict;
 
                 if (currentTargetFrameworksDict.ContainsKey(currentProjFrameworkType))//If there is already some TF version for this project type,
                 {
                     //then we need to compare them and commit the MAX one of them
                     List<int> commitedTargetFrameworkVersionList = currentTargetFrameworksDict[currentProjFrameworkType];
-                    for(int i = 0; i < currentProjFrameworkVersionList.Count; i++)
+                    for (int i = 0; i < currentProjFrameworkVersionList.Count; i++)
                     {
                         int currentProjTargetFrameworkNum = currentProjFrameworkVersionList[i];
                         int commitedTargetFrameworkNum = commitedTargetFrameworkVersionList[i];
@@ -175,12 +145,6 @@ namespace RefDepGuard
             return currentTargetFrameworksDict;
         }
 
-        /// <summary>
-        /// Splits the string by each num. Example: net5 -> net, 5; net5.0 -> net, 5, 0. 
-        /// It is needed to make the comparison of the TF versions correct, because not all TF-s contain dots and we need to get the same result for net50 and net5.0.
-        /// </summary>
-        /// <param name="currentString">current string value</param>
-        /// <returns>result string array</returns>
         private static string[] SplitStrByEachNum(string currentString)
         {
             int currentStringLength = currentString.Length;
@@ -192,11 +156,6 @@ namespace RefDepGuard
             return resultString;
         }
 
-        /// <summary>
-        /// Converts the target framework version string array to a list of int nums. Example: net5.0 -> 5, 0; net45 -> 4, 5.
-        /// </summary>
-        /// <param name="targetFrameworkVersionsArray">target framework version array</param>
-        /// <returns>list of ints of target framework versions nums</returns>
         private static List<int> ConvertTargetFrameworkVersionToIntNums(string[] targetFrameworkVersionsArray)
         {
             List<int> targetFrameworkVersionsNums = new List<int>();
@@ -210,7 +169,7 @@ namespace RefDepGuard
                 targetFrameworkVersionsNums.Add(currentVersionNum);
             }
 
-            return targetFrameworkVersionsNums; 
+            return targetFrameworkVersionsNums;
         }
     }
 }
