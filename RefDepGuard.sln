@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard", "RefDepGuard\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Console", "RefDepGuard.Console\RefDepGuard.Console.csproj", "{40339FB3-E6AA-4368-B911-C32D99FD2B46}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.CheckRules", "RefDepGuard.CheckRules\RefDepGuard.CheckRules.csproj", "{B582CC0C-A005-4619-B503-D6F897D59C97}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{40339FB3-E6AA-4368-B911-C32D99FD2B46}.Release|arm64.Build.0 = Release|Any CPU
 		{40339FB3-E6AA-4368-B911-C32D99FD2B46}.Release|x86.ActiveCfg = Release|Any CPU
 		{40339FB3-E6AA-4368-B911-C32D99FD2B46}.Release|x86.Build.0 = Release|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Debug|arm64.Build.0 = Debug|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Debug|x86.Build.0 = Debug|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Release|arm64.ActiveCfg = Release|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Release|arm64.Build.0 = Release|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Release|x86.ActiveCfg = Release|Any CPU
+		{B582CC0C-A005-4619-B503-D6F897D59C97}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

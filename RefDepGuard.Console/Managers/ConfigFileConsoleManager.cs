@@ -1,4 +1,7 @@
-﻿using RefDepGuard.Console.Models;
+﻿using RefDepGuard.CheckRules.Models.ConfigFile.DTO;
+using RefDepGuard.CheckRules.Models.FileError;
+using RefDepGuard.CheckRules.Models.ConfigFile;
+
 using Newtonsoft.Json;
 
 namespace RefDepGuard.Console.Managers
@@ -52,19 +55,15 @@ namespace RefDepGuard.Console.Managers
                 catch (Exception)
                 {
                     // if syntax error in file actions
-                    if (configFileServiceInfo.IsGlobal)
-                        parseError = (parseError == FileParseError.Solution) ? FileParseError.All : FileParseError.Global;
-                    else
-                        parseError = FileParseError.Solution;
+                    ProblemsUploadToConsoleManager.UploadConfigFileSyntaxError(configFileServiceInfo.IsGlobal);
+                    parseError = configFileServiceInfo.IsGlobal ? FileParseError.Global : FileParseError.Solution;//На текущий момент не сильно заморачиваюст с корректностью определения ParseError? так как главное чтобы было не None
                 }
             }
             else
             {
                 //if file doesn't exist actions
-                if (configFileServiceInfo.IsGlobal)
-                    parseError = (parseError == FileParseError.Solution) ? FileParseError.All : FileParseError.Global;
-                else
-                    parseError = FileParseError.Solution;
+                ProblemsUploadToConsoleManager.UploadConfigFileNotFoundError(configFileServiceInfo.IsGlobal);
+                parseError = configFileServiceInfo.IsGlobal ? FileParseError.Global : FileParseError.Solution;
             }
         }
     }

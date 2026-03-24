@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using RefDepGuard.CheckRules.Models.ConfigFile.DTO;
+using RefDepGuard.CheckRules.Models.FileError;
 
-namespace RefDepGuard.Console.Models
+namespace RefDepGuard.CheckRules.Models.ConfigFile
 {
+    /// <summary>
+    /// It's a model that incapsulate all important data from the ConfigFileManager for the other parts of the program
+    /// </summary>
     public class ConfigFilesData
     {
         public ConfigFileSolutionDTO ConfigFileSolution;

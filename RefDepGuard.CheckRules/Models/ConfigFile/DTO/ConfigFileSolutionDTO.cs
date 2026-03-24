@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace RefDepGuard.Console.Models
+namespace RefDepGuard.CheckRules.Models.ConfigFile.DTO
 {
+    /// <summary>
+    /// It's a DTO model for the solution config file instances 
+    /// </summary>
     public class ConfigFileSolutionDTO
     {
         public string name;

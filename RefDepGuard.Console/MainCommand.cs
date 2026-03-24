@@ -2,8 +2,12 @@
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Construction;
-using RefDepGuard.Console.Models;
+using RefDepGuard.CheckRules.Models.Project;
+using RefDepGuard.CheckRules.Models.ConfigFile;
+using RefDepGuard.CheckRules.Models.FileError;
 using RefDepGuard.Console.Managers;
+using RefDepGuard.CheckRules;
+using RefDepGuard.CheckRules.Models.ExportModels;
 
 namespace RefDepGuard.Console
 {
@@ -11,21 +15,23 @@ namespace RefDepGuard.Console
     {
         private static Dictionary<string, ProjectState> currentSolState = new Dictionary<string, ProjectState>();
         private static ConfigFilesData configFilesData;
+        private static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
         private static string rootDirectory = "";
         private static string solutionName = "";
 
         private static void Main(string[] args)
         {
-            System.Console.WriteLine("Вас приветсвует консольный RefDepGuard! Дождитесь полного завершения проверки");
+            System.Console.SetWindowSize(160, 35);
 
-            //return -1;
+            System.Console.WriteLine("Вас приветсвует консольный RefDepGuard! Дождитесь полного завершения проверки");
 
             MSBuildLocator.RegisterDefaults();
             
             GetCurrentSolutionState();
             GetConfigFilesData();
             CheckRules();
+            ShowFindedProblemsOnCurrentCheck();
         }
 
         private static void GetCurrentSolutionState()
@@ -42,13 +48,12 @@ namespace RefDepGuard.Console
 
             if(currentSolState.Count == 0)
             {
-                System.Console.WriteLine("-> Парсинг состояния решения - Fail");
-                //Show File not found error / File deviant value error
-
+                System.Console.WriteLine("\r\n-> Парсинг состояния решения - Fail\r\n");
+                ProblemsUploadToConsoleManager.UploadRefsNotFoundError();
                 Environment.Exit(-1); //Завершение проги с ошибкой
             }
 
-            System.Console.WriteLine("-> Парсинг состояния решения - Success");
+            System.Console.WriteLine("\r\n-> Парсинг состояния решения - Success");
         }
 
         private static void GetConfigFilesData()
@@ -59,9 +64,7 @@ namespace RefDepGuard.Console
 
             if(configFilesData.ParseError != FileParseError.None)
             {
-                System.Console.WriteLine("-> Парсинг значений конфиг-файлов - Fail");
-
-                //Show problems with config files errors (syntax error / file not found)
+                System.Console.WriteLine("\r\n-> Парсинг значений конфиг-файлов - Fail");
 
                 Environment.Exit(-1);
             }
@@ -73,14 +76,28 @@ namespace RefDepGuard.Console
         {
             System.Console.WriteLine("\r\n3. Проверка соответствия состояния заявленным правилам");
 
-            //Вызов соотв. метода (CheckRulesManager)
+            refDepGuardFindedProblems = CheckRulesManager.CheckConfigFileRulesForConsole(configFilesData, currentSolState);
 
             System.Console.WriteLine("-> Проверка соответствия состояния заявленным правилам - Success");
+        }
 
-            //Если обнаружены какие-то "проблемы"
-            System.Console.WriteLine("\r\nОбнаруженные в результате проверки 'проблемы': (ошибок - 3; предупреждений - 0)");
+        private static void ShowFindedProblemsOnCurrentCheck()
+        {
+            if (refDepGuardFindedProblems.IsEmpty())
+            {
+                System.Console.WriteLine("\r\nВ результате проверки никакие проблемы не обнаружены");
+            }
+            else
+            { //Если обнаружены какие-то "проблемы"
+                var errorsCount = refDepGuardFindedProblems.RefDepGuardErrors.Count();
+                var warningsCount = refDepGuardFindedProblems.RefDepGuardWarnings.Count();
 
-            //Вызов соотв метода (ProblemsUploadToConsoleManager)
+                System.Console.WriteLine("\r\nОбнаруженные в результате проверки 'проблемы': (ошибок - "+ errorsCount +"; предупреждений - "+ warningsCount +")");
+                ProblemsUploadToConsoleManager.UploadCheckRuleProblems(refDepGuardFindedProblems, configFilesData);
+
+                if(errorsCount > 0)
+                    Environment.Exit(-1);
+            }
         }
     }  
 }

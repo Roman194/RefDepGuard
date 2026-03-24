@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace RefDepGuard.Console.Models
+namespace RefDepGuard.CheckRules.Models.ConfigFile.DTO
 {
+    /// <summary>
+    /// It's a DTO that shows a config file projects instances
+    /// </summary>
     public class ConfigFileProjectDTO
     {
         public string framework_max_version;

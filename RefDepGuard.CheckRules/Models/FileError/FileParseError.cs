@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace RefDepGuard.Console.Models
+namespace RefDepGuard.CheckRules.Models.FileError
 {
+    /// <summary>
+    /// It's enum that shows a one from the config file error configurations
+    /// </summary>
     public enum FileParseError
     {
         None,

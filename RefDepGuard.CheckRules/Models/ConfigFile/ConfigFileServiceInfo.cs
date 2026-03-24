@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace RefDepGuard.Console.Models
+namespace RefDepGuard.CheckRules.Models.ConfigFile
 {
+    /// <summary>
+    /// It's a model that shows a service info to the detection of the current config file and its rollback
+    /// </summary>
     public class ConfigFileServiceInfo
     {
         public bool IsGlobal;

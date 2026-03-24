@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using RefDepGuard.Console.Models;
+using RefDepGuard.CheckRules.Models.Project;
 using System.Text.RegularExpressions;
 
 namespace RefDepGuard.Console.Managers
@@ -38,7 +38,7 @@ namespace RefDepGuard.Console.Managers
                             targetFramework = MSBuildManager.GetTargetFrameworkForProject(currentProject);
                             targetFrameworkNums = ConvertTargetFrameworkToTransferFormat(targetFramework);
 
-                            System.Console.WriteLine("Проект: " + projectName + " (" + targetFramework + ")");
+                            System.Console.WriteLine("\r\nПроект: " + projectName + " (" + targetFramework + ")");
 
                             projectReferences = currentProject.GetItems("ProjectReference").ToList();
 
