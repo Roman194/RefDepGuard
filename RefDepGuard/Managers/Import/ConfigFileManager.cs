@@ -4,11 +4,13 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Managers.Import;
-using RefDepGuard.Models;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.ConfigFile.DTO;
+using RefDepGuard.CheckRules.Models;
+using RefDepGuard.Applied;
 
 namespace RefDepGuard
 {
@@ -27,6 +29,7 @@ namespace RefDepGuard
         private static string solutionName;
         private static string packageExtendedName;
         private static FileParseError parseError;
+        private static ConfigFileFoundState files; // Внедрить!
 
         private static ConfigFileServiceInfo currentSolutionConfigFileServiceInfo;
         private static ConfigFileServiceInfo globalSolutionConfigFileServiceInfo;
@@ -71,11 +74,12 @@ namespace RefDepGuard
 
             commitedProjState = currentCommitedSolState;
             parseError = FileParseError.None;
+            files = new ConfigFileFoundState(true, true);
 
             GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
             GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);
+            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, files, solutionName, packageExtendedName);
         }
 
         /// <summary>
@@ -101,7 +105,7 @@ namespace RefDepGuard
 
             CacheManager.UpdateConfigFilesBackup(json, false);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, solutionName, packageExtendedName);
+            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, files, solutionName, packageExtendedName);
         }
 
         /// <summary>

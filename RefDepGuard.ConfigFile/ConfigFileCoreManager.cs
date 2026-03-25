@@ -1,11 +1,11 @@
 ﻿using Newtonsoft.Json;
 using RefDepGuard.Applied;
-using RefDepGuard.Applied.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using RefDepGuard.Applied.Models.DTO;
 using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.ConfigFile.DTO;
 
 namespace RefDepGuard.ConfigFile
 {

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using RefDepGuard.Applied.Models;
+using RefDepGuard.Applied.Models.Project;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {

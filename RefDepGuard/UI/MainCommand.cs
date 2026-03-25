@@ -1,17 +1,17 @@
 ﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
+using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Managers.CheckRules;
 using RefDepGuard.Managers.Import;
-using RefDepGuard.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
 
 namespace RefDepGuard
 {
@@ -428,7 +428,7 @@ namespace RefDepGuard
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            (refDepGuardExportParameters, configFilesData) = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
+            (refDepGuardExportParameters, configFilesData) = CheckRulesExtentionManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
 
             if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty())
                 ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider);

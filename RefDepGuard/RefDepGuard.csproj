@@ -48,37 +48,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Data\TFMSample.cs" />
-    <Compile Include="Managers\Applied\FileStreamManager.cs" />
     <Compile Include="Managers\Applied\SolutionNameManager.cs" />
-    <Compile Include="Managers\CheckRules\CheckRulesManager.cs" />
-    <Compile Include="Managers\CheckRules\SubManagers\CheckProjectsMatchSubManager.cs" />
-    <Compile Include="Managers\CheckRules\SubManagers\TransitRefsDetectSubManager.cs" />
+    <Compile Include="Managers\CheckRulesExtentionManager.cs" />
     <Compile Include="Managers\ELPStoreManager.cs" />
-    <Compile Include="Managers\CheckRules\SubManagers\MaxFrameworkRuleChecksSubManager.cs" />
-    <Compile Include="Managers\CheckRules\SubManagers\NotNullChecksSubManager.cs" />
-    <Compile Include="Managers\CheckRules\SubManagers\RefsRuleChecksSubManager.cs" />
     <Compile Include="Managers\CurrentStateManager.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProblemWorkbooksHelper.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProjectAndReferenceWorkbooksHelper.cs" />
     <Compile Include="Managers\Import\CacheManager.cs" />
     <Compile Include="Managers\Import\ConfigFileManager.cs" />
     <Compile Include="Managers\Import\SettingsManager.cs" />
-    <Compile Include="Models\ConfigFile\ConfigFilesData.cs" />
-    <Compile Include="Models\FileError\FileParseError.cs" />
-    <Compile Include="Models\FrameworkVersion\MaxFrameworkRuleProblems.cs" />
-    <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionDeviantValueWarning.cs" />
-    <Compile Include="Models\FrameworkVersion\Errors\MaxFrameworkVersionIllegalTemplateUsageError.cs" />
-    <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionTFMNotFoundWarning.cs" />
-    <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionWarnings.cs" />
-    <Compile Include="Models\NetstandardMinProjTypeVersions.cs" />
-    <Compile Include="Models\Project\ProjectMatchWarning.cs" />
-    <Compile Include="Models\RefDepGuard\RefDepGuardExportParameters.cs" />
-    <Compile Include="Models\RefDepGuard\RefDepGuardFindedProblems.cs" />
     <Compile Include="Managers\ExcecuteRefsManager.cs" />
-    <Compile Include="Models\Reference\Warnings\ProjectNotFoundWarning.cs" />
-    <Compile Include="Models\Reference\Errors\ReferenceRuleErrors.cs" />
-    <Compile Include="Models\Reference\Warnings\ReferenceRuleWarnings.cs" />
     <Compile Include="Models\UsingSolutionsDTO.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -86,39 +65,11 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="UI\MainCommand.cs" />
-    <Compile Include="Comparators\SortComparators\ConfigFilePropertyNullErrorSortComparer.cs" />
-    <Compile Include="Comparators\SortComparators\ReferenceMatchErrorSortComparer.cs" />
-    <Compile Include="Models\ConfigFile\ConfigFileServiceInfo.cs" />
-    <Compile Include="Models\ConfigFile\DTO\ConfigFileGlobalDTO.cs" />
-    <Compile Include="Models\ConfigFile\DTO\ConfigFileProjectDTO.cs" />
-    <Compile Include="Models\ConfigFile\DTO\ConfigFileProjectRefsConsideringDTO.cs" />
-    <Compile Include="Models\ConfigFile\DTO\ConfigFileSolutionDTO.cs" />
-    <Compile Include="Models\FileError\FileErrorMessage.cs" />
-    <Compile Include="Models\FrameworkVersion\Errors\FrameworkVersionComparatibilityError.cs" />
-    <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionConflictWarning.cs" />
-    <Compile Include="Models\FrameworkVersion\Errors\MaxFrameworkVersionDeviantValueError.cs" />
-    <Compile Include="Models\FrameworkVersion\Warnings\MaxFrameworkVersionReferenceConflictWarning.cs" />
-    <Compile Include="Models\FrameworkVersion\RequiredMaxFrVersion.cs" />
-    <Compile Include="Models\Project\ProjectState.cs" />
-    <Compile Include="Models\RefDepGuard\RefDepGuardWarnings.cs" />
-    <Compile Include="Models\ConfigFile\ConfigFilePropertyNullError.cs" />
-    <Compile Include="Models\RefDepGuard\RefDepGuardErrors.cs" />
-    <Compile Include="Models\Reference\Warnings\ReferenceMatchWarning.cs" />
-    <Compile Include="Models\Reference\RequiredReference.cs" />
-    <Compile Include="Comparators\SortComparators\FrameworkVersionComparabilityErrorSortComparer.cs" />
-    <Compile Include="Comparators\SortComparators\MaxFrameworkVersionDeviantValueSortComparer.cs" />
-    <Compile Include="Models\RequiredParameters.cs" />
     <Compile Include="Managers\Applied\DateTimeManager.cs" />
     <Compile Include="Managers\Export\ExportManager.cs" />
     <Compile Include="Managers\Export\SubManagers\HTMLSubManager.cs" />
     <Compile Include="UI\MessageManager.cs" />
-    <Compile Include="Managers\Import\MSBuildManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Models\Reference\ReferenceAffiliation.cs" />
-    <Compile Include="Comparators\SortComparators\ReferenceErrorSortComparer.cs" />
-    <Compile Include="Models\Reference\Errors\ReferenceMatchError.cs" />
-    <Compile Include="Models\ProblemLevel.cs" />
-    <Compile Include="Models\Reference\Errors\ReferenceError.cs" />
     <Compile Include="RefDepGuardPackage.cs" />
     <Compile Include="Managers\Export\SubManagers\XLSXSubManager.cs" />
   </ItemGroup>
@@ -141,10 +92,10 @@
       <Version>1.12.4</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build">
-      <Version>17.0.0</Version>
+      <Version>17.3.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Framework">
-      <Version>17.0.0</Version>
+      <Version>17.3.2</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.32112.339" ExcludeAssets="runtime" NoWarn="NU1604" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2096" NoWarn="NU1604" />
@@ -215,6 +166,20 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RefDepGuard.Applied\RefDepGuard.Applied.csproj">
+      <Project>{2b3c4d87-0dad-49d8-9dc4-8f9831233523}</Project>
+      <Name>RefDepGuard.Applied</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RefDepGuard.CheckRules\RefDepGuard.CheckRules.csproj">
+      <Project>{b582cc0c-a005-4619-b503-d6f897d59c97}</Project>
+      <Name>RefDepGuard.CheckRules</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RefDepGuard.TargetFramework\RefDepGuard.TargetFramework.csproj">
+      <Project>{5b0f018e-846d-49a8-9bac-8de1615c24e9}</Project>
+      <Name>RefDepGuard.TargetFramework</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />

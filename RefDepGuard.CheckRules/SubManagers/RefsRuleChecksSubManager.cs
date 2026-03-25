@@ -1,11 +1,10 @@
-﻿using RefDepGuard.CheckRules.Models;
-using RefDepGuard.CheckRules.Models.Reference.Errors;
-using RefDepGuard.CheckRules.Models.Reference.Warnings;
-using RefDepGuard.Applied.Models;
+﻿using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.Applied.Models.Reference.Warnings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.Problem;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {

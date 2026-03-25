@@ -1,11 +1,15 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using System;
 using System.Drawing;
-using RefDepGuard.Data;
-using RefDepGuard.Data.FrameworkVersion;
-using RefDepGuard.Data.Reference;
-using RefDepGuard.Models;
-using RefDepGuard.Models.FrameworkVersion;
+using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.Applied.Models.Problem;
+using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
+using RefDepGuard.Applied.Models.Reference.Warnings;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.Project;
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
@@ -114,7 +118,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     errorOrderSol, solutionName + "_config_guard.rdg", i);
             }
 
-            foreach (FrameworkVersionComparatibilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
+            foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string currentErrorLevel = "Global";
                 string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion +

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using RefDepGuard.Applied;
 using RefDepGuard.Managers.Applied;
 
 namespace RefDepGuard.Managers.Import

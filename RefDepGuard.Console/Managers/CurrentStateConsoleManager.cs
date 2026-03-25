@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using RefDepGuard.Applied.Models;
+using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.TargetFramework;
 
 namespace RefDepGuard.Console.Managers
@@ -10,7 +10,6 @@ namespace RefDepGuard.Console.Managers
 
         public static Dictionary<string, ProjectState> GetCurrentSolutionState(string solutionFileFullPath)
         {
-
             Dictionary<string, ProjectState> commitedSolState = new Dictionary<string, ProjectState>();
 
             if (File.Exists(solutionFileFullPath))

@@ -1,8 +1,6 @@
-﻿using RefDepGuard.Applied.Models.DTO;
-using RefDepGuard.Applied.Models;
-
-using RefDepGuard.ConfigFile;
+﻿using RefDepGuard.ConfigFile;
 using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.Project;
 
 namespace RefDepGuard.Console.Managers
 {

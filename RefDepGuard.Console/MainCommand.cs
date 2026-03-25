@@ -1,19 +1,16 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Microsoft.Build.Evaluation;
 using Microsoft.Build.Locator;
-using Microsoft.Build.Construction;
-using RefDepGuard.Applied.Models;
 using RefDepGuard.Console.Managers;
 using RefDepGuard.CheckRules;
-using RefDepGuard.CheckRules.Models.ExportModels;
-using RefDepGuard.Applied.Models.DTO;
 using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
 
 namespace RefDepGuard.Console
 {
     class MainCommand
     {
-        private static Dictionary<string, ProjectState> currentSolState = new Dictionary<string, ProjectState>();
+        private static Dictionary<string, ProjectState> CurrentSolState = new Dictionary<string, ProjectState>();
         private static ConfigFilesData configFilesData;
         private static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
@@ -44,9 +41,9 @@ namespace RefDepGuard.Console
             System.Console.WriteLine("Выполняется проверка для Solution: " + solutionName + "\r\n");
             System.Console.WriteLine("1. Парсинг состояния решения");
 
-            currentSolState = CurrentStateConsoleManager.GetCurrentSolutionState(rootDirectory + @"\" + solutionName + ".sln");
+            CurrentSolState = CurrentStateConsoleManager.GetCurrentSolutionState(rootDirectory + @"\" + solutionName + ".sln");
 
-            if(currentSolState.Count == 0)
+            if(CurrentSolState.Count == 0)
             {
                 System.Console.WriteLine("\r\n-> Парсинг состояния решения - Fail\r\n");
                 ProblemsUploadToConsoleManager.UploadRefsNotFoundError();
@@ -60,7 +57,7 @@ namespace RefDepGuard.Console
         {
             System.Console.WriteLine("\r\n2. Парсинг значений конфиг-файлов");
 
-            configFilesData = ConfigFileConsoleManager.GetInfoFromConfigFiles(rootDirectory, solutionName, currentSolState);
+            configFilesData = ConfigFileConsoleManager.GetInfoFromConfigFiles(rootDirectory, solutionName, CurrentSolState);
 
             if(configFilesData.ParseError != FileParseError.None)
             {
@@ -82,7 +79,7 @@ namespace RefDepGuard.Console
         {
             System.Console.WriteLine("\r\n3. Проверка соответствия состояния заявленным правилам");
 
-            refDepGuardFindedProblems = CheckRulesManager.CheckConfigFileRulesForConsole(configFilesData, currentSolState);
+            refDepGuardFindedProblems = CheckRulesManager.CheckConfigFileRulesForConsole(configFilesData, CurrentSolState);
 
             System.Console.WriteLine("-> Проверка соответствия состояния заявленным правилам - Success");
         }
