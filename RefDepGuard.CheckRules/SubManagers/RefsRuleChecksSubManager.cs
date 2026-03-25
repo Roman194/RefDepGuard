@@ -1,7 +1,7 @@
 ﻿using RefDepGuard.CheckRules.Models;
-using RefDepGuard.CheckRules.Models.Project;
 using RefDepGuard.CheckRules.Models.Reference.Errors;
 using RefDepGuard.CheckRules.Models.Reference.Warnings;
+using RefDepGuard.Applied.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

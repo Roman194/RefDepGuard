@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.FileError
+namespace RefDepGuard.CheckRules.Models
 {
     /// <summary>
     /// Shows a possible file error messages for a current config file

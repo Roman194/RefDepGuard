@@ -1,8 +1,9 @@
-﻿using RefDepGuard.CheckRules.Models.ConfigFile;
-using RefDepGuard.CheckRules.Models.ConfigFile.DTO;
+﻿using RefDepGuard.Applied.Models.DTO;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.CheckRules.Models;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {

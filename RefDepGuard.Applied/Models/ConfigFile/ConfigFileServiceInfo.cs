@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.ConfigFile
+namespace RefDepGuard.Applied.Models.ConfigFile
 {
     /// <summary>
     /// It's a model that shows a service info to the detection of the current config file and its rollback

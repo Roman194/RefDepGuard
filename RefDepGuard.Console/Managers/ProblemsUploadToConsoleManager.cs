@@ -1,5 +1,4 @@
 ﻿using RefDepGuard.CheckRules.Models;
-using RefDepGuard.CheckRules.Models.ConfigFile;
 using RefDepGuard.CheckRules.Models.ExportModels;
 using RefDepGuard.CheckRules.Models.FrameworkVersion.Errors;
 using RefDepGuard.CheckRules.Models.FrameworkVersion.Warnings;
@@ -7,6 +6,7 @@ using RefDepGuard.CheckRules.Models.FrameworkVersion.Warnings.Conflicts;
 using RefDepGuard.CheckRules.Models.RefDepGuard;
 using RefDepGuard.CheckRules.Models.Reference.Errors;
 using RefDepGuard.CheckRules.Models.Reference.Warnings;
+using RefDepGuard.Applied.Models.ConfigFile;
 
 namespace RefDepGuard.Console.Managers
 {

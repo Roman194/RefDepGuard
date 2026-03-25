@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.ConfigFile.DTO
+namespace RefDepGuard.Applied.Models.DTO
 {
     /// <summary>
     /// It's a DTO for the global config file instances

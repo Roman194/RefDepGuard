@@ -1,6 +1,5 @@
 ﻿using RefDepGuard.CheckRules.Models.FrameworkVersion.Warnings;
 using RefDepGuard.CheckRules.Models.FrameworkVersion.Warnings.Conflicts;
-using RefDepGuard.CheckRules.Models.Project;
 using RefDepGuard.CheckRules.Models.Reference.Warnings;
 using System;
 using System.Collections.Generic;

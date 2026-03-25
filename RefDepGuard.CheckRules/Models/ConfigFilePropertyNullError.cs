@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.ConfigFile
+namespace RefDepGuard.CheckRules.Models
 {
     /// <summary>
     /// This model shows an error when there is a missing property inside one of the config file DTO parameter values (null value)

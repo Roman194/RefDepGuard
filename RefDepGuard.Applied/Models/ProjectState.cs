@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.Project
+namespace RefDepGuard.Applied.Models
 {
     public class ProjectState
     {

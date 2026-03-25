@@ -4,8 +4,4 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\RefDepGuard.Applied\RefDepGuard.Applied.csproj" />
-  </ItemGroup>
-
 </Project>

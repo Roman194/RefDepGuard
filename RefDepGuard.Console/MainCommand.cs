@@ -2,12 +2,12 @@
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Construction;
-using RefDepGuard.CheckRules.Models.Project;
-using RefDepGuard.CheckRules.Models.ConfigFile;
-using RefDepGuard.CheckRules.Models.FileError;
+using RefDepGuard.Applied.Models;
 using RefDepGuard.Console.Managers;
 using RefDepGuard.CheckRules;
 using RefDepGuard.CheckRules.Models.ExportModels;
+using RefDepGuard.Applied.Models.DTO;
+using RefDepGuard.Applied.Models.ConfigFile;
 
 namespace RefDepGuard.Console
 {
@@ -60,11 +60,17 @@ namespace RefDepGuard.Console
         {
             System.Console.WriteLine("\r\n2. Парсинг значений конфиг-файлов");
 
-            configFilesData = ConfigFileConsoleManager.GetInfoFromConfigFiles(rootDirectory, solutionName);
+            configFilesData = ConfigFileConsoleManager.GetInfoFromConfigFiles(rootDirectory, solutionName, currentSolState);
 
             if(configFilesData.ParseError != FileParseError.None)
             {
                 System.Console.WriteLine("\r\n-> Парсинг значений конфиг-файлов - Fail");
+
+                if(configFilesData.ParseError == FileParseError.Global)
+                    ProblemsUploadToConsoleManager.UploadConfigFileSyntaxError(true);
+
+                if(configFilesData.ParseError == FileParseError.Solution)
+                    ProblemsUploadToConsoleManager.UploadConfigFileSyntaxError(false);
 
                 Environment.Exit(-1);
             }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.FileError
+namespace RefDepGuard.Applied.Models
 {
     /// <summary>
     /// It's enum that shows a one from the config file error configurations

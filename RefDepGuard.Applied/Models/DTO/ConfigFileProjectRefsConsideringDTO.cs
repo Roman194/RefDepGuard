@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.ConfigFile.DTO
+namespace RefDepGuard.Applied.Models.DTO
 {
     /// <summary>
     /// Shows a part of the solution config file DTO which is responsible for "consider_global_and_solution_references"

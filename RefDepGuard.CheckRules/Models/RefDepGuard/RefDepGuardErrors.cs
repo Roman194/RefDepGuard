@@ -3,7 +3,6 @@ using RefDepGuard.CheckRules.Models.FrameworkVersion.Errors;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using RefDepGuard.CheckRules.Models.ConfigFile;
 
 namespace RefDepGuard.CheckRules.Models.RefDepGuard
 {

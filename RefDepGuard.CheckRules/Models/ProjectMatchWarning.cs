@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RefDepGuard.CheckRules.Models.Project
+namespace RefDepGuard.CheckRules.Models
 {
     /// <summary>
     /// Shows a warning about project match between projects inside config file and a real solution
