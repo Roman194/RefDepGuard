@@ -12,6 +12,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied;
 
 namespace RefDepGuard
 {
@@ -263,8 +264,8 @@ namespace RefDepGuard
         private static void CheckSolutionSettings()
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
-            ConfigFileManager.SetSolutionNameInfoInRightFormat();
-            CacheManager.SetSolutionNameInfoInRightFormat();
+            ConfigFileExtentionManager.SetSolutionNameInfoInRightFormat();
+            CacheManager.SetSolutionNameInfoInRightFormat(SolutionNameManager.GetPackageName(), SolutionNameManager.GetSolutionName());
 
             isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(uiShell);
         }
@@ -386,6 +387,8 @@ namespace RefDepGuard
             }
 
             ShowProblemsWithConfigFiles();
+
+
         }
 
         /// <summary>
@@ -417,7 +420,7 @@ namespace RefDepGuard
         /// </summary>
         private static void GetConfigFileInfo()
         {
-            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
+            configFilesData = ConfigFileExtentionManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
         }
 
         /// <summary>
@@ -430,7 +433,7 @@ namespace RefDepGuard
 
             (refDepGuardExportParameters, configFilesData) = CheckRulesExtentionManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
 
-            if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty())
+            if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty() && configFilesData.ParseError == FileParseError.None)
                 ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider);
             else
             {

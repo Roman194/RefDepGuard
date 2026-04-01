@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 
@@ -30,8 +31,19 @@ namespace RefDepGuard.CheckRules.SubManagers
         /// <returns>ConfigFilesData value and list of current ProjectMatchWarning</returns>
         /// <see cref="ShowPromptAndSolveDifferProblems"/>
 
-        public static List<ProjectMatchWarning> CheckSolutionNConfigFileProjectsOnMatch(
+        public static List<ProjectMatchWarning> GetProjectsMatchAfterChecksWarning(
             ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
+        {
+            List<string> addedProjectsList, removedProjectsList = new List<string>();
+            (addedProjectsList, removedProjectsList) = CheckSolutionNConfigFileProjectsOnMatch(configFilesData, currentCommitedProjState);
+            
+            addedProjectsList.ForEach(addedProj => projectMatchWarningList.Add(new ProjectMatchWarning(addedProj, true)));
+            removedProjectsList.ForEach(removedProj => projectMatchWarningList.Add(new ProjectMatchWarning(removedProj, false)));
+
+            return projectMatchWarningList;
+        }
+
+        public static Tuple<List<string>, List<string>> CheckSolutionNConfigFileProjectsOnMatch(ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
         {
             var addedProjectsList = new List<string>();
             var removedProjectsList = new List<string>();
@@ -55,11 +67,7 @@ namespace RefDepGuard.CheckRules.SubManagers
                 }
             }
 
-            //If there are added or removed projects, we show the prompt to the user and offer to update the config file.
-            addedProjectsList.ForEach(addedProj => projectMatchWarningList.Add(new ProjectMatchWarning(addedProj, true)));
-            removedProjectsList.ForEach(removedProj => projectMatchWarningList.Add(new ProjectMatchWarning(removedProj, false)));
-
-            return projectMatchWarningList;
+            return new Tuple<List<string>, List<string>>(addedProjectsList, removedProjectsList);
         }
     }
 }

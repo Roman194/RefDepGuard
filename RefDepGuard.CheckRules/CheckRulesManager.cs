@@ -54,7 +54,7 @@ namespace RefDepGuard.CheckRules
         /// <param name="currentCommitedSolState">Current commited projects state values</param>
         /// <returns>RefDepGuardExportParameters and ConfigFilesData (to provide "Single source of truth" and "One flow through modules" principes)</returns>
         /// <see cref="RefDepGuardExportParameters"/>
-        public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckConfigFileRulesForExtention(
+        public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckConfigFileRulesForExtension(
             ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedSolState)
         {
 
@@ -113,7 +113,7 @@ namespace RefDepGuard.CheckRules
 
             //A check on difference between projects in the solution and projects specified in the config file and updating the config data if needed
             //(if the user allowed automatic update of projects list in config file)
-            var projectMatchWarningList = CheckProjectsMatchSubManager.CheckSolutionNConfigFileProjectsOnMatch(configFilesData, currentCommitedSolState);
+            var projectMatchWarningList = CheckProjectsMatchSubManager.GetProjectsMatchAfterChecksWarning(configFilesData, currentCommitedSolState);
 
             //A check on exsisting of the projects that are specified as the references in the config file on the global/solution level
             (globalRequiredReferences, globalUnacceptableReferences) =

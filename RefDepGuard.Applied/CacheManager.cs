@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
-using RefDepGuard.Applied;
-using RefDepGuard.Managers.Applied;
 
-namespace RefDepGuard.Managers.Import
+namespace RefDepGuard.Applied
 {
     /// <summary>
     /// This class is responsible for managing the cache files of the extension. 
@@ -21,11 +19,11 @@ namespace RefDepGuard.Managers.Import
         /// <summary>
         /// Sets the names of the cache files in the right format based on the solution name and package name.
         /// </summary>
-        public static void SetSolutionNameInfoInRightFormat()
+        public static void SetSolutionNameInfoInRightFormat(string rootDir, string solutionName)
         {
-            configFilesBackupExtendedPackageName = SolutionNameManager.GetPackageName() + "\\.rdg\\rdg_cache\\";
+            configFilesBackupExtendedPackageName = rootDir + "\\.rdg\\rdg_cache\\";
             globalConfigBackupName = configFilesBackupExtendedPackageName + "global_config_guard.rdg";
-            solutionConfigBackupName = configFilesBackupExtendedPackageName + SolutionNameManager.GetSolutionName() + "_config_guard.rdg";
+            solutionConfigBackupName = configFilesBackupExtendedPackageName + solutionName + "_config_guard.rdg";
 
             string rdgStuffDirectory = configFilesBackupExtendedPackageName.Substring(0, configFilesBackupExtendedPackageName.LastIndexOf('\\',
                 configFilesBackupExtendedPackageName.LastIndexOf('\\') - 1));
@@ -69,7 +67,7 @@ namespace RefDepGuard.Managers.Import
 
             if (File.Exists(currentBackupFileName))
             {
-                string currentFileContent  = FileStreamManager.ReadInfoFromFile(currentBackupFileName);
+                string currentFileContent = FileStreamManager.ReadInfoFromFile(currentBackupFileName);
 
                 if (String.IsNullOrEmpty(currentFileContent))
                     return "";

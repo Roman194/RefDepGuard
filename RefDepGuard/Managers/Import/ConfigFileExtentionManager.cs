@@ -3,14 +3,13 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using RefDepGuard.Managers.Applied;
-using RefDepGuard.Managers.Import;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.ConfigFile.DTO;
 using RefDepGuard.CheckRules.Models;
 using RefDepGuard.Applied;
+using RefDepGuard.ConfigFile;
 
 namespace RefDepGuard
 {
@@ -19,23 +18,19 @@ namespace RefDepGuard
     /// It contains methods for loading the config file data, updating it based on the changes in the solution projects and references, and handling errors related 
     /// to config files.
     /// </summary>
-    public class ConfigFileManager
+    public class ConfigFileExtentionManager
     {
         private static IServiceProvider serviceProvider;
         private static IVsUIShell uiShell;
 
-        private static ConfigFileSolutionDTO configFileSolution;
-        private static ConfigFileGlobalDTO configFileGlobal;
         private static string solutionName;
         private static string packageExtendedName;
-        private static FileParseError parseError;
-        private static ConfigFileFoundState files; // Внедрить!
+
+        private static ConfigFileFoundState filesFoundState;
+        private static ConfigFilesData configFilesData;
 
         private static ConfigFileServiceInfo currentSolutionConfigFileServiceInfo;
         private static ConfigFileServiceInfo globalSolutionConfigFileServiceInfo;
-
-
-        private static Dictionary<string, ProjectState> commitedProjState;
 
         /// <summary>
         /// Sets the names of the config files in the right format based on the solution name and package name.
@@ -71,15 +66,22 @@ namespace RefDepGuard
 
             serviceProvider = currentServiceProvider;
             uiShell = currentUiShell;
+            
+            (configFilesData, filesFoundState) = ConfigFileCoreManager.GetInfoFromConfigFilesForExtension(currentSolutionConfigFileServiceInfo, globalSolutionConfigFileServiceInfo,
+                solutionName, packageExtendedName, currentCommitedSolState);
 
-            commitedProjState = currentCommitedSolState;
-            parseError = FileParseError.None;
-            files = new ConfigFileFoundState(true, true);
+            var parseErrorCommitAfterGetInfo = configFilesData.ParseError;
 
-            GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
-            GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
+            if (parseErrorCommitAfterGetInfo != FileParseError.None)
+            {
+                if(parseErrorCommitAfterGetInfo != FileParseError.Global) //Условие от обратного
+                    HandleConfigFileErrorCase(currentSolutionConfigFileServiceInfo, filesFoundState.Solution);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, files, solutionName, packageExtendedName);
+                if (parseErrorCommitAfterGetInfo != FileParseError.Solution)
+                    HandleConfigFileErrorCase(globalSolutionConfigFileServiceInfo, filesFoundState.Global);
+            }
+            
+            return configFilesData;
         }
 
         /// <summary>
@@ -91,8 +93,8 @@ namespace RefDepGuard
         /// <returns>updated ConfigFilesData value</returns>
         public static ConfigFilesData UpdateSolutionConfigFile(ConfigFilesData currentConfigFilesData, List<string> differProjectsList, bool isProjectAdding)
         {
-            configFileSolution = currentConfigFilesData.ConfigFileSolution;
-            configFileGlobal = currentConfigFilesData.ConfigFileGlobal; //Протаскиваю здесь global, хотя он тут никак не может измениться, а надо ли?
+            configFilesData.ConfigFileSolution = currentConfigFilesData.ConfigFileSolution;
+            configFilesData.ConfigFileGlobal = currentConfigFilesData.ConfigFileGlobal; //Протаскиваю здесь global, хотя он тут никак не может измениться, а надо ли?
 
             ConfigFileSolutionDTO currentProj = isProjectAdding ? 
                 updateConfigFileSolutionByAddingProjects(differProjectsList) : 
@@ -105,7 +107,7 @@ namespace RefDepGuard
 
             CacheManager.UpdateConfigFilesBackup(json, false);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, parseError, files, solutionName, packageExtendedName);
+            return configFilesData;
         }
 
         /// <summary>
@@ -117,42 +119,24 @@ namespace RefDepGuard
         /// </summary>
         /// <param name="configFileServiceInfo">ConfigFileServiceInfo value</param>
         /// <param name="isSecondAttempt">shows if it's already a second attempt to parse file info or not</param>
-        private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo, bool isSecondAttempt = false)
+        private static void HandleConfigFileErrorCase(ConfigFileServiceInfo configFileServiceInfo, bool isFileFound, bool isSecondAttempt = false)
         {
             string typePrefix = configFileServiceInfo.IsGlobal ? "Глобальный ф" : "Ф";
             
             FileErrorMessage fileErrorMessage = new FileErrorMessage(
                 "Не получилось загрузить " + typePrefix + "айл конфигурации", typePrefix + "айл конфигурации не найден");
 
-            if (File.Exists(configFileServiceInfo.CurrentConfigGuardFile))
+            if (isFileFound)
             {
-                try
-                {
-                    string currentFileContent = FileStreamManager.ReadInfoFromFile(configFileServiceInfo.CurrentConfigGuardFile);
-
-                    if (String.IsNullOrEmpty(currentFileContent))
-                        throw new Exception();
-
-                    if (configFileServiceInfo.IsGlobal)
-                        configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobalDTO>(currentFileContent);
-                    else
-                        configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolutionDTO>(currentFileContent);
-
-                    //It's considering that at this moment files with JSON syntax errors are already in catch, and Null value parameters can't be backed up anymore
-                    CacheManager.UpdateConfigFilesBackup(currentFileContent, configFileServiceInfo.IsGlobal);
-                }
-                catch (Exception)
-                {
-                    // if syntax error in file actions
-                    showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
-                }
+                // if syntax error in file actions
+                showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
             }
             else
             {
                 //if file doesn't exist actions
                 var backupFileInfo = showConfigFileNotFoundErrorMessage(fileErrorMessage.FileNotFoundErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
 
-                if(backupFileInfo != "")
+                if (backupFileInfo != "")
                     CopyInfoFromBackupToConfigFile(configFileServiceInfo, backupFileInfo);
                 else
                     CreateNewConfigFile(configFileServiceInfo.CurrentConfigGuardFile, configFileServiceInfo.IsGlobal);
@@ -177,11 +161,11 @@ namespace RefDepGuard
             if (!isSecondAttempt)
                 backupFileInfo = CacheManager.GetInfoFromBackupFile(isErrorGlobal);
             
-            var actionAnnounc = backupFileInfo != "" ? "Файл конфигурации будет сгенерирован по последнему сохранению" : "Шаблон файла конфигурации будет сгенерирован расширением";
+            var actionAnnounce = backupFileInfo != "" ? "Файл конфигурации будет сгенерирован по последнему сохранению" : "Шаблон файла конфигурации будет сгенерирован расширением";
 
             MessageManager.ShowMessageBox(
                     serviceProvider,
-                    errorReason + solutionNameInfo + ".\r\n" + actionAnnounc,
+                    errorReason + solutionNameInfo + ".\r\n" + actionAnnounce,
                     "RefDepGuard Error: Ошибка загрузки файла конфигурации"
             );
 
@@ -234,35 +218,28 @@ namespace RefDepGuard
                 else
                     CreateNewConfigFile(configFileServiceInfo.CurrentConfigGuardFile, configFileServiceInfo.IsGlobal);
             }
-            else
-            {
-                //Case when Global file is already loaded, and then Solution file with errors is trying to be loaded isn't possible, because solution file always
-                //loads before global one.
-                if (isErrorGlobal && parseError == FileParseError.Solution)
-                    parseError = FileParseError.All;
-                else
-                    parseError = isErrorGlobal ? FileParseError.Global : FileParseError.Solution;
-
-                //Even if user doesn't want to restore the last successfully saved data from the backup, we still need to generate default config file data inside
-                //the program.
-                if (isErrorGlobal)
-                    generateDefaultConfigFileDataGlobal();
-                else
-                    generateDefaultConfigFileDataSolution();
-            }    
+            
         }
 
         /// <summary>
         /// Copies the config file data from the backup to the config file, and then tries to read the config file info again. 
-        /// This method is used when there are some errors during loading the config file, and the user chooses to restore the last successfully saved data from the 
+        /// This method is used when there are some errors during the config file loading, and the user chooses to restore the last successfully saved data from the 
         /// backup.
         /// </summary>
         /// <param name="configFileServiceInfo">ConfigFileServiceInfo value</param>
         /// <param name="backupFileInfo">backup file info string</param>
         private static void CopyInfoFromBackupToConfigFile(ConfigFileServiceInfo configFileServiceInfo, string backupFileInfo)
         {
+            FileParseError parseErrorPredict;
+            if (configFileServiceInfo.IsGlobal) //Делаем допущение, что проблема парсинга сейчас будет исправлена
+                parseErrorPredict = (configFilesData.ParseError == FileParseError.All) ? FileParseError.Solution : FileParseError.None;
+            else
+                parseErrorPredict = (configFilesData.ParseError == FileParseError.All) ? FileParseError.Global : FileParseError.None;
+
             FileStreamManager.WriteInfoToFile(configFileServiceInfo.CurrentConfigGuardFile, backupFileInfo);
-            GetCurrentConfigFileInfo(configFileServiceInfo, true); //Second attempt to read config file
+            configFilesData = ConfigFileCoreManager.GetConfigFileInfoSecondAttempt(configFileServiceInfo, parseErrorPredict); //Second attempt to read config file
+            if (configFilesData.ParseError != parseErrorPredict) //Если ошибки парсинга не изменились, значит опять обрабатываем ошибку
+                HandleConfigFileErrorCase(configFileServiceInfo, true, true); 
         }
 
         /// <summary>
@@ -275,10 +252,12 @@ namespace RefDepGuard
         {
             string json;
 
+            configFilesData = ConfigFileCoreManager.UpdateParseErrorStateOnDefaultFileCreation(isGlobal);
+
             if (isGlobal)
-                json = JsonConvert.SerializeObject(generateDefaultConfigFileDataGlobal(), Formatting.Indented);
+                json = JsonConvert.SerializeObject(configFilesData.ConfigFileGlobal, Formatting.Indented); //Предполагается, что если не получилось спарсить, то из core вернуться дефолт значения
             else
-                json = JsonConvert.SerializeObject(generateDefaultConfigFileDataSolution(), Formatting.Indented);
+                json = JsonConvert.SerializeObject(configFilesData.ConfigFileSolution, Formatting.Indented);
 
             FileStreamManager.WriteInfoToFile(currentConfigGuardFile, json);
 
@@ -316,9 +295,9 @@ namespace RefDepGuard
         private static ConfigFileSolutionDTO updateConfigFileSolutionByAddingProjects(List<string> addedProjectsList)
         {
             foreach (var projectName in addedProjectsList)
-                configFileSolution.projects.Add(projectName, GenerateDefaultConfigFileProject());
+                configFilesData.ConfigFileSolution.projects.Add(projectName, ConfigFileCoreManager.GenerateDefaultProjectConfigFile());
             
-            return configFileSolution;
+            return configFilesData.ConfigFileSolution;
         }
 
         /// <summary>
@@ -329,66 +308,9 @@ namespace RefDepGuard
         private static ConfigFileSolutionDTO updateConfigFileSolutionByRemovingProjects(List<string> removedProjectsList)
         {
             foreach(var project in removedProjectsList)
-                configFileSolution.projects.Remove(project);
+                configFilesData.ConfigFileSolution.projects.Remove(project);
             
-            return configFileSolution;
-        }
-
-        /// <summary>
-        /// Generates the default config file data for the solution config file. 
-        /// This method is used when the solution config file doesn't exist, or when there are some errors during loading the backup file
-        /// </summary>
-        /// <returns>default ConfigFileSolutionDTO value</returns>
-        private static ConfigFileSolutionDTO generateDefaultConfigFileDataSolution()
-        {
-            configFileSolution = new ConfigFileSolutionDTO();
-            configFileSolution.name = solutionName;
-            configFileSolution.framework_max_version = "-";
-            configFileSolution.report_on_transit_references = false;
-            configFileSolution.solution_required_references = new List<string>();
-            configFileSolution.solution_unacceptable_references = new List<string>();
-            configFileSolution.projects = new Dictionary<string, ConfigFileProjectDTO>();
-
-            foreach (var projectName in commitedProjState.Keys)
-                configFileSolution.projects.Add(projectName, GenerateDefaultConfigFileProject());
-
-            return configFileSolution;
-        }
-
-        /// <summary>
-        /// Generates the default config file data for the global config file.
-        /// </summary>
-        /// <returns>default ConfigFileGlobalDTO value</returns>
-        private static ConfigFileGlobalDTO generateDefaultConfigFileDataGlobal()
-        {
-            configFileGlobal = new ConfigFileGlobalDTO();
-            configFileGlobal.name = "Global";
-            configFileGlobal.framework_max_version = "-";
-            configFileGlobal.report_on_transit_references = false;
-            configFileGlobal.global_required_references = new List<string>();
-            configFileGlobal.global_unacceptable_references = new List<string>();
-
-            return configFileGlobal;
-        }
-
-        /// <summary>
-        /// Generates the default config file data for the project in the solution config file.
-        /// </summary>
-        /// <returns>default ConfigFileProjectDTO value</returns>
-        private static ConfigFileProjectDTO GenerateDefaultConfigFileProject()
-        {
-            ConfigFileProjectRefsConsideringDTO configFileProjectRefsConsidering = new ConfigFileProjectRefsConsideringDTO();
-            configFileProjectRefsConsidering.required = true;
-            configFileProjectRefsConsidering.unacceptable = true;
-
-            ConfigFileProjectDTO fileProject = new ConfigFileProjectDTO();
-            fileProject.framework_max_version = "-";
-            fileProject.report_on_transit_references = false;
-            fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
-            fileProject.required_references = new List<string>();
-            fileProject.unacceptable_references = new List<string>();
-
-            return fileProject;
+            return configFilesData.ConfigFileSolution;
         }
     }
 }

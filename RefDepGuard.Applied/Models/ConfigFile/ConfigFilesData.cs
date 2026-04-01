@@ -13,8 +13,6 @@ namespace RefDepGuard.Applied.Models.ConfigFile
         public ConfigFileSolutionDTO ConfigFileSolution;
         public ConfigFileGlobalDTO ConfigFileGlobal;
         public FileParseError ParseError;
-        public ConfigFileFoundState IsFilesFound;
-
         public string SolutionName;
         public string PackageExtendedName;
 
@@ -24,12 +22,11 @@ namespace RefDepGuard.Applied.Models.ConfigFile
         /// <param name="solutionName">solution name string</param>
         /// <param name="packageExtendedName">package extended name string</param>
         public ConfigFilesData(ConfigFileSolutionDTO configFileSolution, ConfigFileGlobalDTO configFileGlobal, FileParseError parseError,
-            ConfigFileFoundState isFilesFound, string solutionName, string packageExtendedName)
+            string solutionName, string packageExtendedName)
         {
             ConfigFileSolution = configFileSolution;
             ConfigFileGlobal = configFileGlobal;
             ParseError = parseError;
-            IsFilesFound = isFilesFound;
             SolutionName = solutionName; //Important: names are not parsed from the ConfigFileManager, but still it's easier to transfer them inside ConfigFilesData
             PackageExtendedName = packageExtendedName;
         }

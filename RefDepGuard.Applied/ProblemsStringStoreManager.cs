@@ -17,7 +17,7 @@ namespace RefDepGuard.Applied
         {
             var problemsStringList = new List<ProblemString>();
             var outputPlacePrefix = isLoadToConsole ? "    - " : "RefDepGuard ";
-            var outputPlaceTransfer = isLoadToConsole ? "\r\n" : "";
+            var outputPlaceTransfer = isLoadToConsole ? "\r\n" : " ";
 
             foreach (ReferenceError error in refDepGuardErrors.RefsErrorList)
             {
@@ -137,7 +137,7 @@ namespace RefDepGuard.Applied
         {
             var problemsStringList = new List<ProblemString>();
             var outputPlacePrefix = isLoadToConsole ? "    - " : "RefDepGuard ";
-            var outputPlaceTransfer = isLoadToConsole ? "\r\n" : "";
+            var outputPlaceTransfer = isLoadToConsole ? "\r\n" : " ";
 
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
             {

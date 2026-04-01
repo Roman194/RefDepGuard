@@ -16,25 +16,62 @@ namespace RefDepGuard.ConfigFile
         private static FileParseError ParseError;
         private static ConfigFileFoundState IsFilesFound;
         private static string SolutionName;
+        private static string RootDir;
 
         private static Dictionary<string, ProjectState> CommitedSolState;
 
-        public static ConfigFilesData GetInfoFromConfigFiles(
-            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
+        
+        private static ConfigFilesData ConfigFilesData;
+
+        public static Tuple<ConfigFilesData, ConfigFileFoundState> GetInfoFromConfigFilesForExtension(ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
             Dictionary<string, ProjectState> currentCommitedSolState)
+        {
+            GetInfoFromConfigFiles(currentSolutionConfigFileServiceInfo, globalSolutionConfigFileServiceInfo, solutionName, rootDir, currentCommitedSolState, true);
+
+            return new Tuple<ConfigFilesData, ConfigFileFoundState>(ConfigFilesData, IsFilesFound);
+        }
+
+        public static ConfigFilesData GetInfoFromConfigFiles(ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
+            Dictionary<string, ProjectState> currentCommitedSolState, bool isExtentionCall = false
+            )
         {
             ParseError = FileParseError.None;
             IsFilesFound = new ConfigFileFoundState(true, true);
             SolutionName = solutionName;
+            RootDir = rootDir;
             CommitedSolState = currentCommitedSolState;
 
-            GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo);
-            GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo);
+            GetCurrentConfigFileInfo(currentSolutionConfigFileServiceInfo, isExtentionCall);
+            GetCurrentConfigFileInfo(globalSolutionConfigFileServiceInfo, isExtentionCall);
 
-            return new ConfigFilesData(configFileSolution, configFileGlobal, ParseError, IsFilesFound, solutionName, rootDir);
+            ConfigFilesData = new ConfigFilesData(configFileSolution, configFileGlobal, ParseError, SolutionName, RootDir);
+
+            return ConfigFilesData;
         }
 
-        private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo)
+        public static ConfigFilesData GetConfigFileInfoSecondAttempt(ConfigFileServiceInfo configFileServiceInfo, FileParseError parseErrorPredict)
+        {
+            ParseError = parseErrorPredict;
+
+            GetCurrentConfigFileInfo(configFileServiceInfo, true); //Этот метод всегда вызывается только из расширения
+
+            ConfigFilesData = new ConfigFilesData(configFileSolution, configFileGlobal, ParseError, SolutionName, RootDir);
+
+            return ConfigFilesData;
+        }
+
+        public static ConfigFilesData UpdateParseErrorStateOnDefaultFileCreation(bool isGlobal)
+        {
+            if(isGlobal)
+                ParseError = (ConfigFilesData.ParseError == FileParseError.All) ? FileParseError.Solution : FileParseError.None;
+            else
+                ParseError = (ConfigFilesData.ParseError == FileParseError.All) ? FileParseError.Global : FileParseError.None;
+
+            ConfigFilesData.ParseError = ParseError;
+            return ConfigFilesData;
+        }
+
+        private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo, bool isExtentionCall)
         {
             if (File.Exists(configFileServiceInfo.CurrentConfigGuardFile))
             {
@@ -49,8 +86,12 @@ namespace RefDepGuard.ConfigFile
                         configFileGlobal = JsonConvert.DeserializeObject<ConfigFileGlobalDTO>(currentFileContent);
                     else
                         configFileSolution = JsonConvert.DeserializeObject<ConfigFileSolutionDTO>(currentFileContent);
+
+                    //It's considering that at this moment files with JSON syntax errors are already in catch, and Null value parameters can't be backed up anymore
+                    if (isExtentionCall)
+                        CacheManager.UpdateConfigFilesBackup(currentFileContent, configFileServiceInfo.IsGlobal);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
                     // if syntax error in file actions
                     ErrorCasesHandle(configFileServiceInfo, false);
@@ -75,7 +116,7 @@ namespace RefDepGuard.ConfigFile
             else
             {
                 generateDefaultSolutionConfigFile();
-                ParseError = FileParseError.Solution;
+                ParseError = (ParseError == FileParseError.None) ? FileParseError.Solution : FileParseError.All;
                 if (isFileNotFound) 
                     IsFilesFound.Solution = false;
             }
@@ -118,7 +159,7 @@ namespace RefDepGuard.ConfigFile
         /// Generates the default config file data for the project in the solution config file.
         /// </summary>
         /// <returns>default ConfigFileProjectDTO value</returns>
-        private static ConfigFileProjectDTO GenerateDefaultProjectConfigFile()
+        public static ConfigFileProjectDTO GenerateDefaultProjectConfigFile() //?????
         {
             ConfigFileProjectRefsConsideringDTO configFileProjectRefsConsidering = new ConfigFileProjectRefsConsideringDTO();
             configFileProjectRefsConsidering.required = true;
