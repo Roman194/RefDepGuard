@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
-using RefDepGuard.Data.Reference;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.RefDepGuard;
 
 namespace RefDepGuard
 {

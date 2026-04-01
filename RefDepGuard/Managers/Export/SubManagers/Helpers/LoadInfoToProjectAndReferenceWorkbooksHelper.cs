@@ -3,9 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using RefDepGuard.Data;
-using RefDepGuard.Data.FrameworkVersion;
-using RefDepGuard.Data.Reference;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.Problem;
+using RefDepGuard.Applied.Models.Reference;
+using RefDepGuard.Applied.Models.FrameworkVersion;
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
@@ -23,7 +28,9 @@ namespace RefDepGuard.Managers.Export.SubManagers
         /// <param name="currentDateTime">current DateTime of report generation in string format</param>
         /// <param name="commitedProjectsState">committed projects state dict</param>
         /// <param name="refDepGuardExportParameters">RefDepGuardExportParameters values</param>
-        public static void LoadInfoToProjectsWorkbook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
+        public static void LoadInfoToProjectsWorkbook(
+            Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, 
+            RefDepGuardExportParameters refDepGuardExportParameters)
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
@@ -31,7 +38,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
-            List<FrameworkVersionComparatibilityError> frameworkVersionComparabilityErrorsList = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
+            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorsList = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList;
 
             int widthIndex = 11;

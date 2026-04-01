@@ -1,9 +1,10 @@
 ﻿using Microsoft.Office.Interop.Excel;
 using System;
 using System.Collections.Generic;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
 using RefDepGuard.Managers.Export.SubManagers;
+using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
 
 namespace RefDepGuard
 {

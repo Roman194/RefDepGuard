@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Models;
+using RefDepGuard.Applied;
 
 namespace RefDepGuard.Managers.Import
 {

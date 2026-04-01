@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Data;
+using RefDepGuard.Applied.Models.Project;
 
 namespace RefDepGuard
 {

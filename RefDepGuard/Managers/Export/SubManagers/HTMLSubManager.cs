@@ -1,10 +1,15 @@
 ﻿using HtmlAgilityPack;
 using System.Collections.Generic;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
-using RefDepGuard.Data.FrameworkVersion;
-using RefDepGuard.Data.Reference;
-using RefDepGuard.Managers.Applied;
+using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.Reference;
+using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
+using RefDepGuard.Applied.Models.Problem;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.FrameworkVersion;
+using RefDepGuard.Applied;
 
 namespace RefDepGuard
 {
@@ -73,7 +78,7 @@ namespace RefDepGuard
             Dictionary<string, RequiredMaxFrVersion> requiredExportParameters = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
-            List<FrameworkVersionComparatibilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
+            List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrVersionRefConflictWarning = refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
 
             string outputMermaidCode = "flowchart LR\r\n";

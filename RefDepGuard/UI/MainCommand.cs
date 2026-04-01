@@ -1,17 +1,18 @@
 ﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using RefDepGuard.Data;
-using RefDepGuard.Data.ConfigFile;
+using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Managers.CheckRules;
 using RefDepGuard.Managers.Import;
-using RefDepGuard.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied;
 
 namespace RefDepGuard
 {
@@ -263,8 +264,8 @@ namespace RefDepGuard
         private static void CheckSolutionSettings()
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
-            ConfigFileManager.SetSolutionNameInfoInRightFormat();
-            CacheManager.SetSolutionNameInfoInRightFormat();
+            ConfigFileExtentionManager.SetSolutionNameInfoInRightFormat();
+            CacheManager.SetSolutionNameInfoInRightFormat(SolutionNameManager.GetPackageName(), SolutionNameManager.GetSolutionName());
 
             isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(uiShell);
         }
@@ -386,6 +387,8 @@ namespace RefDepGuard
             }
 
             ShowProblemsWithConfigFiles();
+
+
         }
 
         /// <summary>
@@ -417,7 +420,7 @@ namespace RefDepGuard
         /// </summary>
         private static void GetConfigFileInfo()
         {
-            configFilesData = ConfigFileManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
+            configFilesData = ConfigFileExtentionManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
         }
 
         /// <summary>
@@ -428,9 +431,9 @@ namespace RefDepGuard
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            (refDepGuardExportParameters, configFilesData) = CheckRulesManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
+            (refDepGuardExportParameters, configFilesData) = CheckRulesExtentionManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
 
-            if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty())
+            if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty() && configFilesData.ParseError == FileParseError.None)
                 ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider);
             else
             {

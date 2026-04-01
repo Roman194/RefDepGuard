@@ -1,12 +1,12 @@
 ﻿using RefDepGuard.CheckRules.Data;
-using RefDepGuard.CheckRules.Models;
-using RefDepGuard.CheckRules.Models.FrameworkVersion;
-using RefDepGuard.CheckRules.Models.FrameworkVersion.Errors;
-using RefDepGuard.CheckRules.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using RefDepGuard.Applied.Models.Problem;
+using RefDepGuard.Applied.Models.FrameworkVersion;
+using RefDepGuard.CheckRules.Models;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {
