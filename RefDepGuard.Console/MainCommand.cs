@@ -5,12 +5,14 @@ using RefDepGuard.CheckRules;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
+using System.ComponentModel.Design;
 
 namespace RefDepGuard.Console
 {
     class MainCommand
     {
         private static Dictionary<string, ProjectState> CurrentSolState = new Dictionary<string, ProjectState>();
+        private static bool IsNoRefsInSolution = false;
         private static ConfigFilesData configFilesData;
         private static RefDepGuardFindedProblems refDepGuardFindedProblems;
 
@@ -31,22 +33,30 @@ namespace RefDepGuard.Console
             ShowFindedProblemsOnCurrentCheck();
         }
 
-        private static void GetCurrentSolutionState()
+        private static void GetCurrentSolutionState()//Mir.Controller.Cfg
         {
-            //Console.WriteLine(Directory.GetCurrentDirectory());
+            #if DEBUG
+                rootDirectory = @"C:\Users\zuzinra\source\repos\WinFormApp"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
+            #else 
+                rootDirectory = Directory.GetCurrentDirectory();
+            #endif
 
-            rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
             solutionName = rootDirectory.Split("\\").Last();
 
             System.Console.WriteLine("Выполняется проверка для Solution: " + solutionName + "\r\n");
             System.Console.WriteLine("1. Парсинг состояния решения");
 
-            CurrentSolState = CurrentStateConsoleManager.GetCurrentSolutionState(rootDirectory + @"\" + solutionName + ".sln");
+            (CurrentSolState, IsNoRefsInSolution) = CurrentStateConsoleManager.GetCurrentSolutionState(rootDirectory + @"\" + solutionName + ".sln");
 
-            if(CurrentSolState.Count == 0)
+            if(CurrentSolState.Count == 0 || IsNoRefsInSolution)
             {
                 System.Console.WriteLine("\r\n-> Парсинг состояния решения - Fail\r\n");
-                ProblemsUploadToConsoleManager.UploadRefsNotFoundError();
+
+                if (CurrentSolState.Count == 0)
+                    ProblemsUploadToConsoleManager.UploadInvalidDirectoryError();
+                else
+                    ProblemsUploadToConsoleManager.UploadRefsNotFoundError();
+
                 Environment.Exit(-1); //Завершение проги с ошибкой
             }
 
@@ -63,10 +73,10 @@ namespace RefDepGuard.Console
             {
                 System.Console.WriteLine("\r\n-> Парсинг значений конфиг-файлов - Fail");
 
-                if(configFilesData.ParseError == FileParseError.Global)
+                if(configFilesData.ParseError == FileParseError.Global || configFilesData.ParseError == FileParseError.All)
                     ProblemsUploadToConsoleManager.UploadConfigFileSyntaxError(true);
 
-                if(configFilesData.ParseError == FileParseError.Solution)
+                if(configFilesData.ParseError == FileParseError.Solution || configFilesData.ParseError == FileParseError.All)
                     ProblemsUploadToConsoleManager.UploadConfigFileSyntaxError(false);
 
                 Environment.Exit(-1);

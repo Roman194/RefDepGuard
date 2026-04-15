@@ -28,11 +28,10 @@ namespace RefDepGuard.Applied
 
                 switch (error.CurrentRuleLevel)
                 {
-                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution "; break;
+                    case ProblemLevel.Global: referenceLevelText = "глобального уровня "; break;
                 }
 
-                //Есть ли проблемы в ELP из-за переноса строки?
                 string errorText = outputPlacePrefix + "Reference error: " + referenceTypeText + " референс " + referenceLevelText + "'" + error.ReferenceName +
                     "' для проекта '" + error.ErrorRelevantProjectName + "'." + outputPlaceTransfer + actionForUser + " его через обозреватель решений"; 
                 
@@ -50,11 +49,11 @@ namespace RefDepGuard.Applied
 
                 switch (referenceMatchError.RuleLevel)
                 {
-                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Global: referenceLevelText = "глобального уровня"; break;
+                    case ProblemLevel.Solution: referenceLevelText = " уровня Solution"; break;
+                    case ProblemLevel.Global: referenceLevelText = " глобального уровня"; break;
                 }
 
-                string errorText = outputPlacePrefix + "Match error: референс '" + referenceMatchError.ReferenceName + projectName + "' " + referenceLevelText +
+                string errorText = outputPlacePrefix + "Match error: референс '" + referenceMatchError.ReferenceName + projectName + "'" + referenceLevelText +
                     matchErrorDescription + "." + outputPlaceTransfer + "Устраните противоречие в правиле";
 
                 problemsStringList.Add(new ProblemString(errorText, documentName));

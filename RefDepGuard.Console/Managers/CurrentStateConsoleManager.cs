@@ -8,9 +8,10 @@ namespace RefDepGuard.Console.Managers
     public class CurrentStateConsoleManager
     {
 
-        public static Dictionary<string, ProjectState> GetCurrentSolutionState(string solutionFileFullPath)
+        public static Tuple<Dictionary<string, ProjectState>, bool> GetCurrentSolutionState(string solutionFileFullPath)
         {
             Dictionary<string, ProjectState> commitedSolState = new Dictionary<string, ProjectState>();
+            bool isNoReferencesInSolution = true;
 
             if (File.Exists(solutionFileFullPath))
             {
@@ -47,6 +48,9 @@ namespace RefDepGuard.Console.Managers
                                         .Replace(".csproj", "")
                                 );
 
+                            if(referenceNames.Count > 0 && isNoReferencesInSolution == true)
+                                isNoReferencesInSolution = false;
+
                             referenceNames.ForEach(referenceName =>
                                 System.Console.WriteLine("   -" + referenceName)
                                 );
@@ -57,7 +61,7 @@ namespace RefDepGuard.Console.Managers
                 }
             }
             
-            return commitedSolState;
+            return new Tuple<Dictionary<string, ProjectState>, bool>(commitedSolState, isNoReferencesInSolution);
         }
     }
 }

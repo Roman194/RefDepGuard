@@ -15,46 +15,47 @@ namespace RefDepGuard.Console.Managers
             List<ProblemString> warningsStringList = ProblemsStringStoreManager.ConvertCurrentWarningsToStringFormat(
                 refDepGuardFindedProblems.RefDepGuardWarnings, configFilesData, true);
 
-            System.Console.WriteLine("\r\n    -> ОШИБКИ:\r\n");
+            if (errorsStringList.Count > 0) {
+                System.Console.WriteLine("\r\n    -> ОШИБКИ:\r\n");
 
-            errorsStringList.ForEach(error => 
-                System.Console.WriteLine(error.ProblemText + (error.DocumentName != "" ? " (Файл: " + error.DocumentName + ")" : "") + "\r\n")
-                );
+                errorsStringList.ForEach(error =>
+                    System.Console.WriteLine(error.ProblemText + (error.DocumentName != "" ? " (Файл: " + error.DocumentName + ")" : "") + "\r\n")
+                    );
+            }
 
-            System.Console.WriteLine("\r\n    -> ПРЕДУПРЕЖДЕНИЯ:\r\n");
+            if (warningsStringList.Count > 0) {
+                System.Console.WriteLine("\r\n    -> ПРЕДУПРЕЖДЕНИЯ:\r\n");
 
-            warningsStringList.ForEach(warning => 
-                System.Console.WriteLine(warning.ProblemText + (warning.DocumentName != "" ? " (Файл: " + warning.DocumentName + ")" : "") + "\r\n")
-                );
+                warningsStringList.ForEach(warning =>
+                    System.Console.WriteLine(warning.ProblemText + (warning.DocumentName != "" ? " (Файл: " + warning.DocumentName + ")" : "") + "\r\n")
+                    );
+            }
         }
 
         public static void UploadRefsNotFoundError()
         {
-            var currentText = "    - Error: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации" +
+            var currentText = "    - Error: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации " +
                 "состояния решения.\r\nПроверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или " +
                 "автоматически вместе со сборкой";
 
             System.Console.WriteLine(currentText);
         }
 
-        public static void UploadConfigFileSyntaxError(bool isGlobal)
+        public static void UploadInvalidDirectoryError()
         {
-            var globalPrefix = isGlobal ? "глобального" : "";
-            var solFilePrefix = isGlobal ? "" : " текущего решения";
-
-            var currentText = "\r\n    - Error: Не получилось спарсить данные из " + globalPrefix + " файла конфигурации"+ solFilePrefix + 
-                ".\r\nПроверьте файл на отсутствие синтаксических ошибок";
+            var currentText = "    - Error: Не получилось спарсить данные из .sln файла корневой директории solution." +
+                "\r\nПроверьте, что приложение запущено в корректной корневой папке, содержащей одноимённый .sln-файл";
 
             System.Console.WriteLine(currentText);
         }
 
-        public static void UploadConfigFileNotFoundError(bool isGlobal)
+        public static void UploadConfigFileSyntaxError(bool isGlobal)
         {
-            var globalPrefix = isGlobal ? "глобальный" : "";
+            var globalPrefix = isGlobal ? " глобального" : "";
             var solFilePrefix = isGlobal ? "" : " текущего решения";
 
-            var currentText = "\r\n    - Error: Не получилось найти " + globalPrefix + " файл конфигурации" + solFilePrefix +
-                " в корневой папке.\r\nПроверьте корневую папку на наличие этого файла и корректность его названия согласно USER_GUIDE";
+            var currentText = "\r\n    - Error: Не получилось спарсить данные из" + globalPrefix + " файла конфигурации"+ solFilePrefix + 
+                ".\r\nПроверьте файл на существование и отсутствие синтаксических ошибок";
 
             System.Console.WriteLine(currentText);
         }
