@@ -41,7 +41,7 @@ namespace RefDepGuard.TargetFramework
             return "";
         }
 
-        private static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)
+        public static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)//????
         {
             Dictionary<string, List<int>> currentTargetFrameworksDict = new Dictionary<string, List<int>>();
 

@@ -121,8 +121,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string currentErrorLevel = "Global";
-                string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion +
-                    "', в\r\nто время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию\r\n'" + frameworkVersionComparabilityError.TargetFrameworkVersion +
+                    "', в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 string documentName = "";
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)
