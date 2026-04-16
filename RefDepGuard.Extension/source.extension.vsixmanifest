@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Ref.Dep.Guard.Ramonn_KN.dc3a31f3-52dd-4a3f-b68c-474a8a06109a" Version="1.0" Language="ru-RU" Publisher="Ramonn_KN" />
+        <Identity Id="Ref.Dep.Guard.Ramonn_KN.dc3a31f3-52dd-4a3f-b68c-474a8a06109a" Version="2.0" Language="ru-RU" Publisher="Ramonn_KN" />
         <DisplayName>Ref Dep Guard</DisplayName>
         <Description xml:space="preserve">Данное расширение позволяет отслеживать изменения зависимостей между проектами и сопоставлять эти зависимости с правилами заданными в специальном конфигурационном файле. В случае несоответствия зависимостей заданным правилам, расширение выдаёт предупреждение о некорректных связях и не даёт сборке завершитьсяДанное </Description>
         <License>LICENSE.txt</License>
