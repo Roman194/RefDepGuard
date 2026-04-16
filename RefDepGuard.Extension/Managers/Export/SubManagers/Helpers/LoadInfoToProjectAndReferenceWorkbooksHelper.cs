@@ -206,6 +206,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
         public static void LoadInfoToReferencesBook(Application excel, string solutionName, string currentDateTime, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters)
         {
             List<ReferenceError> refsErrorList = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.RefsErrorList;
+            List<ReferenceMatchError> refsMatchErrorList = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.RefsMatchErrorList;
             List<RequiredReference> requiredReferences = refDepGuardExportParameters.RequiredParametersData.RequiredReferences;
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = 
                 refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
@@ -250,21 +251,30 @@ namespace RefDepGuard.Managers.Export.SubManagers
                         .Where(value => value.ErrorRelevantProjectName == projectName && value.ReferenceName == projectReference && value.IsReferenceRequired == false)
                         .FirstOrDefault();
 
-                    if(referenceError != null)
-                        projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Недопустимый", 0xCEC7FF, 0x062CCE);
+                    ReferenceMatchError referenceMatchError = refsMatchErrorList
+                        .Where(value => value.ReferenceName == projectReference && (value.ProjectName == projectName || value.ProjectName == ""))
+                        .FirstOrDefault();
+
+                    if (referenceMatchError != null)
+                        projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "?");
                     else
                     {
-                        if(maxFrameworkVersionReference != null)
-                        {
-                            projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Потенциальный\r\nконфликт версий", 0x92e3f7, 0x00648b); //фон #f7e392 текст #8b6400
-                            isPotentialVersionConflict = true;
-                        }
+                        if (referenceError != null)
+                            projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Недопустимый", 0xCEC7FF, 0x062CCE);
                         else
                         {
-                            if (requiredReference != null)
-                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Обязательный", 0xCEEFC6, 0x006100);
+                            if (maxFrameworkVersionReference != null)
+                            {
+                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Потенциальный\r\nконфликт версий", 0x92e3f7, 0x00648b); //фон #f7e392 текст #8b6400
+                                isPotentialVersionConflict = true;
+                            }
                             else
-                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "-");
+                            {
+                                if (requiredReference != null)
+                                    projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Обязательный", 0xCEEFC6, 0x006100);
+                                else
+                                    projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "-");
+                            }
                         }
                     }
 

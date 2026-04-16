@@ -1,15 +1,16 @@
 ﻿using HtmlAgilityPack;
-using System.Collections.Generic;
+using Microsoft.VisualStudio.TextManager.Interop;
+using RefDepGuard.Applied;
 using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied.Models.FrameworkVersion;
+using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference;
 using RefDepGuard.Applied.Models.Reference.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
-using RefDepGuard.Applied.Models.FrameworkVersion;
-using RefDepGuard.Applied;
+using System.Collections.Generic;
 
 namespace RefDepGuard
 {
@@ -77,6 +78,7 @@ namespace RefDepGuard
             List<RequiredReference> requiredReferences = refDepGuardExportParameters.RequiredParametersData.RequiredReferences;
             Dictionary<string, RequiredMaxFrVersion> requiredExportParameters = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
+            List<ReferenceMatchError> refMatchErrors = refDepGuardErrors.RefsMatchErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> projectComparabilityError = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrVersionRefConflictWarning = refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList;
@@ -178,7 +180,8 @@ namespace RefDepGuard
                             else
                             {
                                 var reqRef = requiredReferences.Find(value => value.ReferenceName == currentProjectRef && (value.RelevantProject == currentProjectName || value.RelevantProject == ""));
-                                if (reqRef != null)
+                                var refMatchError = refMatchErrors.Find(value => value.ReferenceName == currentProjectRef && (value.ProjectName == currentProjectName || value.ProjectName == ""));
+                                if (reqRef != null && refMatchError == null)
                                 {
                                     outputMermaidCode += SetRequiredPrLinkStyle(currentRefNum);
                                 }
@@ -196,9 +199,14 @@ namespace RefDepGuard
             {
                 if (refError.IsReferenceRequired)//if it is a reference required error,
                 {
+                    var refMatchError = refMatchErrors.Find(value => 
+                        value.ReferenceName == refError.ReferenceName && 
+                        (value.ProjectName == refError.ErrorRelevantProjectName || value.ProjectName == "")
+                     );
+
                     //we check if the project and reference of this error are in the solution and if they are,
                     //we generate the link between them with the relevant error text and style
-                    if (projectNameToNodeIdCompare.ContainsKey(refError.ReferenceName))
+                    if (refMatchError != null && projectNameToNodeIdCompare.ContainsKey(refError.ReferenceName) )
                     {
                         string currentNodeId = projectNameToNodeIdCompare[refError.ErrorRelevantProjectName];
                         string refNodeId = projectNameToNodeIdCompare[refError.ReferenceName];
