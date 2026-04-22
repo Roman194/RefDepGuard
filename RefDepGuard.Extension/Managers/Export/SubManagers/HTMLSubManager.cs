@@ -215,7 +215,7 @@ namespace RefDepGuard
 
                     //we check if the project and reference of this error are in the solution and if they are,
                     //we generate the link between them with the relevant error text and style
-                    if (refMatchError != null && projectNameToNodeIdCompare.ContainsKey(refError.ReferenceName) )
+                    if (refMatchError == null && projectNameToNodeIdCompare.ContainsKey(refError.ReferenceName) )
                     {
                         string currentNodeId = projectNameToNodeIdCompare[refError.ErrorRelevantProjectName];
                         string refNodeId = projectNameToNodeIdCompare[refError.ReferenceName];

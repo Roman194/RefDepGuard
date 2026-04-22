@@ -1,16 +1,17 @@
 ﻿using Microsoft.Office.Interop.Excel;
+using Microsoft.VisualStudio.VCProjectEngine;
+using RefDepGuard.Applied.Models.FrameworkVersion;
+using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.Problem;
+using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied.Models.Reference;
+using RefDepGuard.Applied.Models.Reference.Errors;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.RefDepGuard;
-using RefDepGuard.Applied.Models.Reference.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.Reference;
-using RefDepGuard.Applied.Models.FrameworkVersion;
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
@@ -37,6 +38,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             Dictionary<string, List<RequiredMaxFrVersion>> requiredMaxFrVersions = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
 
             List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;
+            List<ReferenceMatchError> refMatchErrors = refDepGuardErrors.RefsMatchErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
             List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorsList = refDepGuardErrors.FrameworkVersionComparabilityErrorList;
             List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList;
@@ -180,7 +182,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             }
 
             //Working with borders
-            projectsTable = SetUnionTableStyle(projectsTable, unionRangeSolutionNameAndGenerateTime, unionRangeTableTitle, i, heightIndex, widthIndex, false);
+            projectsTable = SetUnionTableStyle(projectsTable, unionRangeSolutionNameAndGenerateTime, unionRangeTableTitle, i, i, heightIndex, widthIndex, false);
 
             Range unionRangeProjectName = projectsTable.Range[projectsTable.Cells[firstRowIndex, 3], projectsTable.Cells[i + heightIndex, 3]];
             Range unionRangeTargetFramework = projectsTable.Range[projectsTable.Cells[firstRowIndex, 4], projectsTable.Cells[i + heightIndex, 4]];
@@ -290,7 +292,35 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 }
             }
 
-            projectsTable = SetUnionTableStyle(projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle, i, heightIndex, widthIndex, true);
+            var j = i; //i - columns without missing required references$ j - with them
+
+            foreach (var refError in refsErrorList) //adds missing required references
+            {
+                if (refError.IsReferenceRequired)//if it is a reference required error,
+                {
+                    var refMatchError = refsMatchErrorList.Find(value =>
+                        value.ReferenceName == refError.ReferenceName &&
+                        (value.ProjectName == refError.ErrorRelevantProjectName || value.ProjectName == "")
+                     );
+
+                    //we check if the project and reference of this error are in the solution and if they are,
+                    //we added a column in refernce table for them
+                    if (refMatchError == null)
+                    {
+                        projectsTable.Cells[firstRowIndex + j, 2] = "-";
+                        projectsTable.Cells[firstRowIndex + j, 3] = refError.ReferenceName;
+                        projectsTable.Cells[firstRowIndex + j, 4] = refError.ErrorRelevantProjectName;
+
+                        projectsTable.Cells[firstRowIndex + j, 3].Font.Color = projectsTable.Cells[firstRowIndex + j, 4].Font.Color = 0xA6A6A6;
+
+                        projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, j, "Обязательный", 0xCEEFC6, 0x006100);
+
+                        j++;
+                    }
+                }
+            }
+
+            projectsTable = SetUnionTableStyle(projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle, i, j, heightIndex, widthIndex, true);
 
             if (isPotentialVersionConflict)
                 projectsTable.Columns[5].ColumnWidth = 16;
@@ -387,16 +417,19 @@ namespace RefDepGuard.Managers.Export.SubManagers
         /// <param name="widthIndex">width int index</param>
         /// <param name="isReferencesWorkbook">shows if it's references workbook or not</param>
         /// <returns>Worksheet value</returns>
-        private static Worksheet SetUnionTableStyle(Worksheet projectsTable, Range unionRangeSolutionWithTime, Range unionRangeTableTitle, int i, int extraColumnIndex, int widthIndex, bool isReferencesWorkbook)
+        private static Worksheet SetUnionTableStyle(Worksheet projectsTable, Range unionRangeSolutionWithTime, Range unionRangeTableTitle, int i, int j, int extraColumnIndex, int widthIndex, bool isReferencesWorkbook)
         {
-            Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + extraColumnIndex, widthIndex]];
-            Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[i + extraColumnIndex, 2]];
+            Range unionRangeTableWithoutMissingReq = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + extraColumnIndex, widthIndex]];
+            Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[j + extraColumnIndex, widthIndex]];
+            Range unionRangeNumWithTitle = projectsTable.Range[projectsTable.Cells[4, 2], projectsTable.Cells[j + extraColumnIndex, 2]];
 
             unionRangeAllTable.Font.Name = "Calibri";
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
             if(isReferencesWorkbook)
                 unionRangeAllTable.EntireColumn.AutoFit();
             unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
+
+            unionRangeTableWithoutMissingReq.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
 
             unionRangeNumWithTitle.HorizontalAlignment = XlHAlign.xlHAlignCenter;
             unionRangeNumWithTitle.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
