@@ -34,7 +34,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
         {
             RefDepGuardErrors refDepGuardErrors = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors;
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
-            Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersions = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
+            Dictionary<string, List<RequiredMaxFrVersion>> requiredMaxFrVersions = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
 
             List<ReferenceError> refsErrorList = refDepGuardErrors.RefsErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
@@ -111,16 +111,24 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
                 if (requiredMaxFrVersions.ContainsKey(currentProjectName))
                 {
-                    var currentMaxFrVersionRule = requiredMaxFrVersions[currentProjectName];
-                    var ruleLevelString = "";
-                    switch (currentMaxFrVersionRule.ReqLevel)
+                    var projectTFMsVersion = "";
+                    foreach (var currentProjectTFM in requiredMaxFrVersions[currentProjectName])
                     {
-                        case ProblemLevel.Global: ruleLevelString = "[G]"; break;
-                        case ProblemLevel.Solution: ruleLevelString = "[S]"; break;
-                    }
-                    projectsTable.Cells[firstRowIndex + i, 5] = currentMaxFrVersionRule.VersionText + ruleLevelString;
+                        var ruleLevelString = "";
+                        switch (currentProjectTFM.ReqLevel)
+                        {
+                            case ProblemLevel.Global: ruleLevelString = "[G]"; break;
+                            case ProblemLevel.Solution: ruleLevelString = "[S]"; break;
+                        }
+                        projectTFMsVersion += (currentProjectTFM.VersionText + ruleLevelString);
 
-                    if(frameworkVersionComparabilityErrorsList.Find(warning => warning.ErrorRelevantProjectName == currentProjectName) != null)
+                        if (requiredMaxFrVersions[currentProjectName].Last() != currentProjectTFM)
+                            projectTFMsVersion += "; ";
+                    }
+
+                    projectsTable.Cells[firstRowIndex + i, 5] = projectTFMsVersion;
+
+                    if (frameworkVersionComparabilityErrorsList.Find(warning => warning.ErrorRelevantProjectName == currentProjectName) != null)
                         projectsTable.Cells[firstRowIndex + i, 5].Font.Color = 0x062CCE;
                     else
                     {

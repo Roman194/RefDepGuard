@@ -121,8 +121,10 @@ namespace RefDepGuard.Managers.Export.SubManagers
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string currentErrorLevel = "Global";
+                string currentTFMText = (frameworkVersionComparabilityError.ErrorRelevantTFM != "") ?
+                    (" (для TFM '" + frameworkVersionComparabilityError.ErrorRelevantTFM + "')") : "";
                 string currentErrorText = "Параметр 'TargetFrameworkVersion' имеет версию\r\n'" + frameworkVersionComparabilityError.TargetFrameworkVersion +
-                    "', в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                    "'"+ currentTFMText +", в то время как максимально допустимой для него версией является '" + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 string documentName = "";
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)

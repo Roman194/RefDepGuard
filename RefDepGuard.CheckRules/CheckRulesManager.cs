@@ -207,6 +207,10 @@ namespace RefDepGuard.CheckRules
                                 MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
                                     projFrameworkVersions, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Global
                                     );
+                            else
+                                MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
+                                    projFrameworkVersions, maxFrameworkVersionByTypes, projName, ProblemLevel.Undefined
+                                    );
                         }
                     }
                     else
@@ -250,7 +254,7 @@ namespace RefDepGuard.CheckRules
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
-            var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
+            //var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
 
             refsRuleCheckErrors.RefsErrorList.Sort((x, y) => //Sorts only errors!
                 x.CurrentRuleLevel.CompareTo(y.CurrentRuleLevel));

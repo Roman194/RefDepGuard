@@ -13,17 +13,20 @@ namespace RefDepGuard.Applied.Models.FrameworkVersion.Errors
         public ProblemLevel ErrorLevel;
         public string TargetFrameworkVersion;
         public string MaxFrameworkVersion;
+        public string ErrorRelevantTFM;
         public string ErrorRelevantProjectName;
 
         /// <param name="errorLevel">relevant error level</param>
         /// <param name="targetFrameworkVersion">target framework version string</param>
         /// <param name="maxFrameworkVersion">max frameowkr version string</param>
         /// <param name="errorRelevantProjectName">error relevant proj name string (if its a project error level))</param>
-        public FrameworkVersionComparabilityError(ProblemLevel errorLevel, string targetFrameworkVersion, string maxFrameworkVersion, string errorRelevantProjectName)
+        public FrameworkVersionComparabilityError(
+            ProblemLevel errorLevel, string targetFrameworkVersion, string maxFrameworkVersion, string errorRelevantTFM, string errorRelevantProjectName)
         {
             ErrorLevel = errorLevel;
             TargetFrameworkVersion = targetFrameworkVersion;
             MaxFrameworkVersion = maxFrameworkVersion;
+            ErrorRelevantTFM = errorRelevantTFM;
             ErrorRelevantProjectName = errorRelevantProjectName;
         }
     }

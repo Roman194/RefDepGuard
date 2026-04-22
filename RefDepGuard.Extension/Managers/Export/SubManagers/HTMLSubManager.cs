@@ -11,6 +11,7 @@ using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference;
 using RefDepGuard.Applied.Models.Reference.Errors;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RefDepGuard
 {
@@ -76,7 +77,7 @@ namespace RefDepGuard
             RefDepGuardWarnings refDepGuardWarnings = refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardWarnings;
 
             List<RequiredReference> requiredReferences = refDepGuardExportParameters.RequiredParametersData.RequiredReferences;
-            Dictionary<string, RequiredMaxFrVersion> requiredExportParameters = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
+            Dictionary<string, List<RequiredMaxFrVersion>> requiredExportParameters = refDepGuardExportParameters.RequiredParametersData.MaxRequiredFrameworkVersion;
             List<ReferenceError> refErrors = refDepGuardErrors.RefsErrorList;
             List<ReferenceMatchError> refMatchErrors = refDepGuardErrors.RefsMatchErrorList;
             List<MaxFrameworkVersionDeviantValueError> maxFrVersionDeviantValuesList = refDepGuardErrors.MaxFrameworkVersionDeviantValueList;
@@ -101,13 +102,21 @@ namespace RefDepGuard
                 if (requiredExportParameters.ContainsKey(currentProjectName))
                 {//If there is a requirement for max framework version for the current project,
                  //we add it to the node description and check if there are any warnings related to set its style.
-                    currentProjectMaxFrVersion = requiredExportParameters[currentProjectName];
-                    currentProjectMaxFrVersionString = "Max: " + currentProjectMaxFrVersion.VersionText;
 
-                    switch (currentProjectMaxFrVersion.ReqLevel)
+                    currentProjectMaxFrVersionString = "Max: ";
+
+                    foreach (var currentProjectTFM in requiredExportParameters[currentProjectName])//For each project TFM
                     {
-                        case ProblemLevel.Global: currentProjectMaxFrVersionString += " G"; break;
-                        case ProblemLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
+                        currentProjectMaxFrVersionString += currentProjectTFM.VersionText;
+
+                        switch (currentProjectTFM.ReqLevel)
+                        {
+                            case ProblemLevel.Global: currentProjectMaxFrVersionString += " G"; break;
+                            case ProblemLevel.Solution: currentProjectMaxFrVersionString += " S"; break;
+                        }
+
+                        if (requiredExportParameters[currentProjectName].Last() != currentProjectTFM)
+                            currentProjectMaxFrVersionString += "; ";
                     }
 
                     if(currentProjectMaxFrVersion.IsConflictWarningRelevantForThisProject)

@@ -111,6 +111,8 @@ namespace RefDepGuard.Applied
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
                 string ruleLevel = "ограничение глобального уровня";
+                string currentTFMText = (frameworkVersionComparabilityError.ErrorRelevantTFM != "") ?
+                    (" для TFM '" + frameworkVersionComparabilityError.ErrorRelevantTFM + "'") : "";
                 string documentName = (frameworkVersionComparabilityError.ErrorLevel == ProblemLevel.Global) ?
                     configFilesData.SolutionName + "_config_guard.rdg" : "global_config_guard.rdg";
 
@@ -120,7 +122,7 @@ namespace RefDepGuard.Applied
                     case ProblemLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
                 }
                 string errorText = outputPlacePrefix + "Framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName +
-                    "' имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как максимально допустимой для него версией является '" +
+                    "'"+ currentTFMText +" имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как максимально допустимой для него версией является '" +
                     frameworkVersionComparabilityError.MaxFrameworkVersion + "' (" + ruleLevel + ")." + outputPlaceTransfer + 
                     "Измените версию проекта или модифицируйте конфигурацию Config-файла";
 

@@ -10,11 +10,11 @@ namespace RefDepGuard.Applied.Models
     public class RequiredExportParameters
     {
         public List<RequiredReference> RequiredReferences;
-        public Dictionary<string, RequiredMaxFrVersion> MaxRequiredFrameworkVersion;
+        public Dictionary<string, List<RequiredMaxFrVersion>> MaxRequiredFrameworkVersion;
 
         /// <param name="requiredReferences">list of RequiredReference objects</param>
         /// <param name="maxRequiredFrameworkVersion">dictionary of RequiredMaxFrVersion objects</param>
-        public RequiredExportParameters(List<RequiredReference> requiredReferences, Dictionary<string, RequiredMaxFrVersion> maxRequiredFrameworkVersion)
+        public RequiredExportParameters(List<RequiredReference> requiredReferences, Dictionary<string, List<RequiredMaxFrVersion>> maxRequiredFrameworkVersion)
         {
             RequiredReferences = requiredReferences;
             MaxRequiredFrameworkVersion = maxRequiredFrameworkVersion;
