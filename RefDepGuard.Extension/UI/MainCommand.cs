@@ -264,7 +264,7 @@ namespace RefDepGuard
         private static void CheckSolutionSettings()
         {
             SolutionNameManager.SetSolutionNameInfoInRightFormat(dte);
-            ConfigFileExtentionManager.SetSolutionNameInfoInRightFormat();
+            ConfigFileExtensionManager.SetSolutionNameInfoInRightFormat();
             CacheManager.SetSolutionNameInfoInRightFormat(SolutionNameManager.GetPackageName(), SolutionNameManager.GetSolutionName());
 
             isSolutionFamiliar = SettingsManager.CheckIfSolutionIsFamiliarToExt(uiShell);
@@ -420,7 +420,7 @@ namespace RefDepGuard
         /// </summary>
         private static void GetConfigFileInfo()
         {
-            configFilesData = ConfigFileExtentionManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
+            configFilesData = ConfigFileExtensionManager.GetInfoFromConfigFiles(serviceProvider, uiShell, commitedProjState);
         }
 
         /// <summary>

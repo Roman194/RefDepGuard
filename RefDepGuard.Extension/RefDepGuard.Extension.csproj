@@ -54,7 +54,7 @@
     <Compile Include="Managers\CurrentStateManager.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProblemWorkbooksHelper.cs" />
     <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProjectAndReferenceWorkbooksHelper.cs" />
-    <Compile Include="Managers\Import\ConfigFileExtentionManager.cs" />
+    <Compile Include="Managers\Import\ConfigFileExtensionManager.cs" />
     <Compile Include="Managers\Import\SettingsManager.cs" />
     <Compile Include="Managers\ExcecuteRefsManager.cs" />
     <Compile Include="Models\UsingSolutionsDTO.cs" />

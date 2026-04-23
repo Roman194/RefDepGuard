@@ -57,7 +57,6 @@ namespace RefDepGuard.CheckRules
         public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckConfigFileRulesForExtension(
             ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedSolState)
         {
-
             refDepGuardFindedProblems = CheckConfigFileRulesForConsole(configFilesData, currentCommitedSolState);
 
             var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
@@ -128,6 +127,7 @@ namespace RefDepGuard.CheckRules
                 );
 
             bool isTransitReferencesDetectionNeeded = (configFileGlobal?.report_on_transit_references ?? false) && (configFileSolution?.report_on_transit_references ?? false);
+            bool isProjNamesSemanticCheckNeeded = (configFileGlobal?.project_names_semantic_check ?? false) && (configFileSolution?.project_names_semantic_check ?? false);
 
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)//foreach project
             {
@@ -236,6 +236,12 @@ namespace RefDepGuard.CheckRules
 
             MaxFrameworkRuleChecksSubManager.CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(maxGlobalFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes);
 
+            if (isTransitReferencesDetectionNeeded)
+                TransitRefsDetectSubManager.CheckDetectedTransitReferencesOnStreightDuplicate(currentCommitedSolState);
+
+            if (isProjNamesSemanticCheckNeeded)
+                SemanticChecksSubManager.CheckProjectNamesSemantic(currentCommitedSolState.Keys.ToList());
+
             //For a correct check of potential conflicts between max framework versions on the exsisting references it is needed to collect info about projects, their max versions and conflicts between them.
             //That's why this check is performed after the main loop through projects.
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)
@@ -252,10 +258,11 @@ namespace RefDepGuard.CheckRules
             //After all checks are performed, we collect all the errors and warnings from different submanagers and sort them before exporting to ELP.
             var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
-            var detectedTransitRefs = TransitRefsDetectSubManager.GetDetectedTransitRefsDict();
+            var detectedNDuplicatedTransitRefs = TransitRefsDetectSubManager.GetDetectedAndDuplicatedTransitRefsDict();
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
+            var semanticProjectNameWarnings = SemanticChecksSubManager.GetProjectNamesSemanticWarningList();
 
 
             refsRuleCheckErrors.RefsErrorList.Sort((x, y) => //Sorts only errors!
@@ -277,7 +284,8 @@ namespace RefDepGuard.CheckRules
                 refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList, projectMatchWarningList,
                 maxFrameworkVersionDeviantValueWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList,
                 maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkVersionTFMNotFoundWarningList,
-                maxFrameworkRuleProblems.MaxFrameworkVersionIllegalTemplateUsageWarningList, maxFrameworkRuleProblems.UntypedWarningsList, detectedTransitRefs);
+                maxFrameworkRuleProblems.MaxFrameworkVersionIllegalTemplateUsageWarningList, semanticProjectNameWarnings,
+                maxFrameworkRuleProblems.UntypedWarningsList, detectedNDuplicatedTransitRefs);
 
             return new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
         }
@@ -308,6 +316,7 @@ namespace RefDepGuard.CheckRules
             MaxFrameworkRuleChecksSubManager.ClearErrorAndWarningLists();
             CheckProjectsMatchSubManager.ClearErrorLists();
             TransitRefsDetectSubManager.ClearDetectedTransitRefsDict();
+            SemanticChecksSubManager.ClearSemanticCheckLists();
         }
 
         /// <summary>

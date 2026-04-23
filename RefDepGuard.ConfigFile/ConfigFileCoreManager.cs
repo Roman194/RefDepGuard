@@ -132,7 +132,8 @@ namespace RefDepGuard.ConfigFile
             configFileSolution = new ConfigFileSolutionDTO();
             configFileSolution.name = SolutionName;
             configFileSolution.framework_max_version = "-";
-            configFileSolution.report_on_transit_references = false;
+            configFileSolution.project_names_semantic_check = true;
+            configFileSolution.report_on_transit_references = true;
             configFileSolution.solution_required_references = new List<string>();
             configFileSolution.solution_unacceptable_references = new List<string>();
             configFileSolution.projects = new Dictionary<string, ConfigFileProjectDTO>();
@@ -150,7 +151,8 @@ namespace RefDepGuard.ConfigFile
             configFileGlobal = new ConfigFileGlobalDTO();
             configFileGlobal.name = "Global";
             configFileGlobal.framework_max_version = "-";
-            configFileGlobal.report_on_transit_references = false;
+            configFileGlobal.project_names_semantic_check = true;
+            configFileGlobal.report_on_transit_references = true;
             configFileGlobal.global_required_references = new List<string>();
             configFileGlobal.global_unacceptable_references = new List<string>();
         }
@@ -159,7 +161,7 @@ namespace RefDepGuard.ConfigFile
         /// Generates the default config file data for the project in the solution config file.
         /// </summary>
         /// <returns>default ConfigFileProjectDTO value</returns>
-        public static ConfigFileProjectDTO GenerateDefaultProjectConfigFile() //?????
+        public static ConfigFileProjectDTO GenerateDefaultProjectConfigFile()
         {
             ConfigFileProjectRefsConsideringDTO configFileProjectRefsConsidering = new ConfigFileProjectRefsConsideringDTO();
             configFileProjectRefsConsidering.required = true;
@@ -167,7 +169,7 @@ namespace RefDepGuard.ConfigFile
 
             ConfigFileProjectDTO fileProject = new ConfigFileProjectDTO();
             fileProject.framework_max_version = "-";
-            fileProject.report_on_transit_references = false;
+            fileProject.report_on_transit_references = true;
             fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
             fileProject.required_references = new List<string>();
             fileProject.unacceptable_references = new List<string>();

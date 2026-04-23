@@ -69,7 +69,7 @@ namespace RefDepGuard
             if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
             {
                 //Rename project
-                configFilesData = ConfigFileExtentionManager.RenameProjectInConfigFile(configFilesData, addedProj, removedProj);
+                configFilesData = ConfigFileExtensionManager.RenameProjectInConfigFile(configFilesData, addedProj, removedProj);
             }
             else
             { //Still asks for adding empty project sample and remove deleted project
@@ -77,14 +77,14 @@ namespace RefDepGuard
 
                 if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
                 {
-                    configFilesData = ConfigFileExtentionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { addedProj }, true);
+                    configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { addedProj }, true);
                 }
 
                 message = "Удалить из конфигурационного файла проект '" + removedProj + "'?";
 
                 if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
                 {
-                    configFilesData = ConfigFileExtentionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { removedProj }, false);
+                    configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { removedProj }, false);
                 }
 
                 //If user rejects it, he will see relevant "project match waring"
@@ -133,7 +133,7 @@ namespace RefDepGuard
             if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
             {
                 //Update config file with added or removed projects
-                configFilesData = ConfigFileExtentionManager.UpdateSolutionConfigFile(configFilesData, currentProjList, isAddedList);
+                configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, currentProjList, isAddedList);
             }
             else
             {

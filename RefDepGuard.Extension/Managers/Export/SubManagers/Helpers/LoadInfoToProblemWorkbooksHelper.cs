@@ -339,9 +339,23 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     documentName, i);
             }
 
+            foreach (ProjectNameSemanticWarning projNameSemaWarning in refDepGuardWarnings.ProjectNameSemanticWarningList)
+            {
+                string documentName = "global_config_guard.rdg";
+
+                string warningText = "В имени проекта '" + projNameSemaWarning.ProjectName + "' содержится семантическая ошибка\r\n(ожидалось: '" + 
+                    projNameSemaWarning.ExpectedSema + "'; найдено: '" + projNameSemaWarning.FindedSema + "')";
+                    
+                string currentAction = "Исправьте опечатку в имени проекта";
+
+                (projectsTable, i) = SetCurrentRowElements(projectsTable, "-", "-", "Project name semantic warning", "Project", warningText, currentAction,
+                    documentName, i);
+            }
+
             foreach (string projName in refDepGuardWarnings.UntypedWarningsList)
             {
-                string currentWarningText = "Не получилось произвести проверку версии 'TargetFramework' для рассматриваемого проекта,\r\n так как программе не удалось получить из .csproj файла корректное\r\n значение для этого свойства";
+                string currentWarningText = "Не получилось произвести проверку версии 'TargetFramework' для рассматриваемого проекта,\r\n так как программе не удалось" +
+                    " получить из .csproj файла корректное\r\n значение для этого свойства";
                 string currentAction = "Проверьте, что проект имеет корректную версию 'TargetFramework'";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
@@ -349,7 +363,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             }
 
-            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedTransitRefsDict)
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedNDuplicatedTransitRefsDict.Item1)
             {
                 string currentText = "У данного проекта обнаружены следующие\r\nтранзитивные референсы: ";
 
@@ -361,7 +375,25 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 currentText = currentText.Remove(currentText.Length - 2);
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    projKeyValuePair.Key, "-", "Transit references warning", "-", currentText, "-", solutionName + ".csproj", i);
+                    projKeyValuePair.Key, "-", "Transit references", "-", currentText, "-", solutionName + ".csproj", i);
+            }
+
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedNDuplicatedTransitRefsDict.Item2)
+            {
+                var projName = projKeyValuePair.Key;
+
+                string currentText = "У проекта '" + projName + "' есть 1 или более\r\nтранзитивных референсов," +
+                    " дублирующих следующие прямые референсы проекта: ";
+
+                foreach (var refName in projKeyValuePair.Value)
+                {
+                    currentText += "'" + refName + "', ";
+                }
+
+                currentText = currentText.Remove(currentText.Length - 2);
+
+                (projectsTable, i) = SetCurrentRowElements(projectsTable,
+                    projName, "-", "Transit references duplicate ", "-", currentText, "-", solutionName + ".csproj", i);
             }
 
             if (i == 0)

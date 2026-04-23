@@ -18,7 +18,7 @@ namespace RefDepGuard
     /// It contains methods for loading the config file data, updating it based on the changes in the solution projects and references, and handling errors related 
     /// to config files.
     /// </summary>
-    public class ConfigFileExtentionManager
+    public class ConfigFileExtensionManager
     {
         private static IServiceProvider serviceProvider;
         private static IVsUIShell uiShell;

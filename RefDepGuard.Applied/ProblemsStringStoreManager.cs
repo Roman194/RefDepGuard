@@ -3,6 +3,7 @@ using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
 using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
 using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
 using RefDepGuard.Applied.Models.Problem;
+using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference.Errors;
 using RefDepGuard.Applied.Models.Reference.Warnings;
@@ -290,6 +291,17 @@ namespace RefDepGuard.Applied
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
+            foreach(ProjectNameSemanticWarning projNameSemaWarning in refDepGuardWarnings.ProjectNameSemanticWarningList)
+            {
+                string documentName = "global_config_guard.rdg";
+
+                string warningText = outputPlacePrefix + "Project name semantic warning: в имени проекта '" + projNameSemaWarning.ProjectName +
+                    "' содержится семантическая ошибка (ожидалось: '" + projNameSemaWarning.ExpectedSema + "'; найдено: '" + projNameSemaWarning.FindedSema + "')." + outputPlaceTransfer +
+                    "Исправьте опечатку в имени проекта";
+
+                problemsStringList.Add(new ProblemString(warningText, documentName));
+            }
+
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
                 string currentText = outputPlacePrefix + "Warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName +
@@ -299,12 +311,30 @@ namespace RefDepGuard.Applied
                 problemsStringList.Add(new ProblemString(currentText, ""));
             }
 
-            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedTransitRefsDict)
+            //Насколько Tuple всё же норм решение? М.б создать кастмные типы данных?
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedNDuplicatedTransitRefsDict.Item1) //Detecyed transit refs
             {
                 string projName = projKeyValuePair.Key;
                 List<string> detectedTransitRefsList = projKeyValuePair.Value;
 
                 string currentText = outputPlacePrefix + "Transit references warning: у проекта '" + projName + "' обнаружены следующие транзитивные референсы: ";
+
+                foreach (var refName in detectedTransitRefsList)
+                {
+                    currentText += "'" + refName + "', ";
+                }
+                currentText = currentText.Remove(currentText.Length - 2);
+
+                problemsStringList.Add(new ProblemString(currentText, ""));
+            }
+
+            foreach (var projKeyValuePair in refDepGuardWarnings.DetectedNDuplicatedTransitRefsDict.Item2) //Duplicated transit refs
+            {
+                string projName = projKeyValuePair.Key;
+                List<string> detectedTransitRefsList = projKeyValuePair.Value;
+
+                string currentText = outputPlacePrefix + "Transit references duplicate warning: у проекта '" + projName + "' есть 1 или более транзитивных референсов," +
+                    " дублирующих следующие прямые референсы проекта: ";
 
                 foreach (var refName in detectedTransitRefsList)
                 {
