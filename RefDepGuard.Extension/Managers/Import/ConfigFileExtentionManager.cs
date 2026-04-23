@@ -100,14 +100,31 @@ namespace RefDepGuard
                 updateConfigFileSolutionByAddingProjects(differProjectsList) : 
                 updateConfigFileSolutionByRemovingProjects(differProjectsList);
 
-            string json = JsonConvert.SerializeObject(currentProj, Formatting.Indented);
+            WriteInfoToSolutionConfigFileAndItsBackup(currentProj);
+
+            return configFilesData;
+        }
+
+        public static ConfigFilesData RenameProjectInConfigFile(ConfigFilesData currentConfigFilesData, string newName, string oldName)
+        {
+            configFilesData.ConfigFileSolution = currentConfigFilesData.ConfigFileSolution;
+            var projValue = configFilesData.ConfigFileSolution.projects[oldName];
+            configFilesData.ConfigFileSolution.projects.Remove(oldName);
+            configFilesData.ConfigFileSolution.projects.Add(newName, projValue);
+
+            WriteInfoToSolutionConfigFileAndItsBackup(configFilesData.ConfigFileSolution);
+
+            return configFilesData;
+        }
+
+        private static void WriteInfoToSolutionConfigFileAndItsBackup(ConfigFileSolutionDTO configFileSolution)
+        {
+            string json = JsonConvert.SerializeObject(configFileSolution, Formatting.Indented);
             string updateFileName = packageExtendedName + "\\" + solutionName + "_config_guard.rdg";
 
             FileStreamManager.WriteInfoToFile(updateFileName, json);
 
             CacheManager.UpdateConfigFilesBackup(json, false);
-
-            return configFilesData;
         }
 
         /// <summary>

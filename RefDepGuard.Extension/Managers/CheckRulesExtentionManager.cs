@@ -8,6 +8,7 @@ using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.CheckRules.SubManagers;
+using System.Linq;
 
 namespace RefDepGuard
 {
@@ -37,12 +38,18 @@ namespace RefDepGuard
             List<string> addedProjectsList, removedProjectsList = new List<string>();
             (addedProjectsList, removedProjectsList) = CheckProjectsMatchSubManager.CheckSolutionNConfigFileProjectsOnMatch(configFilesData, currentCommitedProjState);
 
-            //If there are added or removed projects, we show the prompt to the user and offer to update the config file.
-            if (addedProjectsList.Count > 0)
-                configFilesData = ShowPromptAndSolveDifferProblems(configFilesData, addedProjectsList, uIShell, true);
+            // If there are 1 added and 1 deleted project it can be a rename
+            if(addedProjectsList.Count == 1 && removedProjectsList.Count == 1)
+                configFilesData = ShowPromptAndSolveDifferProblemOnPotentialRename(configFilesData, addedProjectsList.First(), removedProjectsList.First(), uIShell);
+            else
+            {
+                //In other cases if there are added or removed projects, we show the prompt to the user and offer to update the config file.
+                if (addedProjectsList.Count > 0)
+                    configFilesData = ShowPromptAndSolveDifferProblems(configFilesData, addedProjectsList, uIShell, true);
 
-            if (removedProjectsList.Count > 0)
-                configFilesData = ShowPromptAndSolveDifferProblems(configFilesData, removedProjectsList, uIShell, false);
+                if (removedProjectsList.Count > 0)
+                    configFilesData = ShowPromptAndSolveDifferProblems(configFilesData, removedProjectsList, uIShell, false);
+            }
 
             //Then start all other (general) check rules
             var exportParametersNConfigFilesDataTuple = CheckRulesManager.CheckConfigFileRulesForExtension(configFilesData, currentCommitedProjState);
@@ -52,6 +59,41 @@ namespace RefDepGuard
 
             return exportParametersNConfigFilesDataTuple;
         }
+
+        private static ConfigFilesData ShowPromptAndSolveDifferProblemOnPotentialRename(
+            ConfigFilesData configFilesData, string addedProj, string removedProj, IVsUIShell uIShell)
+        {
+            var message = "В solution обнаружено добавление проекта '" + addedProj + "' и удаление '" + removedProj + "'. " +
+                "Переименовать проект в файле конфигураций с сохранением ограничений?";
+
+            if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+            {
+                //Rename project
+                configFilesData = ConfigFileExtentionManager.RenameProjectInConfigFile(configFilesData, addedProj, removedProj);
+            }
+            else
+            { //Still asks for adding empty project sample and remove deleted project
+                message = "Добавить в конфигурационный файл пустой шаблон для проекта '" + addedProj + "'?";
+
+                if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+                {
+                    configFilesData = ConfigFileExtentionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { addedProj }, true);
+                }
+
+                message = "Удалить из конфигурационного файла проект '" + removedProj + "'?";
+
+                if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+                {
+                    configFilesData = ConfigFileExtentionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { removedProj }, false);
+                }
+
+                //If user rejects it, he will see relevant "project match waring"
+            }
+
+                return configFilesData;
+
+        }
+
 
         /// <summary>
         /// Shows a prompt to the user about the detected discrepancies between the projects in the solution and the projects listed in the configuration file.

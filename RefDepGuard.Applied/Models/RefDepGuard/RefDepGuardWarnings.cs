@@ -20,6 +20,7 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
         public List<MaxFrameworkVersionConflictWarning> MaxFrameworkVersionConflictWarningsList;
         public List<MaxFrameworkVersionReferenceConflictWarning> MaxFrameworkVersionReferenceConflictWarningsList;
         public List<MaxFrameworkVersionTFMNotFoundWarning> MaxFrameworkVersionTFMNotFoundWarningList;
+        public List<MaxFrameworkIllegalTemplateUsageWarning> MaxFrameworkIllegalTemplateUsageWarningList;
         public List<string> UntypedWarningsList;
         public Dictionary<string, List<string>> DetectedTransitRefsDict;
 
@@ -38,6 +39,7 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
             List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList,
             List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList,
             List<MaxFrameworkVersionTFMNotFoundWarning> maxFrameworkVersionTFMNotFoundWarningList,
+            List<MaxFrameworkIllegalTemplateUsageWarning> maxFrameworkIllegalTemplateUsageWarningList,
             List<string> untypedWarningsList, Dictionary<string, List<string>> detectedTransitRefsDict)
         {
             RefsMatchWarningList = refsMatchWarningList;
@@ -47,6 +49,7 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
             MaxFrameworkVersionConflictWarningsList = maxFrameworkVersionConflictWarningsList;
             MaxFrameworkVersionReferenceConflictWarningsList = maxFrameworkVersionReferenceConflictWarningsList;
             MaxFrameworkVersionTFMNotFoundWarningList = maxFrameworkVersionTFMNotFoundWarningList;
+            MaxFrameworkIllegalTemplateUsageWarningList = maxFrameworkIllegalTemplateUsageWarningList;
             UntypedWarningsList = untypedWarningsList;
             DetectedTransitRefsDict = detectedTransitRefsDict;
         }
@@ -60,7 +63,7 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
             if (RefsMatchWarningList.Count == 0 && ProjectNotFoundWarningList.Count == 0 && ProjectMatchWarningList.Count == 0 &&
                 MaxFrameworkVersionDeviantValueWarningList.Count == 0 && MaxFrameworkVersionConflictWarningsList.Count == 0 &&
                 MaxFrameworkVersionReferenceConflictWarningsList.Count == 0 && MaxFrameworkVersionTFMNotFoundWarningList.Count == 0 &&
-                UntypedWarningsList.Count == 0 && DetectedTransitRefsDict.Count == 0)
+                MaxFrameworkIllegalTemplateUsageWarningList.Count == 0 && UntypedWarningsList.Count == 0 && DetectedTransitRefsDict.Count == 0)
                 return true;
             else
                 return false;
@@ -70,7 +73,7 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
         {
             return RefsMatchWarningList.Count + ProjectNotFoundWarningList.Count + ProjectMatchWarningList.Count + MaxFrameworkVersionDeviantValueWarningList.Count +
                 MaxFrameworkVersionConflictWarningsList.Count + MaxFrameworkVersionReferenceConflictWarningsList.Count + MaxFrameworkVersionTFMNotFoundWarningList.Count +
-                UntypedWarningsList.Count + DetectedTransitRefsDict.Count;
+                MaxFrameworkIllegalTemplateUsageWarningList.Count + UntypedWarningsList.Count + DetectedTransitRefsDict.Count;
         }
     }
 }

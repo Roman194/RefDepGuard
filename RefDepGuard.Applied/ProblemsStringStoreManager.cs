@@ -276,6 +276,20 @@ namespace RefDepGuard.Applied
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
+            foreach(MaxFrameworkIllegalTemplateUsageWarning maxFrameworkIllegalTemplateUsageWarning in refDepGuardWarnings.MaxFrameworkIllegalTemplateUsageWarningList)
+            {
+                string warningLevel = maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global ? "глобального уровня" : "уровня решения";
+
+                string documentName = (maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global) ?
+                    "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
+
+                string warningText = outputPlacePrefix + "framework_max_version illegal template usage warning: в параметре 'framework_max_version' " + warningLevel +
+                    " указан TFM, который не встречается ни в одном из TargetFramework проектов этого решения" + outputPlaceTransfer +
+                    "Проверьте указанную строку max_framework_version на предмет соответствия релевантных решению TFM";
+
+                problemsStringList.Add(new ProblemString(warningText, documentName));
+            }
+
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
                 string currentText = outputPlacePrefix + "Warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName +

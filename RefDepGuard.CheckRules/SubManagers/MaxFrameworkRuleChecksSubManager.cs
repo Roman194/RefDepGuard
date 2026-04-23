@@ -7,6 +7,7 @@ using System.Linq;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.FrameworkVersion;
 using RefDepGuard.CheckRules.Models;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {
@@ -17,12 +18,14 @@ namespace RefDepGuard.CheckRules.SubManagers
     {
         private static List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = new List<MaxFrameworkVersionConflictWarning>();
         private static List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = new List<MaxFrameworkVersionReferenceConflictWarning>();
+        private static List<MaxFrameworkIllegalTemplateUsageWarning> maxFrameworkIllegalSolutionnGlobalTemplateUsagesList = new List<MaxFrameworkIllegalTemplateUsageWarning>();
 
         private static List<string> untypedWarningsList = new List<string>();
         private static List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparabilityError>();
 
         private static Dictionary<string, List<RequiredMaxFrVersion>> requiredMaxFrVersionsDict = new Dictionary<string, List<RequiredMaxFrVersion>>();
         private static Dictionary<string, List<ProjectWithoutMaxFrVersion>> projectsWithoutMaxFrVersionTFM = new Dictionary<string, List<ProjectWithoutMaxFrVersion>>();
+        private static HashSet<string> existingInSolutionTFMs = new HashSet<string>();
 
         /// <summary>
         /// Clears the lists of warnings and errors related to maximum framework version rules. 
@@ -39,6 +42,9 @@ namespace RefDepGuard.CheckRules.SubManagers
             if (maxFrameworkVersionReferenceConflictWarningsList != null)
                 maxFrameworkVersionReferenceConflictWarningsList.Clear();
 
+            if(maxFrameworkIllegalSolutionnGlobalTemplateUsagesList != null)
+                maxFrameworkIllegalSolutionnGlobalTemplateUsagesList.Clear();
+
             if (frameworkVersionComparabilityErrorList != null)
                 frameworkVersionComparabilityErrorList.Clear();
 
@@ -47,6 +53,9 @@ namespace RefDepGuard.CheckRules.SubManagers
 
             if (projectsWithoutMaxFrVersionTFM != null) 
                 projectsWithoutMaxFrVersionTFM.Clear();
+
+            if (existingInSolutionTFMs != null) 
+                existingInSolutionTFMs.Clear();
         }
 
         /// <summary>
@@ -175,6 +184,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                         continue;//continue as we neeeds to consider all TargetFrameworks of the project
                     }
                 }
+
+                existingInSolutionTFMs.Add(currentProjectFramework);
 
                 if (problemLevel == ProblemLevel.Undefined) //If there are no any rules
                 {
@@ -454,6 +465,17 @@ namespace RefDepGuard.CheckRules.SubManagers
             }
         }
 
+        public static void CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(Dictionary<string, List<int>> globalRuleTypes, Dictionary<string, List<int>> solutionRuleTypes)
+        {
+            foreach (var ruleType in globalRuleTypes.Keys)
+                if (!existingInSolutionTFMs.Contains(ruleType) && ruleType != "all")
+                    maxFrameworkIllegalSolutionnGlobalTemplateUsagesList.Add(new MaxFrameworkIllegalTemplateUsageWarning(ProblemLevel.Global));
+
+            foreach (var ruleType in solutionRuleTypes.Keys)
+                if (!existingInSolutionTFMs.Contains(ruleType) && ruleType != "all")
+                    maxFrameworkIllegalSolutionnGlobalTemplateUsagesList.Add(new MaxFrameworkIllegalTemplateUsageWarning(ProblemLevel.Solution));
+        }
+
         /// <summary>
         /// Gets the list of warnings related to conflicts in maximum framework version rules. 
         /// These warnings indicate that there are conflicting maximum framework version rules for the same project or for all projects.
@@ -470,7 +492,7 @@ namespace RefDepGuard.CheckRules.SubManagers
         /// <returns>MaxFrameworkRuleProblems with 2 lists of comparability errors and uptyped warnings</returns>
         public static MaxFrameworkRuleProblems GetMaxFrameworkRuleProblems()
         {
-            return new MaxFrameworkRuleProblems(frameworkVersionComparabilityErrorList, untypedWarningsList);
+            return new MaxFrameworkRuleProblems(frameworkVersionComparabilityErrorList, maxFrameworkIllegalSolutionnGlobalTemplateUsagesList, untypedWarningsList);
         }
 
         /// <summary>

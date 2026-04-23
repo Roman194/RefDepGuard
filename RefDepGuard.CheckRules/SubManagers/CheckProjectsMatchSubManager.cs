@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 
@@ -51,6 +52,7 @@ namespace RefDepGuard.CheckRules.SubManagers
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//Check on added to solution projects
             {
                 var projName = currentProjState.Key;
+                var projState = currentProjState.Value.CurrentFrameworkVersions.Keys.ToList();
 
                 if (!configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {

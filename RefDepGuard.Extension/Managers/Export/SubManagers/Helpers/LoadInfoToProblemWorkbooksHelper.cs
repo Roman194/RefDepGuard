@@ -1,15 +1,15 @@
 ﻿using Microsoft.Office.Interop.Excel;
-using System;
-using System.Drawing;
-using RefDepGuard.Applied.Models.RefDepGuard;
-using RefDepGuard.Applied.Models.Reference.Errors;
-using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.Reference.Warnings;
 using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
 using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.Applied.Models.Reference.Warnings;
+using System;
+using System.Drawing;
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
@@ -39,6 +39,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
             (projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle) = SetProblemsTableHat(projectsTable, solutionName, currentDateTime, true);
 
             int i = 0;
+            //Объединить с ProblemsStringStoreManager!!!
 
             //For each of every type of errors
             //Foreach must go in the order, specified in RefDepGuard Errors and Warnings models, to provide correct order of errors display in the report!
@@ -233,7 +234,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string relevantProject = maxFrameworkVersionDeviantValue.WarningRelevantProjectName != "" ? 
                     maxFrameworkVersionDeviantValue.WarningRelevantProjectName : "-";
                 string warningLevel = "Global";
-                string currentErrorText = "Параметр 'framework_max_version' содержит значение\r\n'" + maxFrameworkVersionDeviantValue.DeviantValue + 
+                string currentWarningText = "Параметр 'framework_max_version' содержит значение\r\n'" + maxFrameworkVersionDeviantValue.DeviantValue + 
                     "', а должен содержать значение с точкой (формата 'x.x')";
                 string documentName = (maxFrameworkVersionDeviantValue.WarningLevel == ProblemLevel.Global) ? 
                     "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
@@ -245,69 +246,69 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 }
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    relevantProject, "-", "framework_max_version deviant value", warningLevel, currentErrorText, "Приведите значение к корректному\r\nформату", documentName, i);
+                    relevantProject, "-", "framework_max_version deviant value", warningLevel, currentWarningText, "Приведите значение к корректному\r\nформату", documentName, i);
             }
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
             {
-                string errorRelevantProjectName = "-";
-                string currentErrorLevels = "";
+                string warningRelevantProjectName = "-";
+                string currentWarningLevels = "";
                 string highErrorLevelText = "";
                 string lowErrorLevelText = "";
-                string currentErrorText = "";
+                string currentWarningText = "";
 
                 if (maxFrameworkVersionConflictValue.LowWarnLevel == ProblemLevel.Project)
-                    errorRelevantProjectName = maxFrameworkVersionConflictValue.WarningRelevantProjectName;
+                    warningRelevantProjectName = maxFrameworkVersionConflictValue.WarningRelevantProjectName;
 
                 switch (maxFrameworkVersionConflictValue.HighWarnLevel)
                 {
-                    case ProblemLevel.Global: currentErrorLevels += "Global"; highErrorLevelText = " глобального уровня"; break;
-                    case ProblemLevel.Solution: currentErrorLevels += "Solution"; highErrorLevelText = " уровня Solution"; break;
+                    case ProblemLevel.Global: currentWarningLevels += "Global"; highErrorLevelText = " глобального уровня"; break;
+                    case ProblemLevel.Solution: currentWarningLevels += "Solution"; highErrorLevelText = " уровня Solution"; break;
                 }
 
                 if (maxFrameworkVersionConflictValue.HighWarnLevel == maxFrameworkVersionConflictValue.LowWarnLevel)
                     highErrorLevelText = ", указанное в супертипе 'all' на том же уровне";
 
-                currentErrorLevels += " / ";
+                currentWarningLevels += " / ";
 
                 switch (maxFrameworkVersionConflictValue.LowWarnLevel)
                 {
-                    case ProblemLevel.Global: currentErrorLevels += "Global"; break;
-                    case ProblemLevel.Solution: currentErrorLevels += "Solution"; lowErrorLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Project: currentErrorLevels += "Project"; lowErrorLevelText = "в рассматриваемом проекте "; break;
+                    case ProblemLevel.Global: currentWarningLevels += "Global"; break;
+                    case ProblemLevel.Solution: currentWarningLevels += "Solution"; lowErrorLevelText = "уровня Solution"; break;
+                    case ProblemLevel.Project: currentWarningLevels += "Project"; lowErrorLevelText = "в рассматриваемом проекте "; break;
                 }
 
-                currentErrorText = "Значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
+                currentWarningText = "Значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
                     + "' параметра 'framework_max_version'\r\n" + lowErrorLevelText + " превосходит значение '" + maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
                     + "' одноимённого параметра" + highErrorLevelText;
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    errorRelevantProjectName, "-", "framework_max_version conflict", currentErrorLevels, currentErrorText, "Устраните противоречие", 
+                    warningRelevantProjectName, "-", "framework_max_version conflict", currentWarningLevels, currentWarningText, "Устраните противоречие", 
                     solutionName + "_config_guard.rdg", i);
 
             }
 
             foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList)
             {
-                string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
+                string warningCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
                     "большее значение значение параметра 'framework_max_version' " :
                     "несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' ";
 
-                string currentErrorText = "Значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
+                string currentWarningText = "Значение '" + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
                     + "' параметра 'framework_max_version'\r\nрассматриваемого проекта приводит к потенциальному конфликту версий TargetFramework" +
-                    ",так как имеется референс на проект, имеющий " + errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
+                    ",так как имеется референс на проект, имеющий " + warningCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
                     + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
                     maxFrameworkVersionReferenceConflictWarning.ProjName, maxFrameworkVersionReferenceConflictWarning.RefName, "framework_max_version reference conflict",
-                    "-", currentErrorText, "Устраните противоречие", solutionName + "_config_guard.rdg", i);
+                    "-", currentWarningText, "Устраните противоречие", solutionName + "_config_guard.rdg", i);
             }
 
             foreach (MaxFrameworkVersionTFMNotFoundWarning maxFrameworkVersionTFMNotFoundWarning in refDepGuardWarnings.MaxFrameworkVersionTFMNotFoundWarningList)
             {
                 string currentProjName = maxFrameworkVersionTFMNotFoundWarning.ProjName;
                 string warningLevel = "Global";
-                string currentErrorText = "Не найден TargetFramework, имеющий значение\r\n'" + maxFrameworkVersionTFMNotFoundWarning.TFMName;
+                string currentWarningText = "Не найден TargetFramework, имеющий значение\r\n'" + maxFrameworkVersionTFMNotFoundWarning.TFMName;
                 string currentAction = "Проверьте указанную в\r\n'max_framework_version' строку на предмет соответствия существующим TFM";
                 string documentName = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ProblemLevel.Global ? 
                     "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
@@ -319,17 +320,32 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 }
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    currentProjName != "" ? currentProjName : "-", "-", "framework_max_version TFM not found", warningLevel, currentErrorText, currentAction, 
+                    currentProjName != "" ? currentProjName : "-", "-", "framework_max_version TFM not found", warningLevel, currentWarningText, currentAction, 
+                    documentName, i);
+            }
+
+            foreach (MaxFrameworkIllegalTemplateUsageWarning maxFrameworkIllegalTemplateUsageWarning in refDepGuardWarnings.MaxFrameworkIllegalTemplateUsageWarningList)
+            {
+                string warningLevel = maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global ? "Global" : "Solution";
+
+                string documentName = (maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global) ?
+                    "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
+
+                string warningText = "В параметре 'framework_max_version' указан TFM, который не встречается ни в одном из\r\nTargetFramework проектов этого решения";
+
+                string currentAction = "Проверьте указанную строку\r\nmax_framework_version на предмет соответствия релевантных решению TFM";
+
+                (projectsTable, i) = SetCurrentRowElements(projectsTable,"-", "-", "framework_max_version illegal template usage", warningLevel, warningText, currentAction,
                     documentName, i);
             }
 
             foreach (string projName in refDepGuardWarnings.UntypedWarningsList)
             {
-                string currentErrorText = "Не получилось произвести проверку версии 'TargetFramework' для рассматриваемого проекта,\r\n так как программе не удалось получить из .csproj файла корректное\r\n значение для этого свойства";
+                string currentWarningText = "Не получилось произвести проверку версии 'TargetFramework' для рассматриваемого проекта,\r\n так как программе не удалось получить из .csproj файла корректное\r\n значение для этого свойства";
                 string currentAction = "Проверьте, что проект имеет корректную версию 'TargetFramework'";
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    projName, "-", "untyped", "-", currentErrorText, currentAction, solutionName + ".csproj", i);
+                    projName, "-", "untyped", "-", currentWarningText, currentAction, solutionName + ".csproj", i);
 
             }
 

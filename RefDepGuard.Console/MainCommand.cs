@@ -5,7 +5,6 @@ using RefDepGuard.CheckRules;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
-using System.ComponentModel.Design;
 
 namespace RefDepGuard.Console
 {
@@ -36,7 +35,7 @@ namespace RefDepGuard.Console
         private static void GetCurrentSolutionState()//Mir.Controller.Cfg
         {
             #if DEBUG
-                rootDirectory = @"C:\Users\zuzinra\source\repos\WinFormApp"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
+                rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
             #else 
                 rootDirectory = Directory.GetCurrentDirectory();
             #endif

@@ -234,6 +234,8 @@ namespace RefDepGuard.CheckRules
                 }
             }
 
+            MaxFrameworkRuleChecksSubManager.CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(maxGlobalFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes);
+
             //For a correct check of potential conflicts between max framework versions on the exsisting references it is needed to collect info about projects, their max versions and conflicts between them.
             //That's why this check is performed after the main loop through projects.
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)
@@ -254,7 +256,7 @@ namespace RefDepGuard.CheckRules
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
-            //var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
+
 
             refsRuleCheckErrors.RefsErrorList.Sort((x, y) => //Sorts only errors!
                 x.CurrentRuleLevel.CompareTo(y.CurrentRuleLevel));
@@ -275,7 +277,7 @@ namespace RefDepGuard.CheckRules
                 refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList, projectMatchWarningList,
                 maxFrameworkVersionDeviantValueWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList,
                 maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkVersionTFMNotFoundWarningList,
-                maxFrameworkRuleProblems.UntypedWarningsList, detectedTransitRefs);
+                maxFrameworkRuleProblems.MaxFrameworkVersionIllegalTemplateUsageWarningList, maxFrameworkRuleProblems.UntypedWarningsList, detectedTransitRefs);
 
             return new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
         }
