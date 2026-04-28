@@ -13,6 +13,8 @@ using Task = System.Threading.Tasks.Task;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied;
+using System.Xaml;
+using RefDepGuard.UI.Resources;
 
 namespace RefDepGuard
 {
@@ -229,8 +231,8 @@ namespace RefDepGuard
 
             MessageManager.ShowMessageBox(
                     serviceProvider,
-                    isSuccessfulCheckingRules ? "Расширение успешно активировано" : "Ошибка фиксации состояния решения:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами",
-                    "RefDepGuard"
+                    isSuccessfulCheckingRules ? Resource.Activation_Success : Resource.Activation_Fail,
+                    Resource.Extension_Name
             );
         }
 
@@ -358,8 +360,8 @@ namespace RefDepGuard
                 UpdateSolutionState(false);
                 MessageManager.ShowMessageBox(
                     serviceProvider,
-                    isSuccessfulCheckingRules ? "Референсы успешно зафиксированы" : "Ошибка фиксации референсов:\r\nВ процессе фиксации не были обнаружены какие-либо референсы между проектами",
-                    "RefDepGuard"
+                    isSuccessfulCheckingRules ? Resource.Commit_Success : Resource.Commit_Fail,
+                    Resource.Extension_Name
                     );
             }    
             );
@@ -454,10 +456,10 @@ namespace RefDepGuard
             if (parseErrors != FileParseError.None) //Вывод предупреждений о неудаче парсинга конфиг-файлов
             {
                 if (parseErrors == FileParseError.Global || parseErrors == FileParseError.All)
-                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "глобального файла конфигурации");
+                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, Resource.Global_Config_File_String);
 
                 if (parseErrors == FileParseError.Solution || parseErrors == FileParseError.All)
-                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, "файла конфигурации конкретного solution");
+                    ELPStoreManager.ShowUnsuccessfulConfigFileParseWarning(errorListProvider, Resource.Solution_Config_File_String);
             }
         }
 
@@ -486,7 +488,7 @@ namespace RefDepGuard
         /// </summary>
         private void NotInitializedYetMessage()
         {
-            MessageManager.ShowMessageBox(serviceProvider, "Расширение ещё не загружено. Дождитесь его загрузки, чтобы выполнить действие", "RefDepGuard");
+            MessageManager.ShowMessageBox(serviceProvider, Resource.Extension_Not_Load_Yet, Resource.Extension_Name);
         }
 
         /// <summary>
@@ -503,15 +505,15 @@ namespace RefDepGuard
                 switch (reportType)
                 {
                     case "table_type":
-                        reportTitleText = "Экспорт в XLSX";
-                        reportSuccessText = "Экспорт в эксель завершён. Открыть папку со сгенерированным отчётом?";
-                        reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом. Проверьте, что файл " + configFilesData.SolutionName + "_references_report.xlsx' не открыт в Excel";
+                        reportTitleText = Resource.Table_Type_Export_Title;
+                        reportSuccessText = Resource.Table_Type_Export_Success;
+                        reportUnsuccessText = Resource.Table_Type_Export_Fail;
                         break;
 
                     case "graph_type":
-                        reportTitleText = "Экспорт в HTML";
-                        reportSuccessText = "Графический экспорт завершён. Открыть папку со сгенерированным отчётом?";
-                        reportUnsuccessText = "Не удалось загрузить данные в отчёт, так как файл занят другим процессом";
+                        reportTitleText = Resource.Graph_Type_Export_Title;
+                        reportSuccessText = Resource.Graph_Type_Export_Success;
+                        reportUnsuccessText = Resource.Graph_Type_Export_Fail;
                         break;
                 }
 
@@ -525,10 +527,10 @@ namespace RefDepGuard
                     }
                 }
                 else
-                    MessageManager.ShowMessageBox(this.package, reportUnsuccessText + "\r\nТекст ошибки: " + loadError, reportTitleText);
+                    MessageManager.ShowMessageBox(this.package, reportUnsuccessText + Resource.Error_Text_Title + loadError, reportTitleText);
             }
             else
-                MessageManager.ShowMessageBox(serviceProvider, "Невозможно запустить экспорт так как расширение не обнаружило референсы в проекте", "RefDepGuard");
+                MessageManager.ShowMessageBox(serviceProvider, Resource.Unable_To_Export_Message, Resource.Extension_Name);
         }
     }
 }

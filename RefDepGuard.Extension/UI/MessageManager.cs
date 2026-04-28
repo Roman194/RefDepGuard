@@ -37,7 +37,13 @@ namespace RefDepGuard
 
         public static bool ShowYesNoPrompt(IVsUIShell uiShell, string message, string title)
         {
-            if (VsShellUtilities.PromptYesNo(message, title, OLEMSGICON.OLEMSGICON_INFO, uiShell))
+            if (
+                VsShellUtilities.PromptYesNo(
+                    message, 
+                    title, 
+                    OLEMSGICON.OLEMSGICON_INFO, 
+                    uiShell)
+                )
             {
                 return true;
             }

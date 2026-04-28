@@ -39,7 +39,6 @@ namespace RefDepGuard.Managers.Export.SubManagers
             (projectsTable, unionRangeSolutionWithTime, unionRangeTableTitle) = SetProblemsTableHat(projectsTable, solutionName, currentDateTime, true);
 
             int i = 0;
-            //Объединить с ProblemsStringStoreManager!!!
 
             //For each of every type of errors
             //Foreach must go in the order, specified in RefDepGuard Errors and Warnings models, to provide correct order of errors display in the report!
