@@ -117,59 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Activation_Fail" xml:space="preserve">
-    <value>Ошибка активации расширения:
-В процессе активации не были обнаружены какие-либо референсы между проектами</value>
+  <data name="Action_Add_String" xml:space="preserve">
+    <value>Добавьте его через обозреватель решений</value>
   </data>
-  <data name="Activation_Success" xml:space="preserve">
-    <value>Расширение успешно активировано</value>
+  <data name="Action_Remove_String" xml:space="preserve">
+    <value>Удалите его через обозреватель решений</value>
   </data>
-  <data name="Commit_Fail" xml:space="preserve">
-    <value>Ошибка фиксации референсов:
-В процессе фиксации не были обнаружены какие-либо референсы между проектами</value>
+  <data name="For_Project_String" xml:space="preserve">
+    <value>' для проекта '</value>
   </data>
-  <data name="Commit_Success" xml:space="preserve">
-    <value>Референсы успешно зафиксированы</value>
+  <data name="Global_Level" xml:space="preserve">
+    <value>глобального уровня </value>
   </data>
-  <data name="Error_Text_Title" xml:space="preserve">
-    <value>
-Текст ошибки: </value>
+  <data name="No_Required_String" xml:space="preserve">
+    <value>Отсутствует обязательный</value>
   </data>
-  <data name="Extension_Name" xml:space="preserve">
-    <value>RefDepGuard</value>
+  <data name="Reference_String" xml:space="preserve">
+    <value> референс </value>
   </data>
-  <data name="Extension_Not_Load_Yet" xml:space="preserve">
-    <value>Расширение ещё не загружено.
-Дождитесь его загрузки, чтобы выполнить действие</value>
+  <data name="Solution_Level" xml:space="preserve">
+    <value>уровня конкретного решения </value>
   </data>
-  <data name="Global_Config_File_String" xml:space="preserve">
-    <value>глобального файла конфигурации</value>
-  </data>
-  <data name="Graph_Type_Export_Fail" xml:space="preserve">
-    <value>Не удалось загрузить данные в отчёт, так как файл занят другим процессом</value>
-  </data>
-  <data name="Graph_Type_Export_Success" xml:space="preserve">
-    <value>Графический экспорт завершён.
-Открыть папку со сгенерированным отчётом?</value>
-  </data>
-  <data name="Graph_Type_Export_Title" xml:space="preserve">
-    <value>Экспорт в HTML</value>
-  </data>
-  <data name="Solution_Config_File_String" xml:space="preserve">
-    <value>файла конфигурации конкретного решения</value>
-  </data>
-  <data name="Table_Type_Export_Fail" xml:space="preserve">
-    <value>Не удалось загрузить данные в отчёт, так как файл занят другим процессом. 
-Закройте все открытые в Excel файлы и попробуйте сгенерировать отчёт позднее</value>
-  </data>
-  <data name="Table_Type_Export_Success" xml:space="preserve">
-    <value>Экспорт в эксель завершён.
-Открыть папку со сгенерированным отчётом?</value>
-  </data>
-  <data name="Table_Type_Export_Title" xml:space="preserve">
-    <value>Экспорт в XLSX</value>
-  </data>
-  <data name="Unable_To_Export_Message" xml:space="preserve">
-    <value>Невозможно запустить экспорт так как расширение не обнаружило какие-либо референсы между проектами в решении</value>
+  <data name="Unacceptable_String" xml:space="preserve">
+    <value>Присутствует недопустимый</value>
   </data>
 </root>

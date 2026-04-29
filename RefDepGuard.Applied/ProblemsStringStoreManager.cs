@@ -7,6 +7,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference.Errors;
 using RefDepGuard.Applied.Models.Reference.Warnings;
+using RefDepGuard.Applied.Resources;
 using System.Collections.Generic;
 
 namespace RefDepGuard.Applied
@@ -22,19 +23,19 @@ namespace RefDepGuard.Applied
 
             foreach (ReferenceError error in refDepGuardErrors.RefsErrorList)
             {
-                string referenceTypeText = error.IsReferenceRequired ? "Отсутсвует обязательный" : "Присутствует недопустимый";
-                string actionForUser = error.IsReferenceRequired ? "Добавьте" : "Удалите";
+                string referenceTypeText = error.IsReferenceRequired ? Resource.No_Required_String : Resource.Unacceptable_String;
+                string actionForUser = error.IsReferenceRequired ? Resource.Action_Add_String : Resource.Action_Remove_String;
                 string referenceLevelText = "";
                 string documentName = error.ErrorRelevantProjectName + ".csproj";
 
                 switch (error.CurrentRuleLevel)
                 {
-                    case ProblemLevel.Solution: referenceLevelText = "уровня Solution "; break;
-                    case ProblemLevel.Global: referenceLevelText = "глобального уровня "; break;
+                    case ProblemLevel.Solution: referenceLevelText = Resource.Solution_Level; break;
+                    case ProblemLevel.Global: referenceLevelText = Resource.Global_Level; break;
                 }
 
-                string errorText = outputPlacePrefix + "Reference error: " + referenceTypeText + " референс " + referenceLevelText + "'" + error.ReferenceName +
-                    "' для проекта '" + error.ErrorRelevantProjectName + "'." + outputPlaceTransfer + actionForUser + " его через обозреватель решений"; 
+                string errorText = outputPlacePrefix + "Reference error: " + referenceTypeText + Resource.Reference_String + referenceLevelText + "'" + error.ReferenceName +
+                    Resource.For_Project_String + error.ErrorRelevantProjectName + "'." + outputPlaceTransfer + actionForUser; 
                 
                 problemsStringList.Add(new ProblemString(errorText, documentName));
             }

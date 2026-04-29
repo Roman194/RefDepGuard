@@ -117,58 +117,64 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Activation_Fail" xml:space="preserve">
-    <value>Extension activation fail: During activation there wasn't detected any references between projects</value>
+  <data name="Check_Rules_Title" xml:space="preserve">
+    <value>Check state on accordance to config file rules</value>
   </data>
-  <data name="Activation_Success" xml:space="preserve">
-    <value>The extension is successfully activated</value>
+  <data name="Config_Files_State_Parse_Title" xml:space="preserve">
+    <value>Config files state parse</value>
   </data>
-  <data name="Commit_Fail" xml:space="preserve">
-    <value>Reference commit fail:
-During commit there wasn't detected any references between projects</value>
+  <data name="Config_File_Syntax_Error" xml:space="preserve">
+    <value>    - Error: It was not possible to parse data from the</value>
   </data>
-  <data name="Commit_Success" xml:space="preserve">
-    <value>The references are committed successfully</value>
+  <data name="Config_File_Syntax_Error_1" xml:space="preserve">
+    <value> config file.
+Check this file on existence and no syntax errors</value>
   </data>
-  <data name="Error_Text_Title" xml:space="preserve">
-    <value>
-Error text: </value>
+  <data name="Errors_String_Title" xml:space="preserve">
+    <value>ERRORS:</value>
   </data>
-  <data name="Extension_Name" xml:space="preserve">
-    <value>RefDepGuard</value>
+  <data name="File_String" xml:space="preserve">
+    <value>File: </value>
   </data>
-  <data name="Extension_Not_Load_Yet" xml:space="preserve">
-    <value>The extension isn't load yet.
-Wait until the load ends to pass the action</value>
+  <data name="Find_Problems_on_Check" xml:space="preserve">
+    <value>There are any problems found during current check: (errors - </value>
   </data>
-  <data name="Global_Config_File_String" xml:space="preserve">
-    <value>global config file parse</value>
+  <data name="Find_Problems_On_Check_1" xml:space="preserve">
+    <value>; warnings - </value>
   </data>
-  <data name="Graph_Type_Export_Fail" xml:space="preserve">
-    <value>The HTML export ended with fail as the file is occupied by different process. Try again later</value>
+  <data name="Global_Config_File" xml:space="preserve">
+    <value>global</value>
   </data>
-  <data name="Graph_Type_Export_Success" xml:space="preserve">
-    <value>The HTML export ended successfully.
-Open a folder with the generated report?</value>
+  <data name="Hello_Message" xml:space="preserve">
+    <value>Hello from the console RefDepGuard! Please wait while the full check ends</value>
   </data>
-  <data name="Graph_Type_Export_Title" xml:space="preserve">
-    <value>Export to HTML</value>
+  <data name="Invalid_Directory_Error" xml:space="preserve">
+    <value>    - Error: It was not possible to parse the data from the .sln file of the root directory of the solution.
+Make sure that the application is running in the correct root folder containing the .sln file of the same name</value>
   </data>
-  <data name="Solution_Config_File_String" xml:space="preserve">
-    <value>solution config file parse</value>
+  <data name="No_Find_Problems_On_Check" xml:space="preserve">
+    <value>There are no any find problems during current check</value>
   </data>
-  <data name="Table_Type_Export_Fail" xml:space="preserve">
-    <value>The XLSX report ended with fail as the file is occupied by different process. 
-Close all Excel files and try again later</value>
+  <data name="Project_String" xml:space="preserve">
+    <value>Project:</value>
   </data>
-  <data name="Table_Type_Export_Success" xml:space="preserve">
-    <value>The XLSX export successfully ended.
-Open a folder with the generated report?</value>
+  <data name="Refs_Not_Found_Error" xml:space="preserve">
+    <value>   - Error: It was not possible to verify the compliance of the references with the rules, as they were not detected at the time of fixing the status of the solution.
+Make sure that the solution actually contains references between projects and perform a manual or automatic check along with the build</value>
   </data>
-  <data name="Table_Type_Export_Title" xml:space="preserve">
-    <value>Export to XLSX</value>
+  <data name="Solution_Config_File" xml:space="preserve">
+    <value>solution</value>
   </data>
-  <data name="Unable_To_Export_Message" xml:space="preserve">
-    <value>Unable to start an export as the extension didn't detect any project references in this solution</value>
+  <data name="Solution_State_Parse_Start_Message" xml:space="preserve">
+    <value>There are following projects and references between them:</value>
+  </data>
+  <data name="Solution_State_Parse_Title" xml:space="preserve">
+    <value>Solution state parse</value>
+  </data>
+  <data name="Solution_Title" xml:space="preserve">
+    <value>Check for solution:</value>
+  </data>
+  <data name="Warnings_String_Title" xml:space="preserve">
+    <value>WARNINGS:</value>
   </data>
 </root>

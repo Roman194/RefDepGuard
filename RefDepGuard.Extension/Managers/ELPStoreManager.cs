@@ -3,6 +3,7 @@ using RefDepGuard.Applied;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.UI.Resources.StringResources;
 using System.Collections.Generic;
 
 namespace RefDepGuard.Managers.CheckRules
@@ -55,7 +56,7 @@ namespace RefDepGuard.Managers.CheckRules
         /// <param name="errorListProvider">ErrorListProvider value</param>
         public static void ShowNoProblemsFindedMessage(ErrorListProvider errorListProvider)
         {
-            var currentText = "RefDepGuard: проблемы не обнаружены";
+            var currentText = Resource.Extension_Name + ": " + Resource.Problems_Not_Detected;
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Message);
             errorListProvider.Show();
         }
@@ -69,7 +70,7 @@ namespace RefDepGuard.Managers.CheckRules
         {
             ClearErrorListProvider(errorListProvider);
 
-            var currentText = "RefDepGuard warning: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой";
+            var currentText = Resource.Extension_Name + Resource.Unsuccessful_Checking_Rules_Warning;
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
             errorListProvider.Show();
         }
@@ -83,7 +84,7 @@ namespace RefDepGuard.Managers.CheckRules
         /// <param name="fileName">file name string</param>
         public static void ShowUnsuccessfulConfigFileParseWarning(ErrorListProvider errorListProvider, string fileName)
         {
-            var currentText = "RefDepGuard warning: Не получилось спарсить данные из " + fileName + ". Правила из этого файла не учтены в проверке";
+            var currentText = Resource.Extension_Name + Resource.Unsuccessful_Config_File_Parse_Warning_1 + fileName + Resource.Unsuccessful_Config_File_Parse_Warning_2;
             StoreErrorTask(errorListProvider, currentText, "", TaskErrorCategory.Warning);
         }
 

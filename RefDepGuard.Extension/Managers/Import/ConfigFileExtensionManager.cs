@@ -10,6 +10,7 @@ using RefDepGuard.Applied.Models.ConfigFile.DTO;
 using RefDepGuard.CheckRules.Models;
 using RefDepGuard.Applied;
 using RefDepGuard.ConfigFile;
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard
 {
@@ -138,10 +139,11 @@ namespace RefDepGuard
         /// <param name="isSecondAttempt">shows if it's already a second attempt to parse file info or not</param>
         private static void HandleConfigFileErrorCase(ConfigFileServiceInfo configFileServiceInfo, bool isFileFound, bool isSecondAttempt = false)
         {
-            string typePrefix = configFileServiceInfo.IsGlobal ? "Глобальный ф" : "Ф";
+            string typePrefix = configFileServiceInfo.IsGlobal ? Resource.Config_File_Type_Prefix_Global : Resource.Config_File_Type_Prefix_Solution;
             
             FileErrorMessage fileErrorMessage = new FileErrorMessage(
-                "Не получилось загрузить " + typePrefix + "айл конфигурации", typePrefix + "айл конфигурации не найден");
+                Resource.Config_File_Load_Error + typePrefix + Resource.Config_File_Load_Error_1, 
+                Resource.Config_File_Not_Found_Error + typePrefix + Resource.Config_File_Not_Found_Error_1);
 
             if (isFileFound)
             {
@@ -173,17 +175,17 @@ namespace RefDepGuard
             string backupFileInfo = "";
 
             if (!isErrorGlobal)
-                solutionNameInfo = " для solution '" + solutionName + "'";
+                solutionNameInfo = Resource.Solution_Name_String + solutionName + "'";
 
             if (!isSecondAttempt)
                 backupFileInfo = CacheManager.GetInfoFromBackupFile(isErrorGlobal);
-            
-            var actionAnnounce = backupFileInfo != "" ? "Файл конфигурации будет сгенерирован по последнему сохранению" : "Шаблон файла конфигурации будет сгенерирован расширением";
+
+            var actionAnnounce = backupFileInfo != "" ? Resource.Config_File_On_Load_From_Cache_Action : Resource.Config_File_On_Create_From_Sample_Action;
 
             MessageManager.ShowMessageBox(
                     serviceProvider,
                     errorReason + solutionNameInfo + ".\r\n" + actionAnnounce,
-                    "RefDepGuard Error: Ошибка загрузки файла конфигурации"
+                    Resource.Extension_Name + Resource.Config_File_load_Error_Title
             );
 
             return backupFileInfo;
@@ -204,25 +206,25 @@ namespace RefDepGuard
             string backupFileInfo = "";
 
             if (!isErrorGlobal)
-                solutionNameInfo = " для solution '" + solutionName + "'";
+                solutionNameInfo = Resource.Solution_Name_String + solutionName + "'";
 
             if (!isSecondAttempt)
             {
                 backupFileInfo = CacheManager.GetInfoFromBackupFile(isErrorGlobal);
 
-                var offeredOption = backupFileInfo != "" ? "Загрузить для вас последнее успешно сохранённое содержимое файла конфигурации?" : "Сгенерирвать для вас стандартный шаблон файла конфигурации?";
+                var offeredOption = backupFileInfo != "" ? Resource.Config_File_On_Load_From_Cache_Question : Resource.Config_File_On_Create_From_Sample_Question;
 
                 rollbackAction = MessageManager.ShowYesNoPrompt(
                     uiShell,
-                    errorReason + solutionNameInfo + ".\r\n" + offeredOption + "\r\nВсё текущее содержимое файла конфигурации будет перенесено в Rollback-файл",
-                    "RefDepGuard Error: Ошибка загрузки файла конфигурации"
+                    errorReason + solutionNameInfo + ".\r\n" + offeredOption + "\r\n" + Resource.Config_File_Transfer_To_Rollback_File_Message,
+                    Resource.Extension_Name + Resource.Config_File_load_Error_Title
                     );
             }
             else
             {
                 MessageManager.ShowMessageBox(serviceProvider,
-                    "Не удалось загрузить последние сохранённые данные.\r\nШаблон файла конфигурации будет сгенерирован расширением", 
-                    "RefDepGuard Error: Ошибка загрузки файла конфигурации");
+                    Resource.Config_File_Load_From_Cache_Fail + ".\r\n" + Resource.Config_File_On_Create_From_Sample_Action,
+                    Resource.Extension_Name + Resource.Config_File_load_Error_Title);
             }
 
             if (rollbackAction)
@@ -298,8 +300,8 @@ namespace RefDepGuard
             {
                 MessageManager.ShowMessageBox(
                     serviceProvider,
-                    "Проверьте, что глобальный и локальные .rdg файлы не имеют запретов на чтение, а в корневой папке solution нет запрета на создание файлов",
-                    "RefDepGuard: Ошибка генерации Rollback файла"
+                    Resource.Rollback_File_Generation_Fail_Message,
+                    Resource.Extension_Name + Resource.Rollback_File_Generation_Fail_Title
                     );
             }
         }

@@ -14,7 +14,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied;
 using System.Xaml;
-using RefDepGuard.UI.Resources;
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard
 {

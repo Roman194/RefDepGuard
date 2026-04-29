@@ -9,6 +9,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.CheckRules.SubManagers;
 using System.Linq;
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard
 {
@@ -63,26 +64,26 @@ namespace RefDepGuard
         private static ConfigFilesData ShowPromptAndSolveDifferProblemOnPotentialRename(
             ConfigFilesData configFilesData, string addedProj, string removedProj, IVsUIShell uIShell)
         {
-            var message = "В solution обнаружено добавление проекта '" + addedProj + "' и удаление '" + removedProj + "'. " +
-                "Переименовать проект в файле конфигураций с сохранением ограничений?";
+            var message = Resource.Message_On_Project_Rename_1 + addedProj + Resource.Message_On_Project_Rename_2 + removedProj + Resource.Message_on_Project_Rename_3 +
+                Resource.Action_On_Project_Rename;
 
-            if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+            if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
             {
                 //Rename project
                 configFilesData = ConfigFileExtensionManager.RenameProjectInConfigFile(configFilesData, addedProj, removedProj);
             }
             else
             { //Still asks for adding empty project sample and remove deleted project
-                message = "Добавить в конфигурационный файл пустой шаблон для проекта '" + addedProj + "'?";
+                message = Resource.Message_On_Project_Sample_Add_1 + addedProj + Resource.Message_on_Project_Sample_Add_2;
 
-                if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+                if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
                 {
                     configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { addedProj }, true);
                 }
 
-                message = "Удалить из конфигурационного файла проект '" + removedProj + "'?";
+                message = Resource.Message_On_Project_Remove_1 + removedProj + Resource.Message_On_Project_Remove_2;
 
-                if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+                if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
                 {
                     configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, new List<string> { removedProj }, false);
                 }
@@ -91,7 +92,6 @@ namespace RefDepGuard
             }
 
                 return configFilesData;
-
         }
 
 
@@ -109,15 +109,17 @@ namespace RefDepGuard
         private static ConfigFilesData ShowPromptAndSolveDifferProblems(ConfigFilesData configFilesData, List<string> currentProjList, IVsUIShell uIShell, bool isAddedList)
         {
             bool isSingleProject = currentProjList.Count == 1;
-            string projectDetectionStr = (isSingleProject) ? "обнаружен проект '" : "обнаружены проекты '";
-            string projectNotFindedStr = (isSingleProject) ? "отсутствующий" : "отсутствующие";
-            string projectNounStr = (isSingleProject) ? "его" : "их";
+            string projectDetectionStr = (isSingleProject) ? Resource.Project_Detection_One : Resource.Project_Detection_Many;
+            string projectNotFindedStr = (isSingleProject) ? Resource.Project_Detection_Problem_One : Resource.Project_Detection_Problem_Many;
+            string projectNounStr = (isSingleProject) ? Resource.Project_Noun_Str_One : Resource.Project_Noun_Str_Many;
 
-            string problemPlaceStr = (isAddedList) ? "config-файле ('" + configFilesData.SolutionName + "_config_guard.rdg')" : "solution";
-            string findedProjPlaceStr = (isAddedList) ? "solution " : "config-файле ";
-            string offeredSolutionStr = (isAddedList) ? ". Добавить " + projectNounStr + " в файл конфигураций?" : ". Удалить " + projectNounStr + " из файла конфигураций?";
+            string problemPlaceStr = (isAddedList) ? (Resource.Project_Problem_Place_Config_1 + configFilesData.SolutionName + Resource.Project_Problem_Place_Config_2)
+                : Resource.Project_Problem_Place_Solution;
+            string findedProjPlaceStr = (isAddedList) ? Resource.Finded_Project_Place_Solution : Resource.Finded_Project_Place_Config;
+            string offeredSolutionStr = (isAddedList) ? (Resource.Project_Offered_Action_Add_1 + projectNounStr + Resource.Project_Offered_Action_Add_2) : 
+                (Resource.Project_Offered_Action_Remove_1 + projectNounStr + Resource.Project_Offered_Action_Remove_2);
 
-            var message = "В " + findedProjPlaceStr + projectDetectionStr;
+            var message = Resource.In_Inside_Pretext + findedProjPlaceStr + projectDetectionStr;
 
             for (int i = 0; i < currentProjList.Count; i++)
             {
@@ -127,10 +129,10 @@ namespace RefDepGuard
                 message += "'" + currentProjList[i] + "', ";
             }
 
-            message += projectNotFindedStr + " в " + problemPlaceStr + offeredSolutionStr;
+            message += projectNotFindedStr + Resource.In_Inside_Pretext_small_letter + problemPlaceStr + offeredSolutionStr;
 
 
-            if (MessageManager.ShowYesNoPrompt(uIShell, message, "RefDepGuard"))//If user agrees
+            if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
             {
                 //Update config file with added or removed projects
                 configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, currentProjList, isAddedList);

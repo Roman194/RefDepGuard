@@ -5,6 +5,8 @@ using RefDepGuard.CheckRules;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
+using System.Globalization;
+using RefDepGuard.Console.Resources;
 
 namespace RefDepGuard.Console
 {
@@ -22,7 +24,14 @@ namespace RefDepGuard.Console
         {
             System.Console.SetWindowSize(160, 35);
 
-            System.Console.WriteLine("Вас приветсвует консольный RefDepGuard! Дождитесь полного завершения проверки");
+            if (args is { Length: 1 }) //Gets an argument to set Culture Info on current load
+            {
+                CultureInfo.CurrentCulture =
+                    CultureInfo.CurrentUICulture =
+                        CultureInfo.GetCultureInfo(args[0]);
+            }
+
+            System.Console.WriteLine(Resource.Hello_Message);
 
             MSBuildLocator.RegisterDefaults();
             
@@ -32,24 +41,24 @@ namespace RefDepGuard.Console
             ShowFindedProblemsOnCurrentCheck();
         }
 
-        private static void GetCurrentSolutionState()//Mir.Controller.Cfg
+        private static void GetCurrentSolutionState()//]WinFormApp
         {
             #if DEBUG
-                rootDirectory = @"C:\Users\zuzinra\source\repos\WinFormApp"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
+                rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
             #else 
                 rootDirectory = Directory.GetCurrentDirectory();
             #endif
 
             solutionName = rootDirectory.Split("\\").Last();
 
-            System.Console.WriteLine("Выполняется проверка для Solution: " + solutionName + "\r\n");
-            System.Console.WriteLine("1. Парсинг состояния решения");
+            System.Console.WriteLine(Resource.Solution_Title + solutionName + "\r\n");
+            System.Console.WriteLine("1. " + Resource.Solution_State_Parse_Title);
 
             (CurrentSolState, IsNoRefsInSolution) = CurrentStateConsoleManager.GetCurrentSolutionState(rootDirectory + @"\" + solutionName + ".sln");
 
             if(CurrentSolState.Count == 0 || IsNoRefsInSolution)
             {
-                System.Console.WriteLine("\r\n-> Парсинг состояния решения - Fail\r\n");
+                System.Console.WriteLine("\r\n-> " + Resource.Solution_State_Parse_Title + " - Fail\r\n");
 
                 if (CurrentSolState.Count == 0)
                     ProblemsUploadToConsoleManager.UploadInvalidDirectoryError();
@@ -59,18 +68,18 @@ namespace RefDepGuard.Console
                 Environment.Exit(-1); //Завершение проги с ошибкой
             }
 
-            System.Console.WriteLine("\r\n-> Парсинг состояния решения - Success");
+            System.Console.WriteLine("\r\n-> " + Resource.Solution_State_Parse_Title + " - Success");
         }
 
         private static void GetConfigFilesData()
         {
-            System.Console.WriteLine("\r\n2. Парсинг значений конфиг-файлов");
+            System.Console.WriteLine("\r\n2. " + Resource.Config_Files_State_Parse_Title);
 
             configFilesData = ConfigFileConsoleManager.GetInfoFromConfigFiles(rootDirectory, solutionName, CurrentSolState);
 
             if(configFilesData.ParseError != FileParseError.None)
             {
-                System.Console.WriteLine("\r\n-> Парсинг значений конфиг-файлов - Fail");
+                System.Console.WriteLine("\r\n-> " + Resource.Config_Files_State_Parse_Title + " - Fail");
 
                 if(configFilesData.ParseError == FileParseError.Global || configFilesData.ParseError == FileParseError.All)
                     ProblemsUploadToConsoleManager.UploadConfigFileSyntaxError(true);
@@ -81,30 +90,30 @@ namespace RefDepGuard.Console
                 Environment.Exit(-1);
             }
 
-            System.Console.WriteLine("-> Парсинг значений конфиг-файлов - Success");
+            System.Console.WriteLine("-> " + Resource.Config_Files_State_Parse_Title + " - Success");
         }
 
         private static void CheckRules()
         {
-            System.Console.WriteLine("\r\n3. Проверка соответствия состояния заявленным правилам");
+            System.Console.WriteLine("\r\n3. " + Resource.Check_Rules_Title);
 
             refDepGuardFindedProblems = CheckRulesManager.CheckConfigFileRulesForConsole(configFilesData, CurrentSolState);
 
-            System.Console.WriteLine("-> Проверка соответствия состояния заявленным правилам - Success");
+            System.Console.WriteLine("-> " + Resource.Check_Rules_Title + " - Success");
         }
 
         private static void ShowFindedProblemsOnCurrentCheck()
         {
             if (refDepGuardFindedProblems.IsEmpty())
             {
-                System.Console.WriteLine("\r\nВ результате проверки никакие проблемы не обнаружены");
+                System.Console.WriteLine("\r\n" + Resource.No_Find_Problems_On_Check);
             }
             else
             { //Если обнаружены какие-то "проблемы"
                 var errorsCount = refDepGuardFindedProblems.RefDepGuardErrors.Count();
                 var warningsCount = refDepGuardFindedProblems.RefDepGuardWarnings.Count();
 
-                System.Console.WriteLine("\r\nОбнаруженные в результате проверки 'проблемы': (ошибок - "+ errorsCount +"; предупреждений - "+ warningsCount +")");
+                System.Console.WriteLine("\r\n" + Resource.Find_Problems_on_Check + errorsCount + Resource.Find_Problems_On_Check_1 + warningsCount +")");
                 ProblemsUploadToConsoleManager.UploadCheckRuleProblems(refDepGuardFindedProblems, configFilesData);
 
                 if(errorsCount > 0)

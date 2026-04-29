@@ -8,6 +8,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference.Errors;
 using RefDepGuard.Applied.Models.Reference.Warnings;
+using RefDepGuard.UI.Resources.StringResources;
 using System;
 using System.Drawing;
 
@@ -419,13 +420,13 @@ namespace RefDepGuard.Managers.Export.SubManagers
             projectsTable.Cells[2, 2].Font.Bold = projectsTable.Cells[3, 2].Font.Bold = true;
 
             projectsTable.Cells[4, 2] = "№";
-            projectsTable.Cells[4, 3] = "Проект";
-            projectsTable.Cells[4, 4] = "Референс";
-            projectsTable.Cells[4, 5] = (isErrorsTable)? "Тип ошибки": "Тип предупреждения";
-            projectsTable.Cells[4, 6] = (isErrorsTable)? "Уровень ошибки": "Уровни предупреждения";
-            projectsTable.Cells[4, 7] = "Описание";
-            projectsTable.Cells[4, 8] = "Необходимое действие";
-            projectsTable.Cells[4, 9] = "Файл действия";
+            projectsTable.Cells[4, 3] = Resource.Project_Column_Title;
+            projectsTable.Cells[4, 4] = Resource.Reference_Column_Title;
+            projectsTable.Cells[4, 5] = (isErrorsTable)? Resource.Error_Type_Title : Resource.Warning_Type_Title;
+            projectsTable.Cells[4, 6] = (isErrorsTable)? Resource.Error_Level_Title: Resource.Warning_Level_Title;
+            projectsTable.Cells[4, 7] = Resource.Description_Title;
+            projectsTable.Cells[4, 8] = Resource.Necessary_Action_Title;
+            projectsTable.Cells[4, 9] = Resource.Action_File_Title;
 
             Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, 9]];
             Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, 9]];
@@ -483,7 +484,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
         /// <returns>Worksheet of the projectsTable</returns>
         private static Worksheet SetMessageOnZeroFindedWorkbookProblems(Worksheet projectsTable, bool isErrorsTable)
         {
-            projectsTable.Cells[5, 2] = (isErrorsTable ? "Ошибки" : "Предупреждения") + " на момент экспорта не обнаружены";
+            projectsTable.Cells[5, 2] = isErrorsTable ? Resource.On_Zero_Finded_Errors_Table_Report : Resource.On_Zero_Finded_Warnings_Table_Report;
 
             Range unionRangeOnEmptyText = projectsTable.Range[projectsTable.Cells[5, 2], projectsTable.Cells[5, 9]];
             unionRangeOnEmptyText.Merge();

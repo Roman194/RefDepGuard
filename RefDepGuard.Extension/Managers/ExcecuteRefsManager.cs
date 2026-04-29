@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard
 {
@@ -25,14 +26,14 @@ namespace RefDepGuard
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             string message = "";
-            string title = "Связи между проектами на текущий момент";
+            string title = Resource.Excecute_Current_Refs_Title;
 
             var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
             var findedRefs = currentReferencesState.Where(el => el.Value.Count > 0).Count();
 
             if (findedRefs == 0)//If there are no refs in the solution, then show message about it.
-                message = "На текущий момент в Solution не обнаружены референсы";
+                message = Resource.Excecute_Current_Refs_On_Empty;
             else
             {//If there are refs in the solution, then show them in the message box (in streaight or transit format).
                 message = showMessageWithTransitRefs ? 
@@ -57,8 +58,8 @@ namespace RefDepGuard
             Dictionary<string, List<string>> addedRefs = new Dictionary<string, List<string>>();
             Dictionary<string, List<string>> removedRefs = new Dictionary<string, List<string>>();
 
-            string message = "С момента последней проверки рефов произошли следующие изменения:\r\n";
-            string title = "Изменения в рефах";
+            string message = Resource.Excecute_Changed_Refs_Start_Message;
+            string title = Resource.Excecute_Changed_Refs_Title;
 
             var currentReferencesState = CurrentStateManager.GetCurrentReferencesState(dte);
 
@@ -106,7 +107,7 @@ namespace RefDepGuard
             message += ConvertCurrentRefsDictToStringFormat(removedRefs, false);
 
             if (addedRefs.Count == 0 && removedRefs.Count == 0)
-                message = "Изменения в рефах не обнаружены";
+                message = Resource.Excecute_Changed_Refs_On_Empty;
 
             MessageManager.ShowMessageBox(serviceProvider, message, title);
         }
@@ -289,10 +290,10 @@ namespace RefDepGuard
             string outputMessage = "";
             if (currentRefs.Count > 0)
             {
-                outputMessage += "\r\n" + (isAddedRefsDict? "Добавлены" : "\r\nУдалены") + " рефы:";
+                outputMessage += "\r\n" + (isAddedRefsDict? Resource.Excecute_Refs_Adds_Title : Resource.Excecute_Refs_Remove_Title);
                 foreach (var currentRefDict in currentRefs)
                 {
-                    outputMessage += ("\r\nВ проекте " + currentRefDict.Key + ":");
+                    outputMessage += (Resource.Excecute_Refs_Project_Title + currentRefDict.Key + ":");
 
                     foreach (string currentRef in currentRefDict.Value)
                     {

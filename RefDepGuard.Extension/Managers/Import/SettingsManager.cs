@@ -6,6 +6,7 @@ using System.IO;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Models;
 using RefDepGuard.Applied;
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard.Managers.Import
 {
@@ -99,8 +100,8 @@ namespace RefDepGuard.Managers.Import
         {
             bool userAction = MessageManager.ShowYesNoPrompt(
                 uiShell,
-                "Нужно ли использовать RefDepGuard в рамках решения '"+ solutionName +"'?.\r\nПри нажатии 'Да' расширение активируется и будет проверять соответствие проектов решения заявленным правилам, а также администрировать сборку решения",
-                "RefDepGuard: Первая загрузка решения"
+                Resource.First_Solution_Load_Message_1 + " '"+ solutionName + "'" + Resource.First_Solution_Load_Message_2,
+                Resource.Extension_Name + ": " + Resource.First_Solution_Load_Title
                 );
 
             if (usingSolutions == null)//If the settings file doesn't exist or is empty, we need to create the default structure of the settings file 

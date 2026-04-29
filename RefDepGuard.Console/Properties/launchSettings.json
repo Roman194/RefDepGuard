@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "RefDepGuard.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "\"ru-RU\""
+    }
+  }
+}

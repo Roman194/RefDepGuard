@@ -1,6 +1,7 @@
 ﻿using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Console.Resources;
 using RefDepGuard.TargetFramework;
 
 namespace RefDepGuard.Console.Managers
@@ -20,7 +21,7 @@ namespace RefDepGuard.Console.Managers
 
                 if (projects.Count > 0)
                 {
-                    System.Console.WriteLine("В решении обнаружены следующие проекты и связи между ними:");
+                    System.Console.WriteLine(Resource.Solution_State_Parse_Start_Message);
 
                     foreach (var project in projects)
                     {
@@ -37,7 +38,7 @@ namespace RefDepGuard.Console.Managers
                         {
                             (targetFramework, targetFrameworkNums) = TFManager.GetTargetFrameworkInStringNTransferFormats(currentProject);
 
-                            System.Console.WriteLine("\r\nПроект: " + projectName + " (" + targetFramework + ")");
+                            System.Console.WriteLine("\r\n" + Resource.Project_String + projectName + " (" + targetFramework + ")");
 
                             projectReferences = currentProject.GetItems("ProjectReference").ToList();
 

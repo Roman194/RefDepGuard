@@ -2,6 +2,7 @@
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Console.Resources;
 
 namespace RefDepGuard.Console.Managers
 {
@@ -16,48 +17,36 @@ namespace RefDepGuard.Console.Managers
                 refDepGuardFindedProblems.RefDepGuardWarnings, configFilesData, true);
 
             if (errorsStringList.Count > 0) {
-                System.Console.WriteLine("\r\n    -> ОШИБКИ:\r\n");
+                System.Console.WriteLine("\r\n    -> "+ Resource.Errors_String_Title + "\r\n");
 
                 errorsStringList.ForEach(error =>
-                    System.Console.WriteLine(error.ProblemText + (error.DocumentName != "" ? " (Файл: " + error.DocumentName + ")" : "") + "\r\n")
+                    System.Console.WriteLine(error.ProblemText + (error.DocumentName != "" ? " (" + Resource.File_String + error.DocumentName + ")" : "") + "\r\n")
                     );
             }
 
             if (warningsStringList.Count > 0) {
-                System.Console.WriteLine("\r\n    -> ПРЕДУПРЕЖДЕНИЯ:\r\n");
+                System.Console.WriteLine("\r\n    -> "+ Resource.Warnings_String_Title + "\r\n");
 
                 warningsStringList.ForEach(warning =>
-                    System.Console.WriteLine(warning.ProblemText + (warning.DocumentName != "" ? " (Файл: " + warning.DocumentName + ")" : "") + "\r\n")
+                    System.Console.WriteLine(warning.ProblemText + (warning.DocumentName != "" ? " (" + Resource.File_String + warning.DocumentName + ")" : "") + "\r\n")
                     );
             }
         }
 
         public static void UploadRefsNotFoundError()
         {
-            var currentText = "    - Error: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации " +
-                "состояния решения.\r\nПроверьте, что в solution действительно содержатся референсы между проектами и произведите проверку вручную или " +
-                "автоматически вместе со сборкой";
-
-            System.Console.WriteLine(currentText);
+            System.Console.WriteLine(Resource.Refs_Not_Found_Error);
         }
 
         public static void UploadInvalidDirectoryError()
         {
-            var currentText = "    - Error: Не получилось спарсить данные из .sln файла корневой директории solution." +
-                "\r\nПроверьте, что приложение запущено в корректной корневой папке, содержащей одноимённый .sln-файл";
-
-            System.Console.WriteLine(currentText);
+            System.Console.WriteLine(Resource.Invalid_Directory_Error);
         }
 
         public static void UploadConfigFileSyntaxError(bool isGlobal)
         {
-            var globalPrefix = isGlobal ? " глобального" : "";
-            var solFilePrefix = isGlobal ? "" : " текущего решения";
-
-            var currentText = "\r\n    - Error: Не получилось спарсить данные из" + globalPrefix + " файла конфигурации"+ solFilePrefix + 
-                ".\r\nПроверьте файл на существование и отсутствие синтаксических ошибок";
-
-            System.Console.WriteLine(currentText);
+            var filePrefix = isGlobal ? Resource.Global_Config_File : Resource.Solution_Config_File;
+            System.Console.WriteLine("\r\n" + Resource.Config_File_Syntax_Error + filePrefix + Resource.Config_File_Syntax_Error_1);
         }
     }
 }

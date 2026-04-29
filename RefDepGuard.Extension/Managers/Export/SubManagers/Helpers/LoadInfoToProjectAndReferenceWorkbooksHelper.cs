@@ -1,5 +1,4 @@
 ﻿using Microsoft.Office.Interop.Excel;
-using Microsoft.VisualStudio.VCProjectEngine;
 using RefDepGuard.Applied.Models.FrameworkVersion;
 using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
 using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
@@ -8,6 +7,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference;
 using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.UI.Resources.StringResources;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -48,18 +48,18 @@ namespace RefDepGuard.Managers.Export.SubManagers
             int firstRowIndex = heightIndex + 1;
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[1];
-            projectsTable.Name = "Выборка по проектам";
+            projectsTable.Name = Resource.Project_Sample_List_Name;
 
             //Load and style of the table hat
             projectsTable = SetUnionColumnNames(projectsTable, solutionName, currentDateTime);
-            projectsTable.Cells[heightIndex - 1, 3] = "Проект";
-            projectsTable.Cells[heightIndex - 1, 4] = "Целевая рабочая\nсреда";
-            projectsTable.Cells[heightIndex - 1, 5] = "Макс. допустимая\nверсия";
-            projectsTable.Cells[heightIndex - 1, 6] = "Всего референсов";
-            projectsTable.Cells[heightIndex, 6] = projectsTable.Cells[heightIndex, 8] = projectsTable.Cells[heightIndex, 10] = "Кол-во";
-            projectsTable.Cells[heightIndex, 7] = projectsTable.Cells[heightIndex, 9] = projectsTable.Cells[heightIndex, 11] = "Названия";
-            projectsTable.Cells[heightIndex - 1, 8] = "Не обнаружено обязательных референсов";
-            projectsTable.Cells[heightIndex - 1, 10] = "Обнаружено недопустимых референсов";
+            projectsTable.Cells[heightIndex - 1, 3] = Resource.Project_Column_Title;
+            projectsTable.Cells[heightIndex - 1, 4] = Resource.Target_Framework_Title;
+            projectsTable.Cells[heightIndex - 1, 5] = Resource.Max_Fr_Version_Title;
+            projectsTable.Cells[heightIndex - 1, 6] = Resource.Total_References_Title;
+            projectsTable.Cells[heightIndex, 6] = projectsTable.Cells[heightIndex, 8] = projectsTable.Cells[heightIndex, 10] = Resource.Count_Title;
+            projectsTable.Cells[heightIndex, 7] = projectsTable.Cells[heightIndex, 9] = projectsTable.Cells[heightIndex, 11] = Resource.Reference_Names_Title;
+            projectsTable.Cells[heightIndex - 1, 8] = Resource.No_Detected_Req_References_Title;
+            projectsTable.Cells[heightIndex - 1, 10] = Resource.Detected_Unacceptable_Refs_Title;
 
             projectsTable.Columns[4].ColumnWidth = 17;
             projectsTable.Columns[5].ColumnWidth = 17;
@@ -227,13 +227,13 @@ namespace RefDepGuard.Managers.Export.SubManagers
             int firstRowIndex = heightIndex + 1;
 
             Worksheet projectsTable = (Worksheet)excel.Worksheets[2];
-            projectsTable.Name = "Выборка по референсам";
+            projectsTable.Name = Resource.Reference_Sample_List_Table_Report_Name;
 
             projectsTable = SetUnionColumnNames(projectsTable, solutionName, currentDateTime);
 
-            projectsTable.Cells[heightIndex, 3] = "Референс"; //for this reason heightIndex is call without minus one, as in the projects table
-            projectsTable.Cells[heightIndex, 4] = "Проект";
-            projectsTable.Cells[heightIndex, 5] = "Тип референса";
+            projectsTable.Cells[heightIndex, 3] = Resource.Reference_Column_Title; //for this reason heightIndex is call without minus one, as in the projects table
+            projectsTable.Cells[heightIndex, 4] = Resource.Project_Column_Title;
+            projectsTable.Cells[heightIndex, 5] = Resource.Reference_Type_Column_Title;
 
             Range unionRangeSolutionWithTime, unionRangeTableTitle;
             (unionRangeSolutionWithTime, unionRangeTableTitle) = SetUnionTableHatRanges(projectsTable, widthIndex, heightIndex);
@@ -270,18 +270,18 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     else
                     {
                         if (referenceError != null)
-                            projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Недопустимый", 0xCEC7FF, 0x062CCE);
+                            projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, Resource.Reference_Unacceptable_Type_Text, 0xCEC7FF, 0x062CCE);
                         else
                         {
                             if (maxFrameworkVersionReference != null)
                             {
-                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Потенциальный\r\nконфликт версий", 0x92e3f7, 0x00648b); //фон #f7e392 текст #8b6400
+                                projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, Resource.Reference_Potential_Version_Conflict_Type_Text, 0x92e3f7, 0x00648b); //фон #f7e392 текст #8b6400
                                 isPotentialVersionConflict = true;
                             }
                             else
                             {
                                 if (requiredReference != null)
-                                    projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "Обязательный", 0xCEEFC6, 0x006100);
+                                    projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, Resource.Reference_Required_Type_Text, 0xCEEFC6, 0x006100);
                                 else
                                     projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, i, "-");
                             }
@@ -313,7 +313,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
                         projectsTable.Cells[firstRowIndex + j, 3].Font.Color = projectsTable.Cells[firstRowIndex + j, 4].Font.Color = 0xA6A6A6;
 
-                        projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, j, "Обязательный", 0xCEEFC6, 0x006100);
+                        projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, j, Resource.Reference_Required_Type_Text, 0xCEEFC6, 0x006100);
 
                         j++;
                     }

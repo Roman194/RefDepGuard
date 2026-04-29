@@ -1,5 +1,4 @@
 ﻿using HtmlAgilityPack;
-using Microsoft.VisualStudio.TextManager.Interop;
 using RefDepGuard.Applied;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.FrameworkVersion;
@@ -10,6 +9,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference;
 using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.UI.Resources.StringResources;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -164,13 +164,13 @@ namespace RefDepGuard
                         var currentRefError = maxFrVersionRefConflictWarning.Find(value => value.RefName == currentProjectRef && value.ProjName == currentProjectName);
                         if (currentError != null) //Поиск на соответствие среди ошибок
                         {
-                            errorText = "Запрещённая связь!";
+                            errorText = Resource.Forbidden_Reference_Title;
                         }
                         else
                         {
                             if (currentRefError != null)
                             {
-                                errorText = "Потенциальный конфликт версий!";
+                                errorText = Resource.Potential_Version_Conflict_Title;
                             }
                         }
 
@@ -220,7 +220,7 @@ namespace RefDepGuard
                         string currentNodeId = projectNameToNodeIdCompare[refError.ErrorRelevantProjectName];
                         string refNodeId = projectNameToNodeIdCompare[refError.ReferenceName];
 
-                        outputMermaidCode += GetProjectLink(currentNodeId, refNodeId, "Отсутсвует обязательная связь!");
+                        outputMermaidCode += GetProjectLink(currentNodeId, refNodeId, Resource.Required_Reference_Not_Found_Title);
                         outputMermaidCode += SetErrorLinkStyle(currentRefNum);
 
                         currentRefNum++;

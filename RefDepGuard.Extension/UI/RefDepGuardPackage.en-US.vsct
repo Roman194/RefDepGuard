@@ -79,7 +79,7 @@
 			<Icon guid="guidShowRefs" id="bmpShowRef" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Показать все прямые рефы решения</ButtonText>
+				<ButtonText>Show all solution straight references</ButtonText>
 			</Strings>
       </Button>
 
@@ -89,7 +89,7 @@
 			<Icon guid="guidShowExtRefs" id="bmpShowExtRef" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Показать все транзитивные рефы решения</ButtonText>
+				<ButtonText>Show all solution transitive references</ButtonText>
 			</Strings>
 		</Button>
 
@@ -98,7 +98,7 @@
 			<Icon guid="guidShowChanges" id="bmpShowCh" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Вывести изменения в рефах</ButtonText>
+				<ButtonText>Show changes in references</ButtonText>
 			</Strings>
 		</Button>
 
@@ -107,7 +107,7 @@
 			<Icon guid="guidCommitSolState" id="bmpCommitSolState" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Зафиксировать текущую версию решения</ButtonText>
+				<ButtonText>Commit solution state</ButtonText>
 			</Strings>
 		</Button>
 
@@ -116,7 +116,7 @@
 			<Icon guid="guidTableExport" id="bmpTableExport" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Экспорт в XLSX</ButtonText>
+				<ButtonText>Export to XLSX</ButtonText>
 			</Strings>
 		</Button>
 
@@ -125,7 +125,7 @@
 			<Icon guid="guidGraphExport" id="bmpGraphExport" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Экспорт в HTML</ButtonText>
+				<ButtonText>Export to HTML</ButtonText>
 			</Strings>
 		</Button>
 		
@@ -135,7 +135,7 @@
 			<Icon guid="guidActivateExt" id="bmpActivateExt" />
 			<CommandFlag>DynamicVisibility</CommandFlag>
 			<Strings>
-				<ButtonText>Активировать расширение</ButtonText>
+				<ButtonText>Activate extension</ButtonText>
 			</Strings>
 		</Button>
     </Buttons>
@@ -147,15 +147,15 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
-		<Bitmap guid="guidShowRefs" href="Resources\ShowRefs_icon.png" usedList="bmpShowRef"/>
-		<Bitmap guid="guidShowExtRefs" href="Resources\ShowExtRefs_icon.png" usedList="bmpShowExtRef"/>
-		<Bitmap guid="guidShowChanges" href="Resources\ShowChanges_icon.png" usedList="bmpShowCh"/>
-		<Bitmap guid="guidCommitSolState" href="Resources\CommitSolState_icon.png" usedList="bmpCommitSolState"/>
-		<Bitmap guid="guidUpdateConfigRules" href="Resources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
-		<Bitmap guid="guidTableExport" href="Resources\TableExport_icon.png" usedList="bmpTableExport"/>
-		<Bitmap guid="guidGraphExport" href="Resources\GraphExport_icon.png" usedList="bmpGraphExport"/>
-		<Bitmap guid="guidActivateExt" href="Resources\GraphExport_icon.png" usedList="bmpActivateExt"/>
+      <Bitmap guid="guidImages" href="Resources\IconResources\Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+		<Bitmap guid="guidShowRefs" href="Resources\IconResources\ShowRefs_icon.png" usedList="bmpShowRef"/>
+		<Bitmap guid="guidShowExtRefs" href="Resources\IconResources\ShowExtRefs_icon.png" usedList="bmpShowExtRef"/>
+		<Bitmap guid="guidShowChanges" href="Resources\IconResources\ShowChanges_icon.png" usedList="bmpShowCh"/>
+		<Bitmap guid="guidCommitSolState" href="Resources\IconResources\CommitSolState_icon.png" usedList="bmpCommitSolState"/>
+		<Bitmap guid="guidUpdateConfigRules" href="Resources\IconResources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
+		<Bitmap guid="guidTableExport" href="Resources\IconResources\TableExport_icon.png" usedList="bmpTableExport"/>
+		<Bitmap guid="guidGraphExport" href="Resources\IconResources\GraphExport_icon.png" usedList="bmpGraphExport"/>
+		<Bitmap guid="guidActivateExt" href="Resources\IconResources\GraphExport_icon.png" usedList="bmpActivateExt"/>
     </Bitmaps>
   </Commands>
 
