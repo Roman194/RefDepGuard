@@ -79,11 +79,119 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos; for project &apos;.
+        ///   Looks up a localized string similar to is claimed as the required and unacceptable at the same time.
+        /// </summary>
+        internal static string Claim_Match_Error_Description {
+            get {
+                return ResourceManager.GetString("Claim_Match_Error_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check it on syntax errors and for compliance with the configuration file template.
+        /// </summary>
+        internal static string Config_File_Property_Null_Error_Action {
+            get {
+                return ResourceManager.GetString("Config_File_Property_Null_Error_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Config file not contains property &apos;.
+        /// </summary>
+        internal static string Config_File_Property_Null_Error_Message {
+            get {
+                return ResourceManager.GetString("Config_File_Property_Null_Error_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to config file .
+        /// </summary>
+        internal static string Config_File_String {
+            get {
+                return ResourceManager.GetString("Config_File_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to config file.
+        /// </summary>
+        internal static string Config_File_String_2 {
+            get {
+                return ResourceManager.GetString("Config_File_String_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to contains value &apos;.
+        /// </summary>
+        internal static string Contains_Value_String {
+            get {
+                return ResourceManager.GetString("Contains_Value_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; of the eponymous parameter .
+        /// </summary>
+        internal static string Eponymous_Parameter_String {
+            get {
+                return ResourceManager.GetString("Eponymous_Parameter_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  exceed.
+        /// </summary>
+        internal static string Exceed_String {
+            get {
+                return ResourceManager.GetString("Exceed_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; for a project &apos;.
         /// </summary>
         internal static string For_Project_String {
             get {
                 return ResourceManager.GetString("For_Project_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  for a .
+        /// </summary>
+        internal static string For_string {
+            get {
+                return ResourceManager.GetString("For_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Change the project version or modify the config file.
+        /// </summary>
+        internal static string Framework_Version_Comparability_Error_Action {
+            get {
+                return ResourceManager.GetString("Framework_Version_Comparability_Error_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;, when its max acceptable version is  &apos;.
+        /// </summary>
+        internal static string Framework_Version_Comparability_Error_Message {
+            get {
+                return ResourceManager.GetString("Framework_Version_Comparability_Error_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to of the global config file.
+        /// </summary>
+        internal static string Global_Config_File_String {
+            get {
+                return ResourceManager.GetString("Global_Config_File_String", resourceCulture);
             }
         }
         
@@ -97,11 +205,353 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to global rule level.
+        /// </summary>
+        internal static string Global_Rule_Level {
+            get {
+                return ResourceManager.GetString("Global_Rule_Level", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to global .
+        /// </summary>
+        internal static string Global_String {
+            get {
+                return ResourceManager.GetString("Global_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  have a version &apos;.
+        /// </summary>
+        internal static string Have_Version_String {
+            get {
+                return ResourceManager.GetString("Have_Version_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check the specified &apos;max_framework_version&apos; string for compliance with the relevant TFM solution.
+        /// </summary>
+        internal static string Illegal_Template_Usage_Warn_Action {
+            get {
+                return ResourceManager.GetString("Illegal_Template_Usage_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  TFM is specified, which is not found in any of the targetFramework projects of this solution..
+        /// </summary>
+        internal static string Illegal_Template_Usage_Warn_Message {
+            get {
+                return ResourceManager.GetString("Illegal_Template_Usage_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check the specified max_framework_version string for compliance with the relevant TFM project.
+        /// </summary>
+        internal static string Illegal_TFM_Usage_Error_Action {
+            get {
+                return ResourceManager.GetString("Illegal_TFM_Usage_Error_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to contains an attempt to set a limit for TFM that is not found in the current project..
+        /// </summary>
+        internal static string Illegal_TFM_Usage_Error_Message {
+            get {
+                return ResourceManager.GetString("Illegal_TFM_Usage_Error_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in the project &apos;.
+        /// </summary>
+        internal static string In_A_Project_String {
+            get {
+                return ResourceManager.GetString("In_A_Project_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in the &apos;framework_max_version&apos; parameter .
+        /// </summary>
+        internal static string In_The_Fr_Max_Version_String {
+            get {
+                return ResourceManager.GetString("In_The_Fr_Max_Version_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to in the name of the project &apos;.
+        /// </summary>
+        internal static string In_The_Proj_Name_String {
+            get {
+                return ResourceManager.GetString("In_The_Proj_Name_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Correct the parameter value to a valid one.
+        /// </summary>
+        internal static string Incorrect_TFM_Usage_Error_Action {
+            get {
+                return ResourceManager.GetString("Incorrect_TFM_Usage_Error_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to contains the use of a template for setting multiple restrictions, which is unacceptable for this project (the project has only one type of a specified TFM)..
+        /// </summary>
+        internal static string Incorrect_TFM_Usage_Error_Message {
+            get {
+                return ResourceManager.GetString("Incorrect_TFM_Usage_Error_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  contains an incorrect entry of its value.
+        /// </summary>
+        internal static string Invalid_Project_Type_Error {
+            get {
+                return ResourceManager.GetString("Invalid_Project_Type_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  is not found .
+        /// </summary>
+        internal static string Is_Not_Found_String {
+            get {
+                return ResourceManager.GetString("Is_Not_Found_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to the higher value of the &apos;framework_max_version&apos; parameter .
+        /// </summary>
+        internal static string Max_Fr_Version_Conflict_Bigger_Value_Error_Cause {
+            get {
+                return ResourceManager.GetString("Max_Fr_Version_Conflict_Bigger_Value_Error_Cause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the value to the correct format.
+        /// </summary>
+        internal static string Max_Fr_Version_Deviant_Value_Warn_Action {
+            get {
+                return ResourceManager.GetString("Max_Fr_Version_Deviant_Value_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;, but should contains a value with a dot (&apos;x.x&apos; format)..
+        /// </summary>
+        internal static string Max_Fr_Version_Deviant_Value_Warn_Message {
+            get {
+                return ResourceManager.GetString("Max_Fr_Version_Deviant_Value_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to incompatible value of the &apos;framework_max_version&apos; parameter for the current project value of the  &apos;netstandard&apos; type .
+        /// </summary>
+        internal static string Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause {
+            get {
+                return ResourceManager.GetString("Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; leads to a potential version conflict of targetFramework, as there is a reference to a project that has .
+        /// </summary>
+        internal static string Max_Fr_Version_Reference_Conflict_Warn_Message {
+            get {
+                return ResourceManager.GetString("Max_Fr_Version_Reference_Conflict_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;framework_max_version&apos; property of a .
+        /// </summary>
+        internal static string Max_Framework_Version_Deviant_Value_Error_Message {
+            get {
+                return ResourceManager.GetString("Max_Framework_Version_Deviant_Value_Error_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There is no required.
         /// </summary>
         internal static string No_Required_String {
             get {
                 return ResourceManager.GetString("No_Required_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  of the project &apos;.
+        /// </summary>
+        internal static string Of_A_Project_String {
+            get {
+                return ResourceManager.GetString("Of_A_Project_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to of the &apos;framework_max_version&apos; property .
+        /// </summary>
+        internal static string Of_The_Fr_Max_Version_String {
+            get {
+                return ResourceManager.GetString("Of_The_Fr_Max_Version_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is matches with project name.
+        /// </summary>
+        internal static string One_Proj_Match_Error_Description {
+            get {
+                return ResourceManager.GetString("One_Proj_Match_Error_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix the typo in the project name.
+        /// </summary>
+        internal static string Proj_Name_Semantic_Warn_Action {
+            get {
+                return ResourceManager.GetString("Proj_Name_Semantic_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; the semantic error is detected (expected: &apos;.
+        /// </summary>
+        internal static string Proj_Name_Semantic_Warn_Message {
+            get {
+                return ResourceManager.GetString("Proj_Name_Semantic_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;; actual: &apos;.
+        /// </summary>
+        internal static string Proj_Name_Semantic_Warn_Message_1 {
+            get {
+                return ResourceManager.GetString("Proj_Name_Semantic_Warn_Message_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check the project on the correct spelling of its name in the configuration file.
+        /// </summary>
+        internal static string Project_Match_Warning_Action {
+            get {
+                return ResourceManager.GetString("Project_Match_Warning_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; is not found in the .
+        /// </summary>
+        internal static string Project_Match_Warning_Message {
+            get {
+                return ResourceManager.GetString("Project_Match_Warning_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check the rule on the correct spelling in the configuration file.
+        /// </summary>
+        internal static string Project_Not_Found_Warning_Action {
+            get {
+                return ResourceManager.GetString("Project_Not_Found_Warning_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; that is mentioned in reference rule  .
+        /// </summary>
+        internal static string Project_Not_Found_Warning_Message {
+            get {
+                return ResourceManager.GetString("Project_Not_Found_Warning_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is not detected in the solution.
+        /// </summary>
+        internal static string Project_Not_Found_Warning_Message_2 {
+            get {
+                return ResourceManager.GetString("Project_Not_Found_Warning_Message_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to project rule level.
+        /// </summary>
+        internal static string Project_Rule_Level {
+            get {
+                return ResourceManager.GetString("Project_Rule_Level", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  a project &apos;.
+        /// </summary>
+        internal static string Project_String {
+            get {
+                return ResourceManager.GetString("Project_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  contains the same type of project in the template more than once.
+        /// </summary>
+        internal static string Project_Type_Copy_Error {
+            get {
+                return ResourceManager.GetString("Project_Type_Copy_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolve the contradiction in the rule.
+        /// </summary>
+        internal static string Reference_Match_Contrad_Warn_Action {
+            get {
+                return ResourceManager.GetString("Reference_Match_Contrad_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolve the contradiction in the rule.
+        /// </summary>
+        internal static string Reference_Match_Error_Action {
+            get {
+                return ResourceManager.GetString("Reference_Match_Error_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  contradict to a rule with eponymous reference .
+        /// </summary>
+        internal static string Reference_Match_Warn_Contrad_Message {
+            get {
+                return ResourceManager.GetString("Reference_Match_Warn_Contrad_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  duplicate a rule with eponymous reference .
+        /// </summary>
+        internal static string Reference_Match_Warn_Duplicate_Message {
+            get {
+                return ResourceManager.GetString("Reference_Match_Warn_Duplicate_Message", resourceCulture);
             }
         }
         
@@ -115,6 +565,33 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Eliminate rules duplicate.
+        /// </summary>
+        internal static string Refernce_Match_Duplicate_Warn_Action {
+            get {
+                return ResourceManager.GetString("Refernce_Match_Duplicate_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is a required one and.
+        /// </summary>
+        internal static string Req_Reference_Type {
+            get {
+                return ResourceManager.GetString("Req_Reference_Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to of the solution config-file.
+        /// </summary>
+        internal static string Solution_Config_File_String {
+            get {
+                return ResourceManager.GetString("Solution_Config_File_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to of solution level.
         /// </summary>
         internal static string Solution_Level {
@@ -124,11 +601,128 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to solution rule level.
+        /// </summary>
+        internal static string Solution_Rule_Level {
+            get {
+                return ResourceManager.GetString("Solution_Rule_Level", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to solution .
+        /// </summary>
+        internal static string Solution_String {
+            get {
+                return ResourceManager.GetString("Solution_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to that is specified in the &apos;all&apos; supertype at the same level.
+        /// </summary>
+        internal static string Supertype_All_Level {
+            get {
+                return ResourceManager.GetString("Supertype_All_Level", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Check the specified max_framework_version string for compliance with existing TFMs.
+        /// </summary>
+        internal static string TFM_Not_Found_Warn_Action {
+            get {
+                return ResourceManager.GetString("TFM_Not_Found_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TargetFramework with the value &apos;.
+        /// </summary>
+        internal static string TFM_Not_Found_Warn_Message {
+            get {
+                return ResourceManager.GetString("TFM_Not_Found_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; have 1 or more transit references,  that duplicates the following straight references of this project: .
+        /// </summary>
+        internal static string Transit_Refs_Duplicate_Warn_Message {
+            get {
+                return ResourceManager.GetString("Transit_Refs_Duplicate_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos; contains the following transit references: .
+        /// </summary>
+        internal static string Transit_Refs_Message {
+            get {
+                return ResourceManager.GetString("Transit_Refs_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to is an unacceptable one and.
+        /// </summary>
+        internal static string Unaccept_Reference_Type {
+            get {
+                return ResourceManager.GetString("Unaccept_Reference_Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There is an unacceptable.
         /// </summary>
         internal static string Unacceptable_String {
             get {
                 return ResourceManager.GetString("Unacceptable_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Make sure that the project has the correct version of its &apos;TargetFramework&apos;.
+        /// </summary>
+        internal static string Untyped_Warn_Action {
+            get {
+                return ResourceManager.GetString("Untyped_Warn_Action", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Couldn&apos;t verify the version of the &apos;TargetFramework.
+        /// </summary>
+        internal static string Untyped_Warn_Message {
+            get {
+                return ResourceManager.GetString("Untyped_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;, cause RefDepGuard could not get the correct value for this property from the .csproj file..
+        /// </summary>
+        internal static string Untyped_Warn_Message_2 {
+            get {
+                return ResourceManager.GetString("Untyped_Warn_Message_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to a value &apos;.
+        /// </summary>
+        internal static string Value_String {
+            get {
+                return ResourceManager.GetString("Value_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  version &apos;.
+        /// </summary>
+        internal static string Version_String {
+            get {
+                return ResourceManager.GetString("Version_String", resourceCulture);
             }
         }
     }

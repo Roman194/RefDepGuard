@@ -129,8 +129,14 @@
   <data name="Global_Level" xml:space="preserve">
     <value>глобального уровня </value>
   </data>
+  <data name="One_Proj_Match_Error_Description" xml:space="preserve">
+    <value>совпадает с именем проекта</value>
+  </data>
   <data name="No_Required_String" xml:space="preserve">
     <value>Отсутствует обязательный</value>
+  </data>
+  <data name="Of_A_Project_String" xml:space="preserve">
+    <value> проекта '</value>
   </data>
   <data name="Reference_String" xml:space="preserve">
     <value> референс </value>
@@ -140,5 +146,197 @@
   </data>
   <data name="Unacceptable_String" xml:space="preserve">
     <value>Присутствует недопустимый</value>
+  </data>
+  <data name="Claim_Match_Error_Description" xml:space="preserve">
+    <value>одновременно заявлен как обязательный и недопустимый</value>
+  </data>
+  <data name="Reference_Match_Error_Action" xml:space="preserve">
+    <value>Устраните противоречие в правиле</value>
+  </data>
+  <data name="Config_File_Property_Null_Error_Message" xml:space="preserve">
+    <value>Файл конфигурации не содержит свойство '</value>
+  </data>
+  <data name="Config_File_Property_Null_Error_Action" xml:space="preserve">
+    <value>Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации</value>
+  </data>
+  <data name="Max_Framework_Version_Deviant_Value_Error_Message" xml:space="preserve">
+    <value>параметр 'framework_max_version' </value>
+  </data>
+  <data name="Config_File_String" xml:space="preserve">
+    <value>конфигурационного файла </value>
+  </data>
+  <data name="Global_String" xml:space="preserve">
+    <value>глобального </value>
+  </data>
+  <data name="Solution_String" xml:space="preserve">
+    <value>solution</value>
+  </data>
+  <data name="Project_Type_Copy_Error" xml:space="preserve">
+    <value> содержит один и тот же тип проекта в шаблоне более одного раза</value>
+  </data>
+  <data name="Invalid_Project_Type_Error" xml:space="preserve">
+    <value> содержит некорректную запись своего значения</value>
+  </data>
+  <data name="Illegal_TFM_Usage_Error_Message" xml:space="preserve">
+    <value>содержит попытку задать ограничение для TFM, не обнаруженного в текущем проекте.</value>
+  </data>
+  <data name="Illegal_TFM_Usage_Error_Action" xml:space="preserve">
+    <value>Проверьте указанную строку max_framework_version на предмет соответствия релевантным проекту TFM</value>
+  </data>
+  <data name="Incorrect_TFM_Usage_Error_Message" xml:space="preserve">
+    <value>содержит использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM).</value>
+  </data>
+  <data name="Incorrect_TFM_Usage_Error_Action" xml:space="preserve">
+    <value>Исправьте значение параметра на допустимое</value>
+  </data>
+  <data name="For_string" xml:space="preserve">
+    <value> для </value>
+  </data>
+  <data name="Have_Version_String" xml:space="preserve">
+    <value> имеет версию '</value>
+  </data>
+  <data name="Framework_Version_Comparability_Error_Message" xml:space="preserve">
+    <value>', в то время как максимально допустимой для него версией является '</value>
+  </data>
+  <data name="Global_Rule_Level" xml:space="preserve">
+    <value>ограничение глобального уровня</value>
+  </data>
+  <data name="Solution_Rule_Level" xml:space="preserve">
+    <value>ограничение уровня решения</value>
+  </data>
+  <data name="Project_Rule_Level" xml:space="preserve">
+    <value>ограничение уровня проекта</value>
+  </data>
+  <data name="Framework_Version_Comparability_Error_Action" xml:space="preserve">
+    <value>Измените версию проекта или модифицируйте файл  конфигурации</value>
+  </data>
+  <data name="Req_Reference_Type" xml:space="preserve">
+    <value>является обязательным и</value>
+  </data>
+  <data name="Unaccept_Reference_Type" xml:space="preserve">
+    <value>является недопустимым и</value>
+  </data>
+  <data name="Reference_Match_Warn_Duplicate_Message" xml:space="preserve">
+    <value> дубирует правило с одноимённым референсом </value>
+  </data>
+  <data name="Reference_Match_Warn_Contrad_Message" xml:space="preserve">
+    <value> противоречит правилу с одноимённым референсом </value>
+  </data>
+  <data name="Refernce_Match_Duplicate_Warn_Action" xml:space="preserve">
+    <value>Устраните дублирование правила</value>
+  </data>
+  <data name="Reference_Match_Contrad_Warn_Action" xml:space="preserve">
+    <value>Устраните противоречие в правиле</value>
+  </data>
+  <data name="Project_String" xml:space="preserve">
+    <value> проект '</value>
+  </data>
+  <data name="In_A_Project_String" xml:space="preserve">
+    <value>в проекте '</value>
+  </data>
+  <data name="Project_Not_Found_Warning_Message" xml:space="preserve">
+    <value>', указанный в референс-правиле </value>
+  </data>
+  <data name="Project_Not_Found_Warning_Message_2" xml:space="preserve">
+    <value>, не обнаружен в решении</value>
+  </data>
+  <data name="Project_Not_Found_Warning_Action" xml:space="preserve">
+    <value>Проверьте правило на корректность написания в файле конфигурации</value>
+  </data>
+  <data name="Config_File_String_2" xml:space="preserve">
+    <value>файле конфигурации</value>
+  </data>
+  <data name="Project_Match_Warning_Message" xml:space="preserve">
+    <value>' не обнаружен в </value>
+  </data>
+  <data name="Project_Match_Warning_Action" xml:space="preserve">
+    <value>Проверьте проект на корректность написания его имени в файле конфигурации</value>
+  </data>
+  <data name="Global_Config_File_String" xml:space="preserve">
+    <value>глобального файла конфигурации</value>
+  </data>
+  <data name="Solution_Config_File_String" xml:space="preserve">
+    <value>файла конфигурации конкретного решения</value>
+  </data>
+  <data name="Contains_Value_String" xml:space="preserve">
+    <value> содержит значение '</value>
+  </data>
+  <data name="Max_Fr_Version_Deviant_Value_Warn_Message" xml:space="preserve">
+    <value>', а должен содержать значение с точкой (формата 'x.x').</value>
+  </data>
+  <data name="Max_Fr_Version_Deviant_Value_Warn_Action" xml:space="preserve">
+    <value>Приведите значение к корректному формату</value>
+  </data>
+  <data name="Value_String" xml:space="preserve">
+    <value>значение '</value>
+  </data>
+  <data name="Of_The_Fr_Max_Version_String" xml:space="preserve">
+    <value>параметра 'framework_max_version' </value>
+  </data>
+  <data name="Exceed_String" xml:space="preserve">
+    <value> превосходит </value>
+  </data>
+  <data name="Eponymous_Parameter_String" xml:space="preserve">
+    <value>' одноимённого параметра </value>
+  </data>
+  <data name="Supertype_All_Level" xml:space="preserve">
+    <value>, указанное в супертипе 'all' на том же уровне</value>
+  </data>
+  <data name="Max_Fr_Version_Reference_Conflict_Warn_Message" xml:space="preserve">
+    <value>' приводит к потенциальному конфликту версий TargetFramework, так как имеется референс на проект, имеющий </value>
+  </data>
+  <data name="Max_Fr_Version_Conflict_Bigger_Value_Error_Cause" xml:space="preserve">
+    <value>большее значение значение параметра 'framework_max_version' </value>
+  </data>
+  <data name="Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause" xml:space="preserve">
+    <value>несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' </value>
+  </data>
+  <data name="Version_String" xml:space="preserve">
+    <value> версия '</value>
+  </data>
+  <data name="TFM_Not_Found_Warn_Message" xml:space="preserve">
+    <value>Не найден TargetFramework, имеющий значение '</value>
+  </data>
+  <data name="Is_Not_Found_String" xml:space="preserve">
+    <value> </value>
+  </data>
+  <data name="TFM_Not_Found_Warn_Action" xml:space="preserve">
+    <value>Проверьте указанную строку max_framework_version на предмет соответствия существующим TFM</value>
+  </data>
+  <data name="In_The_Fr_Max_Version_String" xml:space="preserve">
+    <value>в параметре 'framework_max_version' </value>
+  </data>
+  <data name="Illegal_Template_Usage_Warn_Message" xml:space="preserve">
+    <value> указан TFM, который не встречается ни в одном из TargetFramework проектов этого решения.</value>
+  </data>
+  <data name="Illegal_Template_Usage_Warn_Action" xml:space="preserve">
+    <value>Проверьте указанную строку 'max_framework_version' на предмет соответствия релевантных решению TFM</value>
+  </data>
+  <data name="In_The_Proj_Name_String" xml:space="preserve">
+    <value>в имени проекта '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Message" xml:space="preserve">
+    <value>' содержится семантическая ошибка (ожидалось: '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Message_1" xml:space="preserve">
+    <value>'; найдено: '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Action" xml:space="preserve">
+    <value>Исправьте опечатку в имени проекта</value>
+  </data>
+  <data name="Untyped_Warn_Message" xml:space="preserve">
+    <value>Не получилось произвести проверку версии 'TargetFramework</value>
+  </data>
+  <data name="Untyped_Warn_Message_2" xml:space="preserve">
+    <value>', так как RefDepGuard не удалось получить из .csproj файла корректное значение для этого свойства.</value>
+  </data>
+  <data name="Untyped_Warn_Action" xml:space="preserve">
+    <value>Проверьте, что проект имеет корректную версию 'TargetFramework'</value>
+  </data>
+  <data name="Transit_Refs_Message" xml:space="preserve">
+    <value>' содержит следующие транзитивные референсы: </value>
+  </data>
+  <data name="Transit_Refs_Duplicate_Warn_Message" xml:space="preserve">
+    <value>' имеет 1 или более транзитивных референсов, дублирующих следующие прямые референсы проекта: </value>
   </data>
 </root>

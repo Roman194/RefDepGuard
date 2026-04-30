@@ -42,21 +42,21 @@ namespace RefDepGuard.Applied
 
             foreach (ReferenceMatchError referenceMatchError in refDepGuardErrors.RefsMatchErrorList)
             {
-                string projectName = (referenceMatchError.ProjectName != "") ? "' проекта '" + referenceMatchError.ProjectName : "";
-                string referenceLevelText = "";
+                string projectName = (referenceMatchError.ProjectName != "") ? ("'" + Resource.Of_A_Project_String + referenceMatchError.ProjectName) : "";
+                string referenceLevelText = " ";
                 string matchErrorDescription = referenceMatchError.IsProjNameMatchError ?
-                    " совпадает с именем проекта" : " одновременно заявлен как обязательный и недопустимый";
+                    Resource.One_Proj_Match_Error_Description : Resource.Claim_Match_Error_Description;
                 string documentName = (referenceMatchError.RuleLevel == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
                 switch (referenceMatchError.RuleLevel)
                 {
-                    case ProblemLevel.Solution: referenceLevelText = " уровня Solution"; break;
-                    case ProblemLevel.Global: referenceLevelText = " глобального уровня"; break;
+                    case ProblemLevel.Solution: referenceLevelText += Resource.Solution_Level; break;
+                    case ProblemLevel.Global: referenceLevelText += Resource.Global_Level; break;
                 }
 
-                string errorText = outputPlacePrefix + "Match error: референс '" + referenceMatchError.ReferenceName + projectName + "'" + referenceLevelText +
-                    matchErrorDescription + "." + outputPlaceTransfer + "Устраните противоречие в правиле";
+                string errorText = outputPlacePrefix + "Match error:" + Resource.Reference_String + "'" + referenceMatchError.ReferenceName + projectName + "'" + referenceLevelText
+                   + matchErrorDescription + "." + outputPlaceTransfer + Resource.Reference_Match_Error_Action;
 
                 problemsStringList.Add(new ProblemString(errorText, documentName));
             }
@@ -64,10 +64,12 @@ namespace RefDepGuard.Applied
             foreach (ConfigFilePropertyNullError configFilePropertyNullError in refDepGuardErrors.ConfigPropertyNullErrorList)
             {
                 string relevantProjectName = (configFilePropertyNullError.ErrorRelevantProjectName != "") ?
-                    " для проекта '" + configFilePropertyNullError.ErrorRelevantProjectName + "'" : "";
-                string errorText = outputPlacePrefix + "Null property error: Config-файл не содержит свойство '" + configFilePropertyNullError.PropertyName + "'" +
-                    relevantProjectName + "." + outputPlaceTransfer + "Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
-                string documentName = configFilePropertyNullError.IsGlobal ? "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
+                    Resource.For_Project_String + configFilePropertyNullError.ErrorRelevantProjectName + "'" : "";
+                string documentName = configFilePropertyNullError.IsGlobal ? 
+                    "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
+
+                string errorText = outputPlacePrefix + "Null property error: " + Resource.Config_File_Property_Null_Error_Message + configFilePropertyNullError.PropertyName +
+                    relevantProjectName + "." + outputPlaceTransfer + Resource.Config_File_Property_Null_Error_Action;
 
                 problemsStringList.Add(new ProblemString(errorText, documentName));
             }
@@ -77,18 +79,18 @@ namespace RefDepGuard.Applied
                 string relevantProjectName = "";
                 string globalPrefix = "";
                 string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ?
-                    " содержит один и тот же тип проекта в шаблоне более одного раза" : " содержит некорректную запись своего значения";
+                    Resource.Project_Type_Copy_Error : Resource.Invalid_Project_Type_Error;
                 string documentName = (maxFrameworkVersionDeviantValue.ErrorLevel == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
                 switch (maxFrameworkVersionDeviantValue.ErrorLevel)
                 {
-                    case ProblemLevel.Global: globalPrefix = "глобального "; break;
-                    case ProblemLevel.Solution: relevantProjectName = "уровня Solution"; break;
-                    case ProblemLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
+                    case ProblemLevel.Global: globalPrefix = Resource.Global_String; break;
+                    case ProblemLevel.Solution: globalPrefix = Resource.Solution_String; break;
+                    case ProblemLevel.Project: relevantProjectName = Resource.Of_A_Project_String + maxFrameworkVersionDeviantValue.ErrorRelevantProjectName + "'"; break;
                 }
-                string errorText = outputPlacePrefix + "framework_max_version deviant value error: параметр 'framework_max_version' " + globalPrefix + "Config-файла " +
-                    relevantProjectName + errorType + "." + outputPlaceTransfer + "Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации";
+                string errorText = outputPlacePrefix + "framework_max_version deviant value error: " + Resource.Max_Framework_Version_Deviant_Value_Error_Message + globalPrefix 
+                    + Resource.Config_File_String + relevantProjectName + errorType + "." + outputPlaceTransfer + Resource.Config_File_Property_Null_Error_Action;
 
                 problemsStringList.Add(new ProblemString(errorText, documentName));
             }
@@ -96,37 +98,34 @@ namespace RefDepGuard.Applied
             foreach (MaxFrameworkVersionIllegalTemplateUsageError maxFrameworkVersionIllegalTemplateUsageError in refDepGuardErrors.MaxFrameworkVersionIllegalTemplateUsageErrorList)
             {
                 string errorDescr = maxFrameworkVersionIllegalTemplateUsageError.IsIllegalTFMUsageError ?
-                    ("а попытка задать ограничение для TFM, не обнаруженного в текущем проекте." + outputPlaceTransfer + 
-                    "Проверьте указанную строку max_framework_version на предмет соответствия релевантных проекту TFM") :
-                    ("о использование шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM)." 
-                    + outputPlaceTransfer + "Исправьте значение параметра на допустимое");
-
-                string errorText = outputPlacePrefix + "framework_max_version illegal template usage error: в параметре 'framework_max_version' проекта '" +
-                    maxFrameworkVersionIllegalTemplateUsageError.ProjName +
-                    "' обнаружен" + errorDescr;
-
+                    (Resource.Illegal_TFM_Usage_Error_Message + outputPlaceTransfer + Resource.Illegal_TFM_Usage_Error_Action) :
+                    (Resource.Incorrect_TFM_Usage_Error_Message + outputPlaceTransfer + Resource.Incorrect_TFM_Usage_Error_Action);
                 string documentName = configFilesData.SolutionName + "_config_guard.rdg";
+
+                string errorText = outputPlacePrefix + "framework_max_version illegal template usage error: " + Resource.Max_Framework_Version_Deviant_Value_Error_Message + 
+                    Resource.Of_A_Project_String + maxFrameworkVersionIllegalTemplateUsageError.ProjName + "' " + errorDescr;
 
                 problemsStringList.Add(new ProblemString(errorText, documentName));
             }
 
             foreach (FrameworkVersionComparabilityError frameworkVersionComparabilityError in refDepGuardErrors.FrameworkVersionComparabilityErrorList)
             {
-                string ruleLevel = "ограничение глобального уровня";
+                string ruleLevel = Resource.Global_Rule_Level;
                 string currentTFMText = (frameworkVersionComparabilityError.ErrorRelevantTFM != "") ?
-                    (" для TFM '" + frameworkVersionComparabilityError.ErrorRelevantTFM + "'") : "";
+                    (Resource.For_string + "TFM '" + frameworkVersionComparabilityError.ErrorRelevantTFM + "'") : "";
                 string documentName = (frameworkVersionComparabilityError.ErrorLevel == ProblemLevel.Global) ?
                     configFilesData.SolutionName + "_config_guard.rdg" : "global_config_guard.rdg";
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)
                 {
-                    case ProblemLevel.Solution: ruleLevel = "ограничение уровня решения"; break;
-                    case ProblemLevel.Project: ruleLevel = "ограничение уровня проекта"; break;
+                    case ProblemLevel.Solution: ruleLevel = Resource.Solution_Rule_Level; break;
+                    case ProblemLevel.Project: ruleLevel = Resource.Project_Rule_Level; break;
                 }
-                string errorText = outputPlacePrefix + "Framework version comparability error: 'TargetFrameworkVersion' проекта '" + frameworkVersionComparabilityError.ErrorRelevantProjectName +
-                    "'"+ currentTFMText +" имеет версию '" + frameworkVersionComparabilityError.TargetFrameworkVersion + "', в то время как максимально допустимой для него версией является '" +
+                string errorText = outputPlacePrefix + "Framework version comparability error: 'TargetFrameworkVersion' " + Resource.Of_A_Project_String + 
+                    frameworkVersionComparabilityError.ErrorRelevantProjectName +
+                    "'" + currentTFMText + Resource.Have_Version_String + frameworkVersionComparabilityError.TargetFrameworkVersion + Resource.Framework_Version_Comparability_Error_Message +
                     frameworkVersionComparabilityError.MaxFrameworkVersion + "' (" + ruleLevel + ")." + outputPlaceTransfer + 
-                    "Измените версию проекта или модифицируйте конфигурацию Config-файла";
+                    Resource.Framework_Version_Comparability_Error_Action;
 
                 problemsStringList.Add(new ProblemString(errorText, documentName));
             }
@@ -144,103 +143,105 @@ namespace RefDepGuard.Applied
 
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
             {
-                string projectName = (referenceMatchWarning.ProjectName != "") ? "' проекта '" + referenceMatchWarning.ProjectName : "";
+                string projectName = (referenceMatchWarning.ProjectName != "") ? ("'" + Resource.Of_A_Project_String + referenceMatchWarning.ProjectName) : "";
                 string highReferenceLevelText = "";
-                string lowReferenceLevelText = (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution) ? "уровня Solution" : "";
+                string lowReferenceLevelText = (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution) ? Resource.Solution_Level : " ";
                 string referenceTypeText = referenceMatchWarning.IsReferenceStraight ?
-                    (referenceMatchWarning.IsHighLevelReq ? " является обязательным и" : " является недопустимым и") :
-                    (referenceMatchWarning.IsHighLevelReq ? " является недопустимым и" : " является обязательным и"); //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
+                    (referenceMatchWarning.IsHighLevelReq ? Resource.Req_Reference_Type : Resource.Unaccept_Reference_Type) :
+                    (referenceMatchWarning.IsHighLevelReq ? Resource.Unaccept_Reference_Type : Resource.Req_Reference_Type); //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
                 string warningDescription = referenceMatchWarning.IsReferenceStraight ?
-                    " дубирует правило с одноимённым референсом " : " противоречит правилу с одноимённым референсом ";
-                string warningAction = referenceMatchWarning.IsReferenceStraight ? ("." + outputPlaceTransfer + "Устраните дублирование правила") : 
-                    ("." + outputPlaceTransfer + "Устраните противоречие в правиле");
+                    Resource.Reference_Match_Warn_Duplicate_Message : Resource.Reference_Match_Warn_Contrad_Message;
+                string warningAction = referenceMatchWarning.IsReferenceStraight ? ("." + outputPlaceTransfer + Resource.Refernce_Match_Duplicate_Warn_Action) : 
+                    ("." + outputPlaceTransfer + Resource.Reference_Match_Contrad_Warn_Action);
                 string documentName = (referenceMatchWarning.HighReferenceLevel == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
                 switch (referenceMatchWarning.HighReferenceLevel)
                 {
-                    case ProblemLevel.Solution: highReferenceLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Global: highReferenceLevelText = "глобального уровня"; break;
+                    case ProblemLevel.Solution: highReferenceLevelText = Resource.Solution_Level; break;
+                    case ProblemLevel.Global: highReferenceLevelText = Resource.Global_Level; break;
                 }
-                string warningText = outputPlacePrefix + "Match Warning: референс '" + referenceMatchWarning.ReferenceName + projectName + "' " + lowReferenceLevelText + 
-                    referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
+                string warningText = outputPlacePrefix + "Match Warning:" + Resource.Reference_String + "'" + referenceMatchWarning.ReferenceName + projectName + "' " + 
+                    lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText + warningAction;
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
             foreach (var currentProjectNotFoundWarning in refDepGuardWarnings.ProjectNotFoundWarningList)
             {
-                string ruleLevel = "уровня Solution";
+                string ruleLevel = Resource.Solution_Level;
                 string documentName = (currentProjectNotFoundWarning.WarningLevel == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
                 switch (currentProjectNotFoundWarning.WarningLevel)
                 {
-                    case ProblemLevel.Global: ruleLevel = "глобального уровня"; break;
-                    case ProblemLevel.Project: ruleLevel = "в проекте '" + currentProjectNotFoundWarning.ProjName + "' "; break;
+                    case ProblemLevel.Global: ruleLevel = Resource.Global_Level; break;
+                    case ProblemLevel.Project: ruleLevel = Resource.In_A_Project_String + currentProjectNotFoundWarning.ProjName + "' "; break;
                 }
-                string warningText = outputPlacePrefix + "Project not found warning: проект '" + currentProjectNotFoundWarning.ReferenceName + 
-                    "', указанный в референс-правиле " + ruleLevel + ", не обнаружен в solution" + "." + outputPlaceTransfer + 
-                    "Проверьте правило на корректность написания в config-файле";
+                string warningText = outputPlacePrefix + "Project not found warning:" + Resource.Project_String + currentProjectNotFoundWarning.ReferenceName + 
+                    Resource.Project_Not_Found_Warning_Message + ruleLevel + Resource.Project_Not_Found_Warning_Message_2 + "." + outputPlaceTransfer + 
+                    Resource.Project_Not_Found_Warning_Action;
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
             foreach (var currentProjectMatchWarning in refDepGuardWarnings.ProjectMatchWarningList)
             {
-                string placeWhereProjectNotFound = currentProjectMatchWarning.IsNoProjectInConfigFile ? "config-файле" : "solution";
+                string placeWhereProjectNotFound = currentProjectMatchWarning.IsNoProjectInConfigFile ? Resource.Config_File_String_2 : Resource.Solution_String;
 
-                string warningText = outputPlacePrefix + "Project match warning: проект '" + currentProjectMatchWarning.ProjName + "' не обнаружен в " + 
-                    placeWhereProjectNotFound + "." + outputPlaceTransfer + "Проверьте проект на корректность написания его имени в config-файле";
+                string warningText = outputPlacePrefix + "Project match warning:" + Resource.Project_String + currentProjectMatchWarning.ProjName + 
+                    Resource.Project_Match_Warning_Message + placeWhereProjectNotFound + "." + outputPlaceTransfer + 
+                    Resource.Project_Match_Warning_Action;
 
                 problemsStringList.Add(new ProblemString(warningText, configFilesData.SolutionName + "_config_guard.rdg"));
             }
 
             foreach (MaxFrameworkVersionDeviantValueWarning maxFrameworkVersionDeviantValue in refDepGuardWarnings.MaxFrameworkVersionDeviantValueWarningList)
             {
-                string relevantProjectName = "глобального Config-файла";
+                string relevantProjectName = Resource.Global_Config_File_String;
                 string warningText = "";
                 string documentName = (maxFrameworkVersionDeviantValue.WarningLevel == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
                 switch (maxFrameworkVersionDeviantValue.WarningLevel)
                 {
-                    case ProblemLevel.Solution: relevantProjectName = "Config-файла уровня Solution"; break;
-                    case ProblemLevel.Project: relevantProjectName = "проекта '" + maxFrameworkVersionDeviantValue.WarningRelevantProjectName + "'"; break;
+                    case ProblemLevel.Solution: relevantProjectName = Resource.Solution_Config_File_String; break;
+                    case ProblemLevel.Project: relevantProjectName = Resource.Of_A_Project_String + maxFrameworkVersionDeviantValue.WarningRelevantProjectName + "'"; break;
                 }
-                warningText = outputPlacePrefix + "framework_max_version deviant value warning: параметр 'framework_max_version' " + relevantProjectName + 
-                    " содержит значение '" + maxFrameworkVersionDeviantValue.DeviantValue +
-                    "', а должен содержать значение с точкой (формата 'x.x')." + outputPlaceTransfer + "Приведите значение к корректному формату";
+                warningText = outputPlacePrefix + "framework_max_version deviant value warning: " + Resource.Max_Framework_Version_Deviant_Value_Error_Message + " " + 
+                    relevantProjectName + Resource.Contains_Value_String + maxFrameworkVersionDeviantValue.DeviantValue +
+                    Resource.Max_Fr_Version_Deviant_Value_Warn_Message + outputPlaceTransfer + Resource.Max_Fr_Version_Deviant_Value_Warn_Action;
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
             foreach (MaxFrameworkVersionConflictWarning maxFrameworkVersionConflictValue in refDepGuardWarnings.MaxFrameworkVersionConflictWarningsList)
-            { //Выделить в error случаи, когда рассматриваюся версии одного уровня? (случаи с all)
+            {
                 string documentName = configFilesData.SolutionName + "_config_guard.rdg";
                 string highErrorLevelText = "";
                 string lowErrorLevelText = "";
 
                 if (maxFrameworkVersionConflictValue.HighWarnLevel == maxFrameworkVersionConflictValue.LowWarnLevel)
-                    highErrorLevelText = ", указанное в супертипе 'all' на том же уровне";
+                    highErrorLevelText = Resource.Supertype_All_Level;
                 else
                 {
                     switch (maxFrameworkVersionConflictValue.HighWarnLevel)
                     {
-                        case ProblemLevel.Global: highErrorLevelText = "глобального уровня"; break;
-                        case ProblemLevel.Solution: highErrorLevelText = "уровня Solution"; break;
+                        case ProblemLevel.Global: highErrorLevelText = Resource.Global_Level; break;
+                        case ProblemLevel.Solution: highErrorLevelText = Resource.Solution_Level; break;
                     }
                 }
 
                 switch (maxFrameworkVersionConflictValue.LowWarnLevel)
                 {
-                    case ProblemLevel.Solution: lowErrorLevelText = "уровня Solution"; break;
-                    case ProblemLevel.Project: lowErrorLevelText = "в проекте '" + maxFrameworkVersionConflictValue.WarningRelevantProjectName + "'"; break;
+                    case ProblemLevel.Solution: lowErrorLevelText = Resource.Solution_Level; break;
+                    case ProblemLevel.Project: lowErrorLevelText = Resource.In_A_Project_String + maxFrameworkVersionConflictValue.WarningRelevantProjectName + "'"; break;
                 }
 
-                string warningText = outputPlacePrefix + "framework_max_version conflict warning: значение '" + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
-                    + "' параметра 'framework_max_version' " + lowErrorLevelText + " превосходит значение '" + maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
-                    + "' одноимённого параметра " + highErrorLevelText + "." + outputPlaceTransfer + "Устраните противоречие";
+                string warningText = outputPlacePrefix + "framework_max_version conflict warning: " + Resource.Value_String + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
+                    + "' " + Resource.Of_The_Fr_Max_Version_String + lowErrorLevelText + Resource.Exceed_String + Resource.Value_String + 
+                    maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion
+                    + Resource.Eponymous_Parameter_String + highErrorLevelText + "." + outputPlaceTransfer + Resource.Reference_Match_Error_Action;
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
@@ -248,13 +249,14 @@ namespace RefDepGuard.Applied
             foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList)
             {
                 string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
-                    "большее значение значение параметра 'framework_max_version' " :
-                    "несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' ";
-                string warningText = outputPlacePrefix + "framework_max_version reference conflict warning: значение '" + 
-                    maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion + "' параметра 'framework_max_version' проекта " + 
-                    maxFrameworkVersionReferenceConflictWarning.ProjName + " приводит к потенциальному конфликту версий TargetFramework" +
-                    ", так как имеется референс на проект, имеющий " + errorCause + "(проект: " + maxFrameworkVersionReferenceConflictWarning.RefName
-                    + ", Версия: " + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")." + outputPlaceTransfer + "Устраните противоречие";
+                    Resource.Max_Fr_Version_Conflict_Bigger_Value_Error_Cause :
+                    Resource.Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause;
+                
+                string warningText = outputPlacePrefix + "framework_max_version reference conflict warning: " + Resource.Value_String + 
+                    maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion + "' " + Resource.Of_The_Fr_Max_Version_String + Resource.Of_A_Project_String + 
+                    maxFrameworkVersionReferenceConflictWarning.ProjName + Resource.Max_Fr_Version_Reference_Conflict_Warn_Message + errorCause + "(" + Resource.Project_String 
+                    + maxFrameworkVersionReferenceConflictWarning.RefName + "'," + Resource.Version_String + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion 
+                    + "')." + outputPlaceTransfer + Resource.Reference_Match_Error_Action;
                 string documentName = configFilesData.SolutionName + "_config_guard.rdg";
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
@@ -262,52 +264,48 @@ namespace RefDepGuard.Applied
 
             foreach (MaxFrameworkVersionTFMNotFoundWarning maxFrameworkVersionTFMNotFoundWarning in refDepGuardWarnings.MaxFrameworkVersionTFMNotFoundWarningList)
             {
-                string warningLevel = "глобальный уровень";
+                string warningLevel = Resource.Global_Rule_Level;
                 string documentName = (maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
 
                 switch (maxFrameworkVersionTFMNotFoundWarning.WarningLevel)
                 {
-                    case ProblemLevel.Solution: warningLevel = "уровень решения"; break;
-                    case ProblemLevel.Project: warningLevel = "уровень проекта '" + maxFrameworkVersionTFMNotFoundWarning.ProjName + "'"; break;
+                    case ProblemLevel.Solution: warningLevel = Resource.Solution_Rule_Level; break;
+                    case ProblemLevel.Project: warningLevel = Resource.Project_String + maxFrameworkVersionTFMNotFoundWarning.ProjName + "'"; break;
                 }
-                string warningText = outputPlacePrefix + "framework_max_version TFM not found warning: Не найден TargetFramework, имеющий значение '" +
+                string warningText = outputPlacePrefix + "framework_max_version TFM not found warning: "  + Resource.TFM_Not_Found_Warn_Message + 
                     maxFrameworkVersionTFMNotFoundWarning.TFMName + 
-                    "' (" + warningLevel + ")." + outputPlaceTransfer + "Проверьте указанную строку max_framework_version на предмет соответствия существующим TFM";
+                    "'" + Resource.Is_Not_Found_String +"(" + warningLevel + ")." + outputPlaceTransfer + Resource.TFM_Not_Found_Warn_Action;
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
             foreach(MaxFrameworkIllegalTemplateUsageWarning maxFrameworkIllegalTemplateUsageWarning in refDepGuardWarnings.MaxFrameworkIllegalTemplateUsageWarningList)
             {
-                string warningLevel = maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global ? "глобального уровня" : "уровня решения";
+                string warningLevel = maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global ? Resource.Global_Level : Resource.Solution_Level;
+                string warningText = outputPlacePrefix + "framework_max_version illegal template usage warning: " + Resource.In_The_Fr_Max_Version_String + warningLevel +
+                    Resource.Illegal_Template_Usage_Warn_Message + outputPlaceTransfer + Resource.Illegal_Template_Usage_Warn_Action;
 
                 string documentName = (maxFrameworkIllegalTemplateUsageWarning.ProblemLevelInfo == ProblemLevel.Global) ?
                     "global_config_guard.rdg" : configFilesData.SolutionName + "_config_guard.rdg";
-
-                string warningText = outputPlacePrefix + "framework_max_version illegal template usage warning: в параметре 'framework_max_version' " + warningLevel +
-                    " указан TFM, который не встречается ни в одном из TargetFramework проектов этого решения" + outputPlaceTransfer +
-                    "Проверьте указанную строку max_framework_version на предмет соответствия релевантных решению TFM";
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
             foreach(ProjectNameSemanticWarning projNameSemaWarning in refDepGuardWarnings.ProjectNameSemanticWarningList)
             {
+                string warningText = outputPlacePrefix + "Project name semantic warning: " + Resource.In_The_Proj_Name_String + projNameSemaWarning.ProjectName +
+                    Resource.Proj_Name_Semantic_Warn_Message + projNameSemaWarning.ExpectedSema + Resource.Proj_Name_Semantic_Warn_Message_1 + projNameSemaWarning.FindedSema 
+                    + "')." + outputPlaceTransfer + Resource.Proj_Name_Semantic_Warn_Action;
                 string documentName = "global_config_guard.rdg";
-
-                string warningText = outputPlacePrefix + "Project name semantic warning: в имени проекта '" + projNameSemaWarning.ProjectName +
-                    "' содержится семантическая ошибка (ожидалось: '" + projNameSemaWarning.ExpectedSema + "'; найдено: '" + projNameSemaWarning.FindedSema + "')." + outputPlaceTransfer +
-                    "Исправьте опечатку в имени проекта";
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
             }
 
             foreach (var projName in refDepGuardWarnings.UntypedWarningsList)
             {
-                string currentText = outputPlacePrefix + "Warning: Не получилось произвести проверку версии 'TargetFramework' для проекта '" + projName +
-                    "', так как программе не удалось получить из .csproj файла корректное значение для этого свойства." +
-                    outputPlaceTransfer + "Проверьте, что проект имеет корректную версию 'TargetFramework'";
+                string currentText = outputPlacePrefix + "Warning: " + Resource.Untyped_Warn_Message + Resource.For_Project_String + projName +
+                    Resource.Untyped_Warn_Message_2 + outputPlaceTransfer + Resource.Untyped_Warn_Action;
 
                 problemsStringList.Add(new ProblemString(currentText, ""));
             }
@@ -318,7 +316,7 @@ namespace RefDepGuard.Applied
                 string projName = projKeyValuePair.Key;
                 List<string> detectedTransitRefsList = projKeyValuePair.Value;
 
-                string currentText = outputPlacePrefix + "Transit references warning: у проекта '" + projName + "' обнаружены следующие транзитивные референсы: ";
+                string currentText = outputPlacePrefix + "Transit references warning: " + Resource.Project_String + projName + Resource.Transit_Refs_Message;
 
                 foreach (var refName in detectedTransitRefsList)
                 {
@@ -334,8 +332,7 @@ namespace RefDepGuard.Applied
                 string projName = projKeyValuePair.Key;
                 List<string> detectedTransitRefsList = projKeyValuePair.Value;
 
-                string currentText = outputPlacePrefix + "Transit references duplicate warning: у проекта '" + projName + "' есть 1 или более транзитивных референсов," +
-                    " дублирующих следующие прямые референсы проекта: ";
+                string currentText = outputPlacePrefix + "Transit references duplicate warning: " + Resource.Project_String + projName + Resource.Transit_Refs_Duplicate_Warn_Message;
 
                 foreach (var refName in detectedTransitRefsList)
                 {

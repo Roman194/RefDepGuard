@@ -124,13 +124,19 @@
     <value>Remove this reference through the solution explorer</value>
   </data>
   <data name="For_Project_String" xml:space="preserve">
-    <value>' for project '</value>
+    <value>' for a project '</value>
   </data>
   <data name="Global_Level" xml:space="preserve">
     <value>of global level </value>
   </data>
+  <data name="One_Proj_Match_Error_Description" xml:space="preserve">
+    <value>is matches with project name</value>
+  </data>
   <data name="No_Required_String" xml:space="preserve">
     <value>There is no required</value>
+  </data>
+  <data name="Of_A_Project_String" xml:space="preserve">
+    <value> of the project '</value>
   </data>
   <data name="Reference_String" xml:space="preserve">
     <value> reference </value>
@@ -140,5 +146,197 @@
   </data>
   <data name="Unacceptable_String" xml:space="preserve">
     <value>There is an unacceptable</value>
+  </data>
+  <data name="Claim_Match_Error_Description" xml:space="preserve">
+    <value>is claimed as the required and unacceptable at the same time</value>
+  </data>
+  <data name="Reference_Match_Error_Action" xml:space="preserve">
+    <value>Resolve the contradiction in the rule</value>
+  </data>
+  <data name="Config_File_Property_Null_Error_Message" xml:space="preserve">
+    <value>Config file not contains property '</value>
+  </data>
+  <data name="Config_File_Property_Null_Error_Action" xml:space="preserve">
+    <value>Check it on syntax errors and for compliance with the configuration file template</value>
+  </data>
+  <data name="Max_Framework_Version_Deviant_Value_Error_Message" xml:space="preserve">
+    <value>'framework_max_version' property of a </value>
+  </data>
+  <data name="Config_File_String" xml:space="preserve">
+    <value>config file </value>
+  </data>
+  <data name="Global_String" xml:space="preserve">
+    <value>global </value>
+  </data>
+  <data name="Solution_String" xml:space="preserve">
+    <value>solution </value>
+  </data>
+  <data name="Project_Type_Copy_Error" xml:space="preserve">
+    <value> contains the same type of project in the template more than once</value>
+  </data>
+  <data name="Invalid_Project_Type_Error" xml:space="preserve">
+    <value> contains an incorrect entry of its value</value>
+  </data>
+  <data name="Illegal_TFM_Usage_Error_Message" xml:space="preserve">
+    <value>contains an attempt to set a limit for TFM that is not found in the current project.</value>
+  </data>
+  <data name="Illegal_TFM_Usage_Error_Action" xml:space="preserve">
+    <value>Check the specified max_framework_version string for compliance with the relevant TFM project</value>
+  </data>
+  <data name="Incorrect_TFM_Usage_Error_Message" xml:space="preserve">
+    <value>contains the use of a template for setting multiple restrictions, which is unacceptable for this project (the project has only one type of a specified TFM).</value>
+  </data>
+  <data name="Incorrect_TFM_Usage_Error_Action" xml:space="preserve">
+    <value>Correct the parameter value to a valid one</value>
+  </data>
+  <data name="For_string" xml:space="preserve">
+    <value> for a </value>
+  </data>
+  <data name="Have_Version_String" xml:space="preserve">
+    <value> have a version '</value>
+  </data>
+  <data name="Framework_Version_Comparability_Error_Message" xml:space="preserve">
+    <value>', when its max acceptable version is  '</value>
+  </data>
+  <data name="Global_Rule_Level" xml:space="preserve">
+    <value>global rule level</value>
+  </data>
+  <data name="Solution_Rule_Level" xml:space="preserve">
+    <value>solution rule level</value>
+  </data>
+  <data name="Project_Rule_Level" xml:space="preserve">
+    <value>project rule level</value>
+  </data>
+  <data name="Framework_Version_Comparability_Error_Action" xml:space="preserve">
+    <value>Change the project version or modify the config file</value>
+  </data>
+  <data name="Req_Reference_Type" xml:space="preserve">
+    <value>is a required one and</value>
+  </data>
+  <data name="Unaccept_Reference_Type" xml:space="preserve">
+    <value>is an unacceptable one and</value>
+  </data>
+  <data name="Reference_Match_Warn_Duplicate_Message" xml:space="preserve">
+    <value> duplicate a rule with eponymous reference </value>
+  </data>
+  <data name="Reference_Match_Warn_Contrad_Message" xml:space="preserve">
+    <value> contradict to a rule with eponymous reference </value>
+  </data>
+  <data name="Refernce_Match_Duplicate_Warn_Action" xml:space="preserve">
+    <value>Eliminate rules duplicate</value>
+  </data>
+  <data name="Reference_Match_Contrad_Warn_Action" xml:space="preserve">
+    <value>Resolve the contradiction in the rule</value>
+  </data>
+  <data name="Project_String" xml:space="preserve">
+    <value> a project '</value>
+  </data>
+  <data name="In_A_Project_String" xml:space="preserve">
+    <value>in the project '</value>
+  </data>
+  <data name="Project_Not_Found_Warning_Message" xml:space="preserve">
+    <value>' that is mentioned in reference rule  </value>
+  </data>
+  <data name="Project_Not_Found_Warning_Message_2" xml:space="preserve">
+    <value>is not detected in the solution</value>
+  </data>
+  <data name="Project_Not_Found_Warning_Action" xml:space="preserve">
+    <value>Check the rule on the correct spelling in the configuration file</value>
+  </data>
+  <data name="Config_File_String_2" xml:space="preserve">
+    <value>config file</value>
+  </data>
+  <data name="Project_Match_Warning_Message" xml:space="preserve">
+    <value>' is not found in the </value>
+  </data>
+  <data name="Project_Match_Warning_Action" xml:space="preserve">
+    <value>Check the project on the correct spelling of its name in the configuration file</value>
+  </data>
+  <data name="Global_Config_File_String" xml:space="preserve">
+    <value>of the global config file</value>
+  </data>
+  <data name="Solution_Config_File_String" xml:space="preserve">
+    <value>of the solution config-file</value>
+  </data>
+  <data name="Contains_Value_String" xml:space="preserve">
+    <value>contains value '</value>
+  </data>
+  <data name="Max_Fr_Version_Deviant_Value_Warn_Message" xml:space="preserve">
+    <value>', but should contains a value with a dot ('x.x' format).</value>
+  </data>
+  <data name="Max_Fr_Version_Deviant_Value_Warn_Action" xml:space="preserve">
+    <value>Adjust the value to the correct format</value>
+  </data>
+  <data name="Value_String" xml:space="preserve">
+    <value>a value '</value>
+  </data>
+  <data name="Of_The_Fr_Max_Version_String" xml:space="preserve">
+    <value>of the 'framework_max_version' property </value>
+  </data>
+  <data name="Exceed_String" xml:space="preserve">
+    <value> exceed </value>
+  </data>
+  <data name="Eponymous_Parameter_String" xml:space="preserve">
+    <value>' of the eponymous parameter </value>
+  </data>
+  <data name="Supertype_All_Level" xml:space="preserve">
+    <value>that is specified in the 'all' supertype at the same level</value>
+  </data>
+  <data name="Max_Fr_Version_Reference_Conflict_Warn_Message" xml:space="preserve">
+    <value>' leads to a potential version conflict of targetFramework, as there is a reference to a project that has </value>
+  </data>
+  <data name="Max_Fr_Version_Conflict_Bigger_Value_Error_Cause" xml:space="preserve">
+    <value>the higher value of the 'framework_max_version' parameter </value>
+  </data>
+  <data name="Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause" xml:space="preserve">
+    <value>incompatible value of the 'framework_max_version' parameter for the current project value of the  'netstandard' type </value>
+  </data>
+  <data name="Version_String" xml:space="preserve">
+    <value> version '</value>
+  </data>
+  <data name="TFM_Not_Found_Warn_Message" xml:space="preserve">
+    <value>TargetFramework with the value '</value>
+  </data>
+  <data name="Is_Not_Found_String" xml:space="preserve">
+    <value> is not found </value>
+  </data>
+  <data name="TFM_Not_Found_Warn_Action" xml:space="preserve">
+    <value>Check the specified max_framework_version string for compliance with existing TFMs</value>
+  </data>
+  <data name="In_The_Fr_Max_Version_String" xml:space="preserve">
+    <value>in the 'framework_max_version' parameter </value>
+  </data>
+  <data name="Illegal_Template_Usage_Warn_Message" xml:space="preserve">
+    <value> TFM is specified, which is not found in any of the targetFramework projects of this solution.</value>
+  </data>
+  <data name="Illegal_Template_Usage_Warn_Action" xml:space="preserve">
+    <value>Check the specified 'max_framework_version' string for compliance with the relevant TFM solution.</value>
+  </data>
+  <data name="In_The_Proj_Name_String" xml:space="preserve">
+    <value>in the name of the project '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Message" xml:space="preserve">
+    <value>' the semantic error is detected (expected: '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Message_1" xml:space="preserve">
+    <value>'; actual: '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Action" xml:space="preserve">
+    <value>Fix the typo in the project name</value>
+  </data>
+  <data name="Untyped_Warn_Message" xml:space="preserve">
+    <value>Couldn't verify the version of the 'TargetFramework</value>
+  </data>
+  <data name="Untyped_Warn_Message_2" xml:space="preserve">
+    <value>', cause RefDepGuard could not get the correct value for this property from the .csproj file.</value>
+  </data>
+  <data name="Untyped_Warn_Action" xml:space="preserve">
+    <value>Make sure that the project has the correct version of its 'TargetFramework'</value>
+  </data>
+  <data name="Transit_Refs_Message" xml:space="preserve">
+    <value>' contains the following transit references: </value>
+  </data>
+  <data name="Transit_Refs_Duplicate_Warn_Message" xml:space="preserve">
+    <value>' have 1 or more transit references,  that duplicates the following straight references of this project: </value>
   </data>
 </root>
