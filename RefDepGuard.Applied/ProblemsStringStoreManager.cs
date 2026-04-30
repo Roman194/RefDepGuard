@@ -248,13 +248,13 @@ namespace RefDepGuard.Applied
 
             foreach (MaxFrameworkVersionReferenceConflictWarning maxFrameworkVersionReferenceConflictWarning in refDepGuardWarnings.MaxFrameworkVersionReferenceConflictWarningsList)
             {
-                string errorCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
+                string warningCause = (maxFrameworkVersionReferenceConflictWarning.IsOneProjectsTypeConflict) ?
                     Resource.Max_Fr_Version_Conflict_Bigger_Value_Error_Cause :
                     Resource.Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause;
                 
                 string warningText = outputPlacePrefix + "framework_max_version reference conflict warning: " + Resource.Value_String + 
                     maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion + "' " + Resource.Of_The_Fr_Max_Version_String + Resource.Of_A_Project_String + 
-                    maxFrameworkVersionReferenceConflictWarning.ProjName + Resource.Max_Fr_Version_Reference_Conflict_Warn_Message + errorCause + "(" + Resource.Project_String 
+                    maxFrameworkVersionReferenceConflictWarning.ProjName + Resource.Max_Fr_Version_Reference_Conflict_Warn_Message + warningCause + "(" + Resource.Project_String 
                     + maxFrameworkVersionReferenceConflictWarning.RefName + "'," + Resource.Version_String + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion 
                     + "')." + outputPlaceTransfer + Resource.Reference_Match_Error_Action;
                 string documentName = configFilesData.SolutionName + "_config_guard.rdg";

@@ -217,7 +217,7 @@
     <value>является недопустимым и</value>
   </data>
   <data name="Reference_Match_Warn_Duplicate_Message" xml:space="preserve">
-    <value> дубирует правило с одноимённым референсом </value>
+    <value> дублирует правило с одноимённым референсом </value>
   </data>
   <data name="Reference_Match_Warn_Contrad_Message" xml:space="preserve">
     <value> противоречит правилу с одноимённым референсом </value>
