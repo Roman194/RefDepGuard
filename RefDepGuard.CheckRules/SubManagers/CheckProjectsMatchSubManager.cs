@@ -44,7 +44,8 @@ namespace RefDepGuard.CheckRules.SubManagers
             return projectMatchWarningList;
         }
 
-        public static Tuple<List<string>, List<string>> CheckSolutionNConfigFileProjectsOnMatch(ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
+        public static Tuple<List<string>, List<string>> CheckSolutionNConfigFileProjectsOnMatch(
+            ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
         {
             var addedProjectsList = new List<string>();
             var removedProjectsList = new List<string>();

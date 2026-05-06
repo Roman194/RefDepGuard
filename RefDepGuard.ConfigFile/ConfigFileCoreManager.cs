@@ -23,7 +23,8 @@ namespace RefDepGuard.ConfigFile
         
         private static ConfigFilesData ConfigFilesData;
 
-        public static Tuple<ConfigFilesData, ConfigFileFoundState> GetInfoFromConfigFilesForExtension(ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
+        public static Tuple<ConfigFilesData, ConfigFileFoundState> GetInfoFromConfigFilesForExtension(
+            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
             Dictionary<string, ProjectState> currentCommitedSolState)
         {
             GetInfoFromConfigFiles(currentSolutionConfigFileServiceInfo, globalSolutionConfigFileServiceInfo, solutionName, rootDir, currentCommitedSolState, true);
@@ -31,7 +32,8 @@ namespace RefDepGuard.ConfigFile
             return new Tuple<ConfigFilesData, ConfigFileFoundState>(ConfigFilesData, IsFilesFound);
         }
 
-        public static ConfigFilesData GetInfoFromConfigFiles(ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
+        public static ConfigFilesData GetInfoFromConfigFiles(
+            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
             Dictionary<string, ProjectState> currentCommitedSolState, bool isExtentionCall = false
             )
         {
@@ -52,11 +54,9 @@ namespace RefDepGuard.ConfigFile
         public static ConfigFilesData GetConfigFileInfoSecondAttempt(ConfigFileServiceInfo configFileServiceInfo, FileParseError parseErrorPredict)
         {
             ParseError = parseErrorPredict;
-
             GetCurrentConfigFileInfo(configFileServiceInfo, true); //Этот метод всегда вызывается только из расширения
 
             ConfigFilesData = new ConfigFilesData(configFileSolution, configFileGlobal, ParseError, SolutionName, RootDir);
-
             return ConfigFilesData;
         }
 

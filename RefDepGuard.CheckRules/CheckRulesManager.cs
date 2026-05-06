@@ -32,7 +32,7 @@ namespace RefDepGuard.CheckRules
         private static List<MaxFrameworkVersionTFMNotFoundWarning> maxFrameworkVersionTFMNotFoundWarningList = new List<MaxFrameworkVersionTFMNotFoundWarning>();
 
         private static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
-        private static List<RequiredMaxFrVersion> requiredMaxFrVersionList = new List<RequiredMaxFrVersion>();
+        //private static List<RequiredMaxFrVersion> requiredMaxFrVersionList = new List<RequiredMaxFrVersion>(); //?????
 
         //Lists with all errors and warnings, that will be exported to ELP in the end of the main method of this manager.
         private static RefDepGuardErrors refDepGuardErrors;
@@ -143,11 +143,14 @@ namespace RefDepGuard.CheckRules
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
                     //Transit references detection is needed on project level if it is allowed on global and solution levels and if the user didn't disable it for the project specifically
-                    bool isTransitReferencesDetectionNeededOnThisProj = (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
+                    bool isTransitReferencesDetectionNeededOnThisProj = 
+                        (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
 
                     Dictionary<string, List<int>> projTypes = currentCommitedSolState[projName].CurrentFrameworkVersions;
                     var maxFrameworkVersionByTypes =
-                        GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList());
+                        GetMaxFrameworkVersionDictionaryByTypes(
+                            currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList()
+                            );
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -161,7 +164,8 @@ namespace RefDepGuard.CheckRules
 
                     //A check on exsisting of the projects that are specified as the references in the config file on the project level
                     (requiredReferences, unacceptableReferences) =
-                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedSolState, ProblemLevel.Project, projName);
+                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(
+                            requiredReferences, unacceptableReferences, currentCommitedSolState, ProblemLevel.Project, projName);
 
                     //A check for conflicts between referneces on the project level and solution/global levels
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
@@ -327,7 +331,9 @@ namespace RefDepGuard.CheckRules
         /// <param name="projName">A name of the current project</param>
         /// <param name="projTypes">TFM-s of this project</param>
         /// <returns>Max framework version rules in dictionary format</returns>
-        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ProblemLevel errorLevel, string projName = "", List<string> projTypes = null)
+        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(
+            string currentMaxFrameworkVersion, ProblemLevel errorLevel, string projName = "", List<string> projTypes = null
+            )
         {
             projTypes = projTypes ?? new List<string>();
 
@@ -413,7 +419,9 @@ namespace RefDepGuard.CheckRules
                     if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Try to parse it to int
                     {
                         //if it is not possible, then adds deviant value error and return an empty dictionary
-                        MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
+                        MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = 
+                            new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
+                        
                         if (errorLevel == ProblemLevel.Project)
                         {
                             maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);

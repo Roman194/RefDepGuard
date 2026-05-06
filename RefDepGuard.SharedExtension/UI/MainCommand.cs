@@ -13,7 +13,6 @@ using Task = System.Threading.Tasks.Task;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied;
-//using System.Xaml;
 #if EXTENSION_22
 using RefDepGuard.StringResources;
 #elif EXTENSION_19
@@ -285,7 +284,6 @@ namespace RefDepGuard
         {
             if (isSolutionFamiliar)
                 UpdateSolutionState(true);
-
         }
 
         /// <summary>
@@ -393,8 +391,6 @@ namespace RefDepGuard
             }
 
             ShowProblemsWithConfigFiles();
-
-
         }
 
         /// <summary>
@@ -437,15 +433,21 @@ namespace RefDepGuard
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            (refDepGuardExportParameters, configFilesData) = CheckRulesExtentionManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
+            (refDepGuardExportParameters, configFilesData) = 
+                CheckRulesExtentionManager.CheckRulesFromConfigFiles(configFilesData, errorListProvider, commitedProjState, uiShell);
 
             if (refDepGuardExportParameters.RefDepGuardFindedProblemsData.IsEmpty() && configFilesData.ParseError == FileParseError.None)
                 ELPStoreManager.ShowNoProblemsFindedMessage(errorListProvider);
             else
             {
-                if(isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //If there are errors when event is build check
-                    dte.ExecuteCommand("Build.Cancel"); //Build should be cancel
-                
+                try
+                {
+                    if (isBuildCheck && !refDepGuardExportParameters.RefDepGuardFindedProblemsData.RefDepGuardErrors.IsEmpty()) //If there are errors when event is build check
+                        dte.ExecuteCommand("Build.Cancel"); //Build should be cancel
+                }catch(Exception ex)
+                {
+                    string message = ex.Message;
+                }
             }
         }
 

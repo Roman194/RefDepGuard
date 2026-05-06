@@ -118,7 +118,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                             foreach (var currentMaxHighLevelFrameworkVersion in maxHighLevelFrameworkVersion)
                             {
                                 maxHighLevelFrameworkVersionArray = currentMaxHighLevelFrameworkVersion.Value;
-                                CheckMaxFrameworkVersionCurrentConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                                CheckMaxFrameworkVersionCurrentConflict(
+                                    maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
                             }
                         }
                     }
@@ -160,7 +161,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                 if (maxFrameworkVersion.ContainsKey(currentProjectFramework))//If there is a rule for the same type as in TargetFramework, then we compare with it
                 {
                     if (currentProjectFramework == "netstandard") //In case of "netstandard", we compare with nearest existing netstandard version, as the user can specify any version
-                        (maxFrameworkVersionString, currentMaxFrameworkVersionNums) = TFMSample.GetNearestExistingNetstandartVersion(maxFrameworkVersion[currentProjectFramework]);
+                        (maxFrameworkVersionString, currentMaxFrameworkVersionNums) = 
+                            TFMSample.GetNearestExistingNetstandartVersion(maxFrameworkVersion[currentProjectFramework]);
                     else
                         currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjectFramework];
                 }
@@ -202,7 +204,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                         ) != null ? true : false;
 
                     currentRequiredProjectFrameworks.Add( //Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
-                        new RequiredMaxFrVersion(maxFrameworkVersionString, currentMaxFrameworkVersionNums, problemLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject)
+                        new RequiredMaxFrVersion(
+                            maxFrameworkVersionString, currentMaxFrameworkVersionNums, problemLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject)
                         );
 
                     var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
@@ -227,7 +230,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                                     && error.ErrorRelevantProjectName == projName) == null
                                 )
                                 frameworkVersionComparabilityErrorList.Add(
-                                    new FrameworkVersionComparabilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, errorRelevantTFM, projName)
+                                    new FrameworkVersionComparabilityError(
+                                        problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, errorRelevantTFM, projName)
                                     );
 
                             i = 0;
@@ -264,14 +268,14 @@ namespace RefDepGuard.CheckRules.SubManagers
                                     && error.ErrorRelevantProjectName == projName) == null
                                 )
                                     frameworkVersionComparabilityErrorList.Add(
-                                        new FrameworkVersionComparabilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, errorRelevantTFM, projName)
+                                        new FrameworkVersionComparabilityError(
+                                            problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, errorRelevantTFM, projName)
                                         );
 
                                 break;
                             }
                         }
                     }
-
                 }
             }
 
@@ -533,7 +537,7 @@ namespace RefDepGuard.CheckRules.SubManagers
                 int currentHighLevelFrameworkVersionNum = maxHighLevelFrameworkVersionList[i];
 
                 if (currentHighLevelFrameworkVersionNum < currentLowLevelFrameworkVersionNum)//If the current "higher" number is lower than the current "lower",
-                {
+                { //Оптимизировать!
                     //then we have a conflict and add warning about it
                     var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
                     var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
@@ -543,7 +547,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                     if (lowRuleLevel != ProblemLevel.Undefined)//By ProblemLevel.Undefined we understand which type of conflict we have and which warning should be determined
                         AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
                     else
-                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName,
+                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(
+                            maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName, 
                             isOneProjectsTypeConflict);
 
                     return;
@@ -573,7 +578,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                             AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel,
                                 highRuleLevel);
                         else
-                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName,
+                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(
+                                maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName,
                                 isOneProjectsTypeConflict);
 
                         break;

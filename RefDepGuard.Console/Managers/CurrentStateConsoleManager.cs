@@ -16,7 +16,7 @@ namespace RefDepGuard.Console.Managers
 
             if (File.Exists(solutionFileFullPath))
             {
-                var solutionFile = SolutionFile.Parse(solutionFileFullPath);//@"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg\Mir.Controller.Cfg.sln"
+                var solutionFile = SolutionFile.Parse(solutionFileFullPath);
                 var projects = solutionFile.ProjectsInOrder;
 
                 if (projects.Count > 0)

@@ -133,7 +133,6 @@ namespace RefDepGuard.Applied
             return problemsStringList;
         }
 
-
         public static List<ProblemString> ConvertCurrentWarningsToStringFormat(
             RefDepGuardWarnings refDepGuardWarnings, ConfigFilesData configFilesData, bool isLoadToConsole)
         {
@@ -332,7 +331,8 @@ namespace RefDepGuard.Applied
                 string projName = projKeyValuePair.Key;
                 List<string> detectedTransitRefsList = projKeyValuePair.Value;
 
-                string currentText = outputPlacePrefix + "Transit references duplicate warning: " + Resource.Project_String + projName + Resource.Transit_Refs_Duplicate_Warn_Message;
+                string currentText = outputPlacePrefix + "Transit references duplicate warning: " + Resource.Project_String + projName + 
+                    Resource.Transit_Refs_Duplicate_Warn_Message;
 
                 foreach (var refName in detectedTransitRefsList)
                 {

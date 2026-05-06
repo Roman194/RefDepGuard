@@ -32,8 +32,8 @@ namespace RefDepGuard
         /// <param name="currentReportDirectory">current report directory string</param>
         /// <param name="commitedProjectsState">commited projects state dictionary</param>
         /// <param name="refDepGuardExportParameters">RefDepGuardExportParameters value</param>
-        public static void LoadReferencesDataToGraphicReport(ConfigFilesData configFilesData, string currentReportDirectory, Dictionary<string, ProjectState> commitedProjectsState, 
-            RefDepGuardExportParameters refDepGuardExportParameters) 
+        public static void LoadReferencesDataToGraphicReport(
+            ConfigFilesData configFilesData, string currentReportDirectory, Dictionary<string, ProjectState> commitedProjectsState, RefDepGuardExportParameters refDepGuardExportParameters) 
         {
             string generatedHtml = GetCurrentHTMLCode(commitedProjectsState, refDepGuardExportParameters);
             string currentReportFile = currentReportDirectory + "\\" + configFilesData.SolutionName + "_references_report.html";

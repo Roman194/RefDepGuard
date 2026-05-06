@@ -314,9 +314,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                         projectsTable.Cells[firstRowIndex + j, 2] = "-";
                         projectsTable.Cells[firstRowIndex + j, 3] = refError.ReferenceName;
                         projectsTable.Cells[firstRowIndex + j, 4] = refError.ErrorRelevantProjectName;
-
                         projectsTable.Cells[firstRowIndex + j, 3].Font.Color = projectsTable.Cells[firstRowIndex + j, 4].Font.Color = 0xA6A6A6;
-
                         projectsTable = SetReferenceTypeStyle(projectsTable, firstRowIndex, j, Resource.Reference_Required_Type_Text, 0xCEEFC6, 0x006100);
 
                         j++;
@@ -359,7 +357,6 @@ namespace RefDepGuard.Managers.Export.SubManagers
             Range unionRangeSolutionName = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[2, widthIndex]];
             Range unionRangeGenerateTime = projectsTable.Range[projectsTable.Cells[3, 2], projectsTable.Cells[3, widthIndex]];
             Range unionRangeSolutionWithTime = projectsTable.Range[unionRangeSolutionName, unionRangeGenerateTime];
-
             Range unionRangeTableTitle = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[heightIndex, widthIndex]];
 
             unionRangeSolutionName.Merge();
@@ -421,7 +418,9 @@ namespace RefDepGuard.Managers.Export.SubManagers
         /// <param name="widthIndex">width int index</param>
         /// <param name="isReferencesWorkbook">shows if it's references workbook or not</param>
         /// <returns>Worksheet value</returns>
-        private static Worksheet SetUnionTableStyle(Worksheet projectsTable, Range unionRangeSolutionWithTime, Range unionRangeTableTitle, int i, int j, int extraColumnIndex, int widthIndex, bool isReferencesWorkbook)
+        private static Worksheet SetUnionTableStyle(
+            Worksheet projectsTable, Range unionRangeSolutionWithTime, Range unionRangeTableTitle, int i, int j, int extraColumnIndex, int widthIndex, 
+            bool isReferencesWorkbook)
         {
             Range unionRangeTableWithoutMissingReq = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[i + extraColumnIndex, widthIndex]];
             Range unionRangeAllTable = projectsTable.Range[projectsTable.Cells[2, 2], projectsTable.Cells[j + extraColumnIndex, widthIndex]];

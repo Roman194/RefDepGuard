@@ -135,17 +135,11 @@ namespace RefDepGuard
 
             message += projectNotFindedStr + Resource.In_Inside_Pretext_small_letter + problemPlaceStr + offeredSolutionStr;
 
-
             if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
             {
                 //Update config file with added or removed projects
                 configFilesData = ConfigFileExtensionManager.UpdateSolutionConfigFile(configFilesData, currentProjList, isAddedList);
-            }
-            else
-            {
-                //add "projects match warning" on later check
-                
-            }
+            } //else add "projects match warning" on later check
 
             return configFilesData;
         }

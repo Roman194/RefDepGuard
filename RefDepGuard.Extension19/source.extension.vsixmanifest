@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Ref.Dep.Guard.Ramonn_KN.c2e83471-6273-4667-80fb-5962abab073b" Version="2.1" Language="ru-RU" Publisher="Ramonn_KN" />
+        <Identity Id="Ref.Dep.Guard.Extension19.Ramonn_KN.c2e83471-6273-4667-80fb-5962abab073b" Version="2.1" Language="ru-RU" Publisher="Ramonn_KN" />
         <DisplayName>Ref Dep Guard</DisplayName>
         <Description xml:space="preserve">Данное расширение позволяет отслеживать изменения зависимостей между проектами и сопоставлять эти зависимости с правилами заданными в специальном конфигурационном файле. В случае несоответствия зависимостей заданным правилам, расширение выдаёт предупреждение о некорректных связях и не даёт сборке завершиться.
 This extension helps to track changes in project references between projects and compare these refs with config file rules. In case of mismatches RefDepGuard shows relevant errors/problems and cancel build (if there are some errors). 

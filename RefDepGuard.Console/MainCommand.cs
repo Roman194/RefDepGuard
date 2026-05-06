@@ -43,8 +43,8 @@ namespace RefDepGuard.Console
 
         private static void GetCurrentSolutionState()//]WinFormApp
         {
-            #if DEBUG
-                rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg"; //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
+            #if DEBUG //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
+                rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg";
             #else 
                 rootDirectory = Directory.GetCurrentDirectory();
             #endif

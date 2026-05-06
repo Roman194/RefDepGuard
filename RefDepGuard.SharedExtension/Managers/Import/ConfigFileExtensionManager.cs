@@ -72,7 +72,8 @@ namespace RefDepGuard
             serviceProvider = currentServiceProvider;
             uiShell = currentUiShell;
             
-            (configFilesData, filesFoundState) = ConfigFileCoreManager.GetInfoFromConfigFilesForExtension(currentSolutionConfigFileServiceInfo, globalSolutionConfigFileServiceInfo,
+            (configFilesData, filesFoundState) = 
+                ConfigFileCoreManager.GetInfoFromConfigFilesForExtension(currentSolutionConfigFileServiceInfo, globalSolutionConfigFileServiceInfo,
                 solutionName, packageExtendedName, currentCommitedSolState);
 
             var parseErrorCommitAfterGetInfo = configFilesData.ParseError;
@@ -152,7 +153,8 @@ namespace RefDepGuard
             if (isFileFound)
             {
                 // if syntax error in file actions
-                showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal, isSecondAttempt);
+                showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(configFileServiceInfo, fileErrorMessage.BadDataErrorMessage, configFileServiceInfo.IsGlobal, 
+                    isSecondAttempt);
             }
             else
             {
@@ -203,7 +205,8 @@ namespace RefDepGuard
         /// <param name="errorReason">error reason string</param>
         /// <param name="isErrorGlobal">shows if it's global file error or solution</param>
         /// <param name="isSecondAttempt">shows if it's already a second attempt to parse file info or not</param>
-        private static void showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(ConfigFileServiceInfo configFileServiceInfo, string errorReason, bool isErrorGlobal, bool isSecondAttempt)
+        private static void showConfigFileParseErrorMessageAndRestoreInfoIfNeeded(
+            ConfigFileServiceInfo configFileServiceInfo, string errorReason, bool isErrorGlobal, bool isSecondAttempt)
         {
             bool rollbackAction = true;
             string solutionNameInfo = "";
