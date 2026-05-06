@@ -1,10 +1,20 @@
-﻿using Microsoft.VisualStudio;
+﻿//#if EXTENSION22
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Task = System.Threading.Tasks.Task;
+//#else
+//using Microsoft.VisualStudio;
+//using Microsoft.VisualStudio.Shell;
+//using Microsoft.VisualStudio.Shell.Interop;
+//using System;
+//using System.Runtime.InteropServices;
+//using System.Threading;
+//using Task = System.Threading.Tasks.Task;
+//#endif
 
 namespace RefDepGuard
 {
@@ -51,17 +61,24 @@ namespace RefDepGuard
         private uint _solutionLoadEventsCookie;
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            // When initialized asynchronously, the current thread may be a background thread at this point.
-            // Do any initialization that requires the UI thread after switching to the UI thread.
-            await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-            await MainCommand.InitializeAsync(this);
+            //try
+            //{
+                // When initialized asynchronously, the current thread may be a background thread at this point.
+                // Do any initialization that requires the UI thread after switching to the UI thread.
+                await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await MainCommand.InitializeAsync(this);
+                IVsSolution solution = GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
 
-            IVsSolution solution = GetServiceAsync(typeof(SVsSolution)) as IVsSolution;
-            if (solution != null)
-            {
-                // Register a subscription on the user events
-                solution.AdviseSolutionEvents(this, out _solutionLoadEventsCookie);//Big parts of the functions doesn't work, so they are not calling and can be deleted
-            }
+                if (solution != null)
+                {
+                    // Register a subscription on the user events
+                    solution.AdviseSolutionEvents(this, out _solutionLoadEventsCookie);//Big parts of the functions doesn't work, so they are not calling and can be deleted
+                }
+            //}
+            //catch (Exception ex)
+            //{
+            //    string message = ex.Message;
+            //}
 
         }
 

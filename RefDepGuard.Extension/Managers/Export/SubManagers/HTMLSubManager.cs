@@ -9,9 +9,13 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference;
 using RefDepGuard.Applied.Models.Reference.Errors;
-using RefDepGuard.UI.Resources.StringResources;
 using System.Collections.Generic;
 using System.Linq;
+//#if EXTENSION22
+using RefDepGuard.UI.StringResources;
+//#elif EXTENSION19
+//using RefDepGuard.Extension19.StringResources;
+//#endif
 
 namespace RefDepGuard
 {

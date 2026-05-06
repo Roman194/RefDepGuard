@@ -10,7 +10,11 @@ using RefDepGuard.Applied.Models.ConfigFile.DTO;
 using RefDepGuard.CheckRules.Models;
 using RefDepGuard.Applied;
 using RefDepGuard.ConfigFile;
-using RefDepGuard.UI.Resources.StringResources;
+//#if EXTENSION22
+using RefDepGuard.UI.StringResources;
+//#elif EXTENSION19
+//using RefDepGuard.Extension19.StringResources;
+//#endif
 
 namespace RefDepGuard
 {

@@ -1,0 +1,646 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Action_Add_String" xml:space="preserve">
+    <value>Добавить его через обозреватель решений</value>
+  </data>
+  <data name="Action_File_Title" xml:space="preserve">
+    <value>Файл действия</value>
+  </data>
+  <data name="Action_On_Project_Rename" xml:space="preserve">
+    <value>Переименовать проект в файле конфигураций с сохранением ограничений?</value>
+  </data>
+  <data name="Action_Remove_String" xml:space="preserve">
+    <value>Удалить его через обозреватель решений</value>
+  </data>
+  <data name="Activation_Fail" xml:space="preserve">
+    <value>Ошибка активации расширения:
+В процессе активации не были обнаружены какие-либо референсы между проектами</value>
+  </data>
+  <data name="Activation_Success" xml:space="preserve">
+    <value>Расширение успешно активировано</value>
+  </data>
+  <data name="Claim_Match_Error_Description" xml:space="preserve">
+    <value>Референс одновременно заявлен как обязательный и
+недопустимый</value>
+  </data>
+  <data name="Commit_Fail" xml:space="preserve">
+    <value>Ошибка фиксации референсов:
+В процессе фиксации не были обнаружены какие-либо референсы между проектами</value>
+  </data>
+  <data name="Commit_Success" xml:space="preserve">
+    <value>Референсы успешно зафиксированы</value>
+  </data>
+  <data name="Config_File_Load_Error" xml:space="preserve">
+    <value>Не получилось загрузить </value>
+  </data>
+  <data name="Config_File_Load_Error_1" xml:space="preserve">
+    <value>айл конфигурации</value>
+  </data>
+  <data name="Config_File_load_Error_Title" xml:space="preserve">
+    <value> Error: Ошибка загрузки файла конфигурации</value>
+  </data>
+  <data name="Config_File_Load_From_Cache_Fail" xml:space="preserve">
+    <value>Не удалось загрузить последние сохранённые данные</value>
+  </data>
+  <data name="Config_File_Not_Found_Error" xml:space="preserve">
+    <value> </value>
+  </data>
+  <data name="Config_File_Not_Found_Error_1" xml:space="preserve">
+    <value>айл конфигурации не найден</value>
+  </data>
+  <data name="Config_File_On_Create_From_Sample_Action" xml:space="preserve">
+    <value>Шаблон файла конфигурации будет сгенерирован расширением</value>
+  </data>
+  <data name="Config_File_On_Create_From_Sample_Question" xml:space="preserve">
+    <value>Сгенерирвать для вас стандартный шаблон файла конфигурации?</value>
+  </data>
+  <data name="Config_File_On_Load_From_Cache_Action" xml:space="preserve">
+    <value>Файл конфигурации будет сгенерирован по последнему сохранению</value>
+  </data>
+  <data name="Config_File_On_Load_From_Cache_Question" xml:space="preserve">
+    <value>Загрузить для вас последнее успешно сохранённое содержимое файла конфигурации?</value>
+  </data>
+  <data name="Config_File_Property_Null_Error_Action" xml:space="preserve">
+    <value>Проверьте его на предмет отсутствия 
+синтаксических ошибок и соответствия шаблону файла конфигурации</value>
+  </data>
+  <data name="Config_File_Property_Null_Error_Message" xml:space="preserve">
+    <value>Файл конфигурации не содержит свойство 
+'</value>
+  </data>
+  <data name="Config_File_Transfer_To_Rollback_File_Message" xml:space="preserve">
+    <value>Всё текущее содержимое файла конфигурации будет перенесено в Rollback-файл</value>
+  </data>
+  <data name="Config_File_Type_Prefix_Global" xml:space="preserve">
+    <value>Глобальный ф</value>
+  </data>
+  <data name="Config_File_Type_Prefix_Solution" xml:space="preserve">
+    <value>Ф</value>
+  </data>
+  <data name="Count_Title" xml:space="preserve">
+    <value>Кол-во</value>
+  </data>
+  <data name="Description_Title" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="Detected_Unacceptable_Refs_Title" xml:space="preserve">
+    <value>Обнаружено недопустимых референсов</value>
+  </data>
+  <data name="Error_Level_Title" xml:space="preserve">
+    <value>Уровень ошибки</value>
+  </data>
+  <data name="Error_Text_Title" xml:space="preserve">
+    <value>
+Текст ошибки: </value>
+  </data>
+  <data name="Error_Type_Title" xml:space="preserve">
+    <value>Тип ошибки</value>
+  </data>
+  <data name="Excecute_Changed_Refs_On_Empty" xml:space="preserve">
+    <value>Изменения в референсах не обнаружены</value>
+  </data>
+  <data name="Excecute_Changed_Refs_Start_Message" xml:space="preserve">
+    <value>С момента последней проверки рефов произошли следующие изменения:
+</value>
+  </data>
+  <data name="Excecute_Changed_Refs_Title" xml:space="preserve">
+    <value>Изменения в референсах</value>
+  </data>
+  <data name="Excecute_Current_Refs_On_Empty" xml:space="preserve">
+    <value>На текущий момент в решении не обнаружены референсы</value>
+  </data>
+  <data name="Excecute_Current_Refs_Title" xml:space="preserve">
+    <value>Связи между проектами на текущий момент</value>
+  </data>
+  <data name="Excecute_Refs_Adds_Title" xml:space="preserve">
+    <value>Добавлены референсы:</value>
+  </data>
+  <data name="Excecute_Refs_Project_Title" xml:space="preserve">
+    <value>
+В проекте </value>
+  </data>
+  <data name="Excecute_Refs_Remove_Title" xml:space="preserve">
+    <value>
+Удалены референсы:</value>
+  </data>
+  <data name="Extension_Name" xml:space="preserve">
+    <value>RefDepGuard</value>
+  </data>
+  <data name="Extension_Not_Load_Yet" xml:space="preserve">
+    <value>Расширение ещё не загружено.
+Дождитесь его загрузки, чтобы выполнить действие</value>
+  </data>
+  <data name="Finded_Project_Place_Config" xml:space="preserve">
+    <value>конфигурационном файле</value>
+  </data>
+  <data name="Finded_Project_Place_Solution" xml:space="preserve">
+    <value>решении</value>
+  </data>
+  <data name="First_Solution_Load_Message_1" xml:space="preserve">
+    <value>"Нужно ли использовать RefDepGuard в рамках решения</value>
+  </data>
+  <data name="First_Solution_Load_Message_2" xml:space="preserve">
+    <value>?.
+При нажатии 'Да' расширение активируется и будет проверять соответствие проектов решения заявленным правилам, а также администрировать сборку решения</value>
+  </data>
+  <data name="First_Solution_Load_Title" xml:space="preserve">
+    <value>первая загрузка расширения</value>
+  </data>
+  <data name="Forbidden_Reference_Title" xml:space="preserve">
+    <value>Запрещённая связь!</value>
+  </data>
+  <data name="For_string" xml:space="preserve">
+    <value> для </value>
+  </data>
+  <data name="Framework_Version_Comparability_Error_Action" xml:space="preserve">
+    <value>Измените версию проекта или модифицируйте 
+файл  конфигурации</value>
+  </data>
+  <data name="Framework_Version_Comparability_Error_Message" xml:space="preserve">
+    <value>', в то время как максимально допустимой для него версией является '</value>
+  </data>
+  <data name="Global_Config_File_String" xml:space="preserve">
+    <value>глобального файла конфигурации</value>
+  </data>
+  <data name="Graph_Type_Export_Fail" xml:space="preserve">
+    <value>Не удалось загрузить данные в отчёт, так как файл занят другим процессом</value>
+  </data>
+  <data name="Graph_Type_Export_Success" xml:space="preserve">
+    <value>Графический экспорт завершён.
+Открыть папку со сгенерированным отчётом?</value>
+  </data>
+  <data name="Graph_Type_Export_Title" xml:space="preserve">
+    <value>Экспорт в HTML</value>
+  </data>
+  <data name="Have_Version_String" xml:space="preserve">
+    <value> имеет версию
+ '</value>
+  </data>
+  <data name="Illegal_TFM_Usage_Error_Action" xml:space="preserve">
+    <value>Проверьте указанную строку
+'max_framework_version' на предмет соответствия релевантным проекту TFM</value>
+  </data>
+  <data name="Illegal_TFM_Usage_Error_Message" xml:space="preserve">
+    <value>содержит попытку
+ задать ограничение для TFM, не обнаруженного в текущем проекте</value>
+  </data>
+  <data name="Incorrect_TFM_Usage_Error_Action" xml:space="preserve">
+    <value>Исправьте значение параметра на допустимое</value>
+  </data>
+  <data name="Incorrect_TFM_Usage_Error_Message" xml:space="preserve">
+    <value>содержит использование
+шаблона задания нескольких ограничений, что недопустимо для этого проекта (в проекте заявлен только один тип TFM)</value>
+  </data>
+  <data name="Invalid_Project_Type_Error" xml:space="preserve">
+    <value> содержит 
+некорректную запись своего значения</value>
+  </data>
+  <data name="In_Inside_Pretext" xml:space="preserve">
+    <value>В </value>
+  </data>
+  <data name="In_Inside_Pretext_small_letter" xml:space="preserve">
+    <value> в </value>
+  </data>
+  <data name="Max_Framework_Version_Deviant_Value_Error_Message" xml:space="preserve">
+    <value>параметр 'framework_max_version' </value>
+  </data>
+  <data name="Max_Fr_Version_Title" xml:space="preserve">
+    <value>Макс. допустимая
+версия</value>
+  </data>
+  <data name="Message_On_Project_Remove_1" xml:space="preserve">
+    <value>Удалить из конфигурационного файла проект '</value>
+  </data>
+  <data name="Message_On_Project_Remove_2" xml:space="preserve">
+    <value>'?</value>
+  </data>
+  <data name="Message_On_Project_Rename_1" xml:space="preserve">
+    <value>В решении обнаружено добавление проекта '</value>
+  </data>
+  <data name="Message_On_Project_Rename_2" xml:space="preserve">
+    <value>' и удаление '</value>
+  </data>
+  <data name="Message_on_Project_Rename_3" xml:space="preserve">
+    <value>'. </value>
+  </data>
+  <data name="Message_On_Project_Sample_Add_1" xml:space="preserve">
+    <value>Добавить в конфигурационный файл пустой шаблон для проекта '</value>
+  </data>
+  <data name="Message_on_Project_Sample_Add_2" xml:space="preserve">
+    <value>'?</value>
+  </data>
+  <data name="Necessary_Action_Title" xml:space="preserve">
+    <value>Необходимое действие</value>
+  </data>
+  <data name="No_Detected_Req_References_Title" xml:space="preserve">
+    <value>Не обнаружено обязательных референсов</value>
+  </data>
+  <data name="No_Required_String" xml:space="preserve">
+    <value>Отсутствует обязательный</value>
+  </data>
+  <data name="Of_A_Project_String" xml:space="preserve">
+    <value> 
+проекта '</value>
+  </data>
+  <data name="One_Proj_Match_Error_Description" xml:space="preserve">
+    <value>Референс совпадает с именем проекта</value>
+  </data>
+  <data name="On_Zero_Finded_Errors_Table_Report" xml:space="preserve">
+    <value>Ошибки на момент экспорта не обнаружены</value>
+  </data>
+  <data name="On_Zero_Finded_Warnings_Table_Report" xml:space="preserve">
+    <value>Предупреждения на момент экспорта не обнаружены</value>
+  </data>
+  <data name="Parameter_Value" xml:space="preserve">
+    <value>Параметр </value>
+  </data>
+  <data name="Potential_Version_Conflict_Title" xml:space="preserve">
+    <value>Потенциальный конфликт версий!</value>
+  </data>
+  <data name="Problems_Not_Detected" xml:space="preserve">
+    <value>проблемы не обнаружены</value>
+  </data>
+  <data name="Project_Column_Title" xml:space="preserve">
+    <value>Проект</value>
+  </data>
+  <data name="Project_Detection_Many" xml:space="preserve">
+    <value>обнаружены проекты '</value>
+  </data>
+  <data name="Project_Detection_One" xml:space="preserve">
+    <value>обнаружен проект '</value>
+  </data>
+  <data name="Project_Detection_Problem_Many" xml:space="preserve">
+    <value>отсутствующие</value>
+  </data>
+  <data name="Project_Detection_Problem_One" xml:space="preserve">
+    <value>отсутствующий</value>
+  </data>
+  <data name="Project_Noun_Str_Many" xml:space="preserve">
+    <value>их</value>
+  </data>
+  <data name="Project_Noun_Str_One" xml:space="preserve">
+    <value>его</value>
+  </data>
+  <data name="Project_Offered_Action_Add_1" xml:space="preserve">
+    <value>. Добавить </value>
+  </data>
+  <data name="Project_Offered_Action_Add_2" xml:space="preserve">
+    <value> в файл конфигураций?</value>
+  </data>
+  <data name="Project_Offered_Action_Remove_1" xml:space="preserve">
+    <value>. Удалить</value>
+  </data>
+  <data name="Project_Offered_Action_Remove_2" xml:space="preserve">
+    <value> из файла конфигураций?</value>
+  </data>
+  <data name="Project_Problem_Place_Config_1" xml:space="preserve">
+    <value>конфиг-файле ('</value>
+  </data>
+  <data name="Project_Problem_Place_Config_2" xml:space="preserve">
+    <value>_config_guard.rdg')</value>
+  </data>
+  <data name="Project_Problem_Place_Solution" xml:space="preserve">
+    <value>решении</value>
+  </data>
+  <data name="Project_Sample_List_Name" xml:space="preserve">
+    <value>Выборка по проектам</value>
+  </data>
+  <data name="Project_Type_Copy_Error" xml:space="preserve">
+    <value> содержит один и тот 
+же тип проекта в шаблоне более одного раза</value>
+  </data>
+  <data name="Reference_Column_Title" xml:space="preserve">
+    <value>Референс</value>
+  </data>
+  <data name="Reference_Match_Contrad_Warn_Action" xml:space="preserve">
+    <value>Устраните противоречие в правиле</value>
+  </data>
+  <data name="Reference_Match_Error_Action" xml:space="preserve">
+    <value>Устраните противоречие в правиле</value>
+  </data>
+  <data name="Reference_Match_Warn_Contrad_Message" xml:space="preserve">
+    <value> противоречит правилу с одноимённым референсом </value>
+  </data>
+  <data name="Reference_Match_Warn_Duplicate_Message" xml:space="preserve">
+    <value> дублирует правило с одноимённым референсом </value>
+  </data>
+  <data name="Reference_Names_Title" xml:space="preserve">
+    <value>Названия</value>
+  </data>
+  <data name="Reference_Potential_Version_Conflict_Type_Text" xml:space="preserve">
+    <value>Потенциальный
+конфликт версий</value>
+  </data>
+  <data name="Reference_Required_Type_Text" xml:space="preserve">
+    <value>Обязательный</value>
+  </data>
+  <data name="Reference_Sample_List_Table_Report_Name" xml:space="preserve">
+    <value>Выборка по референсам</value>
+  </data>
+  <data name="Reference_String" xml:space="preserve">
+    <value> референс </value>
+  </data>
+  <data name="Reference_Type_Column_Title" xml:space="preserve">
+    <value>Тип референса</value>
+  </data>
+  <data name="Reference_Unacceptable_Type_Text" xml:space="preserve">
+    <value>Недопустимый</value>
+  </data>
+  <data name="Reference_Match_Duplicate_Warn_Action" xml:space="preserve">
+    <value>Устраните дублирование правила</value>
+  </data>
+  <data name="Required_Reference_Not_Found_Title" xml:space="preserve">
+    <value>Отсутствует обязательная связь!</value>
+  </data>
+  <data name="Req_Reference_Type" xml:space="preserve">
+    <value>является 
+обязательным и</value>
+  </data>
+  <data name="Rollback_File_Generation_Fail_Message" xml:space="preserve">
+    <value>Проверьте, что глобальный и локальные .rdg файлы не имеют запретов на чтение, а в корневой папке решения нет запрета на создание файлов</value>
+  </data>
+  <data name="Rollback_File_Generation_Fail_Title" xml:space="preserve">
+    <value>: Ошибка генерации Rollback файла</value>
+  </data>
+  <data name="Solution_Config_File_String" xml:space="preserve">
+    <value>файла конфигурации конкретного решения</value>
+  </data>
+  <data name="Solution_Name_String" xml:space="preserve">
+    <value> Для решения '</value>
+  </data>
+  <data name="Table_Type_Export_Fail" xml:space="preserve">
+    <value>Не удалось загрузить данные в отчёт, так как файл занят другим процессом. 
+Закройте все открытые в Excel файлы и попробуйте сгенерировать отчёт позднее</value>
+  </data>
+  <data name="Table_Type_Export_Success" xml:space="preserve">
+    <value>Экспорт в эксель завершён.
+Открыть папку со сгенерированным отчётом?</value>
+  </data>
+  <data name="Table_Type_Export_Title" xml:space="preserve">
+    <value>Экспорт в XLSX</value>
+  </data>
+  <data name="Target_Framework_Title" xml:space="preserve">
+    <value>Целевая рабочая
+среда</value>
+  </data>
+  <data name="Total_References_Title" xml:space="preserve">
+    <value>Всего референсов</value>
+  </data>
+  <data name="Unable_To_Export_Message" xml:space="preserve">
+    <value>Невозможно запустить экспорт так как расширение не обнаружило какие-либо референсы между проектами в решении</value>
+  </data>
+  <data name="Unacceptable_String" xml:space="preserve">
+    <value>Присутствует недопустимый</value>
+  </data>
+  <data name="Unaccept_Reference_Type" xml:space="preserve">
+    <value>является 
+недопустимым и</value>
+  </data>
+  <data name="Unsuccessful_Checking_Rules_Warning" xml:space="preserve">
+    <value> warning: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в решении действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой</value>
+  </data>
+  <data name="Unsuccessful_Config_File_Parse_Warning_1" xml:space="preserve">
+    <value> warning: Не получилось спарсить данные из '</value>
+  </data>
+  <data name="Unsuccessful_Config_File_Parse_Warning_2" xml:space="preserve">
+    <value>'. Правила из этого файла не учтены в проверке</value>
+  </data>
+  <data name="Warning_Level_Title" xml:space="preserve">
+    <value>Уровни предупреждения</value>
+  </data>
+  <data name="Warning_Type_Title" xml:space="preserve">
+    <value>Тип предупреждения</value>
+  </data>
+  <data name="Solution_Level" xml:space="preserve">
+    <value>уровня конкретного решения </value>
+  </data>
+  <data name="Global_Level" xml:space="preserve">
+    <value>глобального уровня </value>
+  </data>
+  <data name="Project_Match_Warning_Action" xml:space="preserve">
+    <value>Проверьте проект на корректность
+написания его имени в файле конфигурации</value>
+  </data>
+  <data name="Project_Match_Warning_Message" xml:space="preserve">
+    <value>Рассматриваемый проект не обнаружен в </value>
+  </data>
+  <data name="Project_Not_Found_Warning_Action" xml:space="preserve">
+    <value>Проверьте правило на корректность
+написания в файле конфигурации</value>
+  </data>
+  <data name="Project_Not_Found_Warning_Message" xml:space="preserve">
+    <value>Данный проект указан в референс-правиле, но не
+обнаружен в самом решении</value>
+  </data>
+  <data name="Config_File_String_2" xml:space="preserve">
+    <value>файле конфигурации</value>
+  </data>
+  <data name="Solution_String" xml:space="preserve">
+    <value>solution</value>
+  </data>
+  <data name="Contains_Value_String" xml:space="preserve">
+    <value> содержит значение 
+'</value>
+  </data>
+  <data name="Max_Fr_Version_Deviant_Value_Warn_Action" xml:space="preserve">
+    <value>Приведите значение к корректному 
+формату</value>
+  </data>
+  <data name="Max_Fr_Version_Deviant_Value_Warn_Message" xml:space="preserve">
+    <value>', а должен содержать значение с точкой (формата 'x.x').</value>
+  </data>
+  <data name="Supertype_All_Level" xml:space="preserve">
+    <value>, указанное в супертипе 'all' на том же уровне</value>
+  </data>
+  <data name="In_A_Cons_Project_String" xml:space="preserve">
+    <value>в рассматриваемом проекте </value>
+  </data>
+  <data name="Value_String" xml:space="preserve">
+    <value>значение '</value>
+  </data>
+  <data name="Of_The_Fr_Max_Version_String" xml:space="preserve">
+    <value>параметра 'framework_max_version' </value>
+  </data>
+  <data name="Exceed_String" xml:space="preserve">
+    <value> превосходит </value>
+  </data>
+  <data name="Eponymous_Parameter_String" xml:space="preserve">
+    <value>' одноимённого параметра </value>
+  </data>
+  <data name="Max_Fr_Version_Reference_Conflict_Warn_Message" xml:space="preserve">
+    <value>приводит к потенциальному конфликту версий TargetFramework, так как имеется референс на проект, имеющий </value>
+  </data>
+  <data name="Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause" xml:space="preserve">
+    <value>несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' </value>
+  </data>
+  <data name="Project_String" xml:space="preserve">
+    <value> проект '</value>
+  </data>
+  <data name="Version_String" xml:space="preserve">
+    <value> версия '</value>
+  </data>
+  <data name="Max_Fr_Version_Conflict_Bigger_Value_Error_Cause" xml:space="preserve">
+    <value>большее значение значение параметра 'framework_max_version' </value>
+  </data>
+  <data name="TFM_Not_Found_Warn_Message" xml:space="preserve">
+    <value>Не найден TargetFramework, имеющий значение 
+'</value>
+  </data>
+  <data name="TFM_Not_Found_Warn_Action" xml:space="preserve">
+    <value>Проверьте указанную 
+строку 'max_framework_version' на предмет соответствия существующим TFM</value>
+  </data>
+  <data name="Illegal_Template_Usage_Warn_Action" xml:space="preserve">
+    <value>Проверьте указанную строку
+'max_framework_version' на предмет соответствия релевантных решению TFM</value>
+  </data>
+  <data name="Illegal_Template_Usage_Warn_Message" xml:space="preserve">
+    <value>В параметре 'framework_max_version' указан TFM, который не встречается ни в одном из
+'TargetFramework' проектов этого решения</value>
+  </data>
+  <data name="In_The_Proj_Name_String" xml:space="preserve">
+    <value>в имени проекта '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Message" xml:space="preserve">
+    <value>' содержится семантическая ошибка 
+(ожидалось: '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Message_1" xml:space="preserve">
+    <value>'; найдено: '</value>
+  </data>
+  <data name="Proj_Name_Semantic_Warn_Action" xml:space="preserve">
+    <value>Исправьте опечатку в имени проекта</value>
+  </data>
+  <data name="Untyped_Warn_Message" xml:space="preserve">
+    <value>Не получилось произвести проверку версии 'TargetFramework' для рассматриваемого проекта,
+так как программе не удалось  получить из .csproj файла корректное значение для этого свойства</value>
+  </data>
+  <data name="Untyped_Warn_Action" xml:space="preserve">
+    <value>Проверьте, что проект имеет корректную версию 'TargetFramework'</value>
+  </data>
+  <data name="Transit_Refs_Message" xml:space="preserve">
+    <value>У данного проекта обнаружены следующие
+транзитивные референсы: </value>
+  </data>
+  <data name="Transit_Refs_Duplicate_Warn_Message" xml:space="preserve">
+    <value>У рассматриваемого проекта есть 1 или более
+транзитивных референсов, дублирующих следующие прямые референсы проекта: </value>
+  </data>
+</root>

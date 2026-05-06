@@ -609,7 +609,7 @@ format</value>
   </data>
   <data name="Illegal_Template_Usage_Warn_Action" xml:space="preserve">
     <value>Check the specified
-'max_framework_version' string for compliance with the relevant TFM solution.</value>
+'max_framework_version' string for compliance with the relevant TFM solution</value>
   </data>
   <data name="Illegal_Template_Usage_Warn_Message" xml:space="preserve">
     <value>In the 'framework_max_version' parameter specifies TFM, which is not found in any of the

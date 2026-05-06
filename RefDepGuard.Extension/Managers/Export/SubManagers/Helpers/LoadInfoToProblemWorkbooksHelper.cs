@@ -8,9 +8,14 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference.Errors;
 using RefDepGuard.Applied.Models.Reference.Warnings;
-using RefDepGuard.UI.Resources.StringResources;
 using System;
 using System.Drawing;
+
+//#if EXTENSION22
+using RefDepGuard.UI.StringResources;
+//#elif EXTENSION19
+//using RefDepGuard.Extension19.StringResources;
+//#endif
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
@@ -504,6 +509,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             unionRangeAllTable.Font.Name = "Calibri";
             unionRangeAllTable.Borders.Color = ColorTranslator.ToOle(Color.Black);
+
             unionRangeAllTable.EntireColumn.AutoFit();
             unionRangeAllTable.BorderAround2(XlLineStyle.xlContinuous, XlBorderWeight.xlMedium, XlColorIndex.xlColorIndexAutomatic);
 

@@ -6,7 +6,11 @@ using System.IO;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Models;
 using RefDepGuard.Applied;
-using RefDepGuard.UI.Resources.StringResources;
+//#if EXTENSION22
+using RefDepGuard.UI.StringResources;
+//#elif EXTENSION19
+//using RefDepGuard.Extension19.StringResources;
+//#endif
 
 namespace RefDepGuard.Managers.Import
 {

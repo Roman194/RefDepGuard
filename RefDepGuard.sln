@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension", "RefDepGuard.Extension\RefDepGuard.Extension.csproj", "{B40B6D58-EE29-4E81-ADB4-FB46A14796FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension22", "RefDepGuard.Extension\RefDepGuard.Extension22.csproj", "{B40B6D58-EE29-4E81-ADB4-FB46A14796FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Console", "RefDepGuard.Console\RefDepGuard.Console.csproj", "{40339FB3-E6AA-4368-B911-C32D99FD2B46}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.ConfigFile", "RefDepGuard.ConfigFile\RefDepGuard.ConfigFile.csproj", "{42E28F69-EBFD-467A-A42A-66378BC5BB4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Applied", "RefDepGuard.Applied\RefDepGuard.Applied.csproj", "{2B3C4D87-0DAD-49D8-9DC4-8F9831233523}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RefDepGuard.SharedExtension", "RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.shproj", "{12C26D02-C165-4F4B-8C4D-F960A6743316}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -103,5 +105,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EE8A29A3-3EB5-4615-9035-14DD02A0DB11}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{12c26d02-c165-4f4b-8c4d-f960a6743316}*SharedItemsImports = 13
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{b40b6d58-ee29-4e81-adb4-fb46a14796fc}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal
