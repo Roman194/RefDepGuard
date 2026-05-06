@@ -121,6 +121,7 @@ Global
 		SolutionGuid = {EE8A29A3-3EB5-4615-9035-14DD02A0DB11}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{1f8b5dc2-98a5-47c1-abb6-c09466d9112e}*SharedItemsImports = 4
 		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{4159260a-73df-4b75-b09d-a743040c2ee7}*SharedItemsImports = 13
 		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{b40b6d58-ee29-4e81-adb4-fb46a14796fc}*SharedItemsImports = 4
 	EndGlobalSection
