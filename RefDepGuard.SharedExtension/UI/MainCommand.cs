@@ -13,8 +13,12 @@ using Task = System.Threading.Tasks.Task;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied;
-using System.Xaml;
+//using System.Xaml;
+#if EXTENSION_22
 using RefDepGuard.StringResources;
+#elif EXTENSION_19
+using RefDepGuard.Extension19.StringResources;
+#endif
 
 namespace RefDepGuard
 {

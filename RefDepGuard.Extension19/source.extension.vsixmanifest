@@ -1,21 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="RefDepGuard.Extension19.c2e83471-6273-4667-80fb-5962abab073b" Version="1.0" Language="en-US" Publisher="Company" />
-    <DisplayName>RefDepGuard.Extension19</DisplayName>
-    <Description>Empty VSIX Project.</Description>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)">
-    </InstallationTarget>
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-  </Dependencies>
-  <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,17.0)" DisplayName="Visual Studio core editor" />
-  </Prerequisites>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
+    <Metadata>
+        <Identity Id="Ref.Dep.Guard.Ramonn_KN.c2e83471-6273-4667-80fb-5962abab073b" Version="2.1" Language="ru-RU" Publisher="Ramonn_KN" />
+        <DisplayName>Ref Dep Guard</DisplayName>
+        <Description xml:space="preserve">Данное расширение позволяет отслеживать изменения зависимостей между проектами и сопоставлять эти зависимости с правилами заданными в специальном конфигурационном файле. В случае несоответствия зависимостей заданным правилам, расширение выдаёт предупреждение о некорректных связях и не даёт сборке завершиться.
+This extension helps to track changes in project references between projects and compare these refs with config file rules. In case of mismatches RefDepGuard shows relevant errors/problems and cancel build (if there are some errors). 
+Supported languages:  ENG / RUS</Description>
+        <License>LICENSE.txt</License>
+        <Icon>RefDepGuard_icon.ico</Icon>
+        <PreviewImage>RefDepGuard_icon.png</PreviewImage>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[16.0, 17.0)">
+        </InstallationTarget>
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[16.0,17.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
 </PackageManifest>

@@ -9,7 +9,11 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.CheckRules.SubManagers;
 using System.Linq;
+#if EXTENSION_22
 using RefDepGuard.StringResources;
+#elif EXTENSION_19
+using RefDepGuard.Extension19.StringResources;
+#endif
 
 namespace RefDepGuard
 {

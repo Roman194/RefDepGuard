@@ -7,11 +7,15 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference;
 using RefDepGuard.Applied.Models.Reference.Errors;
-using RefDepGuard.StringResources;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+#if EXTENSION_22
+using RefDepGuard.StringResources;
+#elif EXTENSION_19
+using RefDepGuard.Extension19.StringResources;
+#endif
 
 namespace RefDepGuard.Managers.Export.SubManagers
 {
