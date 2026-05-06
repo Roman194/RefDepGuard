@@ -8,7 +8,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied.Models.Reference.Errors;
 using RefDepGuard.Applied.Models.Reference.Warnings;
-using RefDepGuard.UI.Resources.StringResources;
+using RefDepGuard.StringResources;
 using System;
 using System.Drawing;
 
@@ -294,7 +294,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     Resource.Max_Fr_Version_Conflict_Bigger_Value_Error_Cause :
                     Resource.Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause;
 
-                string currentWarningText = Resource.Value_String + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion
+                string currentWarningText = Resource.Value_String + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion + "' "
                     + Resource.Of_The_Fr_Max_Version_String + "\r\n" + Resource.In_A_Cons_Project_String + Resource.Max_Fr_Version_Deviant_Value_Warn_Message + 
                     warningCause + "(" + Resource.Project_String + maxFrameworkVersionReferenceConflictWarning.RefName
                     + "'," + Resource.Version_String + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";

@@ -9,7 +9,7 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.CheckRules.SubManagers;
 using System.Linq;
-using RefDepGuard.UI.Resources.StringResources;
+using RefDepGuard.StringResources;
 
 namespace RefDepGuard
 {

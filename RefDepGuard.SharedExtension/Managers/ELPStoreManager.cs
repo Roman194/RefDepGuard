@@ -3,7 +3,7 @@ using RefDepGuard.Applied;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.RefDepGuard;
-using RefDepGuard.UI.Resources.StringResources;
+using RefDepGuard.StringResources;
 using System.Collections.Generic;
 
 namespace RefDepGuard.Managers.CheckRules

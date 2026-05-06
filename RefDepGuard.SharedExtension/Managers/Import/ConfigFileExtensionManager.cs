@@ -10,7 +10,7 @@ using RefDepGuard.Applied.Models.ConfigFile.DTO;
 using RefDepGuard.CheckRules.Models;
 using RefDepGuard.Applied;
 using RefDepGuard.ConfigFile;
-using RefDepGuard.UI.Resources.StringResources;
+using RefDepGuard.StringResources;
 
 namespace RefDepGuard
 {

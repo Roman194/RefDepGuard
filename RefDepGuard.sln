@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.ConfigFile", "R
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Applied", "RefDepGuard.Applied\RefDepGuard.Applied.csproj", "{2B3C4D87-0DAD-49D8-9DC4-8F9831233523}"
 EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RefDepGuard.SharedExtension", "RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.shproj", "{4159260A-73DF-4B75-B09D-A743040C2EE7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -103,5 +105,9 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EE8A29A3-3EB5-4615-9035-14DD02A0DB11}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{4159260a-73df-4b75-b09d-a743040c2ee7}*SharedItemsImports = 13
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{b40b6d58-ee29-4e81-adb4-fb46a14796fc}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

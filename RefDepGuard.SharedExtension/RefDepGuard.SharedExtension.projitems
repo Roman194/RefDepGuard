@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>4159260a-73df-4b75-b09d-a743040c2ee7</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>RefDepGuard.SharedExtension</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Applied\DateTimeManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Applied\SolutionNameManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\CheckRulesExtentionManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\CurrentStateManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\ELPStoreManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\ExcecuteRefsManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Export\ExportManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Export\SubManagers\Helpers\LoadInfoToProblemWorkbooksHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Export\SubManagers\Helpers\LoadInfoToProjectAndReferenceWorkbooksHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Export\SubManagers\HTMLSubManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Export\SubManagers\XLSXSubManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Import\ConfigFileExtensionManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Managers\Import\SettingsManager.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Models\UsingSolutionsDTO.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RefDepGuardPackage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\MainCommand.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UI\MessageManager.cs" />
+  </ItemGroup>
+</Project>

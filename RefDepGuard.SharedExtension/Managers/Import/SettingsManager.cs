@@ -6,7 +6,7 @@ using System.IO;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Models;
 using RefDepGuard.Applied;
-using RefDepGuard.UI.Resources.StringResources;
+using RefDepGuard.StringResources;
 
 namespace RefDepGuard.Managers.Import
 {

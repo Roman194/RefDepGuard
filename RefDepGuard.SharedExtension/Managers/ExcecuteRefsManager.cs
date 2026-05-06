@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.UI.Resources.StringResources;
+using RefDepGuard.StringResources;
 
 namespace RefDepGuard
 {

@@ -147,15 +147,15 @@
             bitmap strip containing the bitmaps and then there are the numeric ids of the elements used
             inside a button definition. An important aspect of this declaration is that the element id
             must be the actual index (1-based) of the bitmap inside the bitmap strip. -->
-      <Bitmap guid="guidImages" href="Resources\IconResources\Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
-		<Bitmap guid="guidShowRefs" href="Resources\IconResources\ShowRefs_icon.png" usedList="bmpShowRef"/>
-		<Bitmap guid="guidShowExtRefs" href="Resources\IconResources\ShowExtRefs_icon.png" usedList="bmpShowExtRef"/>
-		<Bitmap guid="guidShowChanges" href="Resources\IconResources\ShowChanges_icon.png" usedList="bmpShowCh"/>
-		<Bitmap guid="guidCommitSolState" href="Resources\IconResources\CommitSolState_icon.png" usedList="bmpCommitSolState"/>
-		<Bitmap guid="guidUpdateConfigRules" href="Resources\IconResources\UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
-		<Bitmap guid="guidTableExport" href="Resources\IconResources\TableExport_icon.png" usedList="bmpTableExport"/>
-		<Bitmap guid="guidGraphExport" href="Resources\IconResources\GraphExport_icon.png" usedList="bmpGraphExport"/>
-		<Bitmap guid="guidActivateExt" href="Resources\IconResources\GraphExport_icon.png" usedList="bmpActivateExt"/>
+      <Bitmap guid="guidImages" href="Command1.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough"/>
+		<Bitmap guid="guidShowRefs" href="ShowRefs_icon.png" usedList="bmpShowRef"/>
+		<Bitmap guid="guidShowExtRefs" href="ShowExtRefs_icon.png" usedList="bmpShowExtRef"/>
+		<Bitmap guid="guidShowChanges" href="ShowChanges_icon.png" usedList="bmpShowCh"/>
+		<Bitmap guid="guidCommitSolState" href="CommitSolState_icon.png" usedList="bmpCommitSolState"/>
+		<Bitmap guid="guidUpdateConfigRules" href="UpdateConfigRules_icon.png" usedList="bmpUpdateRules"/>
+		<Bitmap guid="guidTableExport" href="TableExport_icon.png" usedList="bmpTableExport"/>
+		<Bitmap guid="guidGraphExport" href="GraphExport_icon.png" usedList="bmpGraphExport"/>
+		<Bitmap guid="guidActivateExt" href="GraphExport_icon.png" usedList="bmpActivateExt"/>
     </Bitmaps>
   </Commands>
 
