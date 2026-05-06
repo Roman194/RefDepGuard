@@ -13,12 +13,8 @@ using Task = System.Threading.Tasks.Task;
 using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.RefDepGuard;
 using RefDepGuard.Applied;
-
-//#if EXTENSION22
-using RefDepGuard.UI.StringResources;
-//#elif EXTENSION19
-//using RefDepGuard.Extension19.StringResources;
-//#endif
+using System.Xaml;
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard
 {
@@ -107,7 +103,6 @@ namespace RefDepGuard
             activateExtMenuItem = new OleMenuCommand(this.ActivateExtention, null, this.ExtActivationQueryStatus, activateExtMenuCommandID);
 
             commandService.AddCommand(getCurrentRefsMenuItem);
-            commandService.AddCommand(getCurrentRefsMenuItem);
             commandService.AddCommand(getExtCurrentRefsMenuItem);
             commandService.AddCommand(getChangedRefsMenuItem);
             commandService.AddCommand(commitCurrentSolStateMenuItem);
@@ -144,29 +139,22 @@ namespace RefDepGuard
         /// <param name="package">Owner package, not null.</param>
         public static async Task InitializeAsync(AsyncPackage package)
         {
-            //try
-            //{
-                // Switch to the main thread - the call to AddCommand in MainCommand's constructor requires
-                // the UI thread.
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
-                OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
-                errorListProvider = new ErrorListProvider(package);
+            // Switch to the main thread - the call to AddCommand in MainCommand's constructor requires
+            // the UI thread.
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+            OleMenuCommandService commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as OleMenuCommandService;
+            errorListProvider = new ErrorListProvider(package);
 
-                //DTE initilaization with subscribe on events
-                dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
-                dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
-                dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
-                dte.Events.SolutionEvents.Opened += onSolutionOpened;
+            //DTE initilaization with subscribe on events
+            dte = (EnvDTE.DTE)Package.GetGlobalService(typeof(EnvDTE.DTE));
+            dte.Events.BuildEvents.OnBuildBegin += new _dispBuildEvents_OnBuildBeginEventHandler(BuildBegined);
+            dte.Events.SolutionEvents.BeforeClosing += new _dispSolutionEvents_BeforeClosingEventHandler(BeforeSolutionClosed);
+            dte.Events.SolutionEvents.Opened += onSolutionOpened;
 
-                Instance = new MainCommand(package, commandService);
+            Instance = new MainCommand(package, commandService);
 
-                //IVsUIShell initialization
-                uiShell = (IVsUIShell)await package.GetServiceAsync(typeof(SVsUIShell));
-            //}
-            //catch (Exception ex)
-            //{
-            //    string message = ex.Message;
-            //}
+            //IVsUIShell initialization
+            uiShell = (IVsUIShell)await package.GetServiceAsync(typeof(SVsUIShell));
         }
 
         /// <summary>
@@ -246,9 +234,7 @@ namespace RefDepGuard
                     isSuccessfulCheckingRules ? Resource.Activation_Success : Resource.Activation_Fail,
                     Resource.Extension_Name
             );
-
         }
-
 
         /// <summary>
         /// A function that is always calls after the new solution opened. It checks solution settings and starts updating solution state if needed

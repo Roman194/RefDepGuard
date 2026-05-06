@@ -3,12 +3,8 @@ using RefDepGuard.Applied;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.UI.Resources.StringResources;
 using System.Collections.Generic;
-//#if EXTENSION22
-using RefDepGuard.UI.StringResources;
-//#elif EXTENSION19
-//using RefDepGuard.Extension19.StringResources;
-//#endif
 
 namespace RefDepGuard.Managers.CheckRules
 {

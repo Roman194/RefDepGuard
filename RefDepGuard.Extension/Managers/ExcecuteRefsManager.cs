@@ -4,11 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RefDepGuard.Applied.Models.Project;
-//#if EXTENSION22
-using RefDepGuard.UI.StringResources;
-//#elif EXTENSION19
-//using RefDepGuard.Extension19.StringResources;
-//#endif
+using RefDepGuard.UI.Resources.StringResources;
 
 namespace RefDepGuard
 {

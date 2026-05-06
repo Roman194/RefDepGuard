@@ -5,8 +5,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>
-    </ApplicationIcon>
+    <ApplicationIcon>UI\Resources\IconResources\RefDepGuard_icon.ico</ApplicationIcon>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -49,23 +48,36 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Managers\Applied\SolutionNameManager.cs" />
+    <Compile Include="Managers\CheckRulesExtentionManager.cs" />
+    <Compile Include="Managers\ELPStoreManager.cs" />
+    <Compile Include="Managers\CurrentStateManager.cs" />
+    <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProblemWorkbooksHelper.cs" />
+    <Compile Include="Managers\Export\SubManagers\Helpers\LoadInfoToProjectAndReferenceWorkbooksHelper.cs" />
+    <Compile Include="Managers\Import\ConfigFileExtensionManager.cs" />
+    <Compile Include="Managers\Import\SettingsManager.cs" />
+    <Compile Include="Managers\ExcecuteRefsManager.cs" />
+    <Compile Include="Models\UsingSolutionsDTO.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="UI\MainCommand.cs" />
+    <Compile Include="Managers\Applied\DateTimeManager.cs" />
+    <Compile Include="Managers\Export\ExportManager.cs" />
+    <Compile Include="Managers\Export\SubManagers\HTMLSubManager.cs" />
+    <Compile Include="UI\MessageManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringResources\Resource.Designer.cs">
+    <Compile Include="RefDepGuardPackage.cs" />
+    <Compile Include="Managers\Export\SubManagers\XLSXSubManager.cs" />
+    <Compile Include="UI\Resources\StringResources\Resource.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\SharedResources\LICENSE.txt">
-      <Link>LICENSE.txt</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -94,6 +106,35 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.4</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <VSCTCompile Include="UI\RefDepGuardPackage.ru-RU.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+    <VSCTCompile Include="UI\RefDepGuardPackage.en-US.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="RefDepGuard_icon.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="UI\Resources\IconResources\RefDepGuard_icon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="UI\Resources\IconResources\CommitSolState_icon.png" />
+    <Content Include="UI\Resources\IconResources\GraphExport_icon.png" />
+    <Content Include="UI\Resources\IconResources\ShowChanges_icon.png" />
+    <Content Include="UI\Resources\IconResources\Command1.png" />
+    <Content Include="UI\Resources\IconResources\ShowRefs_icon.png" />
+    <Content Include="UI\Resources\IconResources\TableExport_icon.png" />
+    <Content Include="UI\Resources\IconResources\UpdateConfigRules_icon.png" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="Microsoft.Office.Core">
@@ -125,75 +166,22 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\SharedResources\RefDepGuard_icon.ico">
-      <Link>RefDepGuard_icon.ico</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="StringResources\Resource.en-US.resx" >
-	  <MergeWithCTO>true</MergeWithCTO>
-	</EmbeddedResource>
-    <EmbeddedResource Include="StringResources\Resource.resx">
+    <EmbeddedResource Include="UI\Resources\StringResources\Resource.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="StringResources\Resource.ru-RU.resx" >
-	  <MergeWithCTO>true</MergeWithCTO>
-	</EmbeddedResource>
+    <EmbeddedResource Include="UI\Resources\StringResources\Resource.en-US.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+    </EmbeddedResource>
+    <EmbeddedResource Include="UI\Resources\StringResources\Resource.ru-RU.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+    </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <VSCTCompile Include="..\SharedResources\RefDepGuardPackage.en-US.vsct">
-      <Link>RefDepGuardPackage.en-US.vsct</Link>
-      <ResourceName>Menus.ctmenu</ResourceName>
-    </VSCTCompile>
-    <VSCTCompile Include="..\SharedResources\RefDepGuardPackage.ru-RU.vsct">
-      <Link>RefDepGuardPackage.ru-RU.vsct</Link>
-      <ResourceName>Menus.ctmenu</ResourceName>
-    </VSCTCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\SharedResources\IconResources\Command1.png">
-      <Link>Command1.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\CommitSolState_icon.png">
-      <Link>CommitSolState_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\GraphExport_icon.png">
-      <Link>GraphExport_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\ShowChanges_icon.png">
-      <Link>ShowChanges_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\ShowExtRefs_icon.png">
-      <Link>ShowExtRefs_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\ShowRefs_icon.png">
-      <Link>ShowRefs_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\TableExport_icon.png">
-      <Link>TableExport_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\IconResources\UpdateConfigRules_icon.png">
-      <Link>UpdateConfigRules_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="..\SharedResources\RefDepGuard_icon.png">
-      <Link>RefDepGuard_icon.png</Link>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <ProjectReference Include="..\RefDepGuard.Applied\RefDepGuard.Applied.csproj">
       <Project>{2b3c4d87-0dad-49d8-9dc4-8f9831233523}</Project>
@@ -212,7 +200,6 @@
       <Name>RefDepGuard.TargetFramework</Name>
     </ProjectReference>
   </ItemGroup>
-  <Import Project="..\RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems" Label="Shared" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.

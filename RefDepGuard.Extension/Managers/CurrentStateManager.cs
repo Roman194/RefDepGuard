@@ -65,10 +65,10 @@ namespace RefDepGuard
                     if (!isOnlyRefsNeeded)
                     {
                         var projectCollection = new ProjectCollection();
-
                         var currentProject = projectCollection.LoadProject(project.FullName);
-                        (projectFrameworkVersions, projectFrameworkNumVersions) = TFManager.GetTargetFrameworkInStringNTransferFormats(currentProject);
 
+                        (projectFrameworkVersions, projectFrameworkNumVersions) = TFManager.GetTargetFrameworkInStringNTransferFormats(currentProject);
+                        
                     }
 
                     VSLangProj.VSProject vSProject = project.Object as VSLangProj.VSProject;

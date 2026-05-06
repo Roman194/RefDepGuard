@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace RefDepGuard.UI.StringResources {
+namespace RefDepGuard.UI.Resources.StringResources {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace RefDepGuard.UI.StringResources {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("RefDepGuard.UI.StringResources.Resource", typeof(Resource).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("RefDepGuard.UI.Resources.StringResources.Resource", typeof(Resource).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
