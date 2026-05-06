@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension", "RefDepGuard.Extension\RefDepGuard.Extension.csproj", "{B40B6D58-EE29-4E81-ADB4-FB46A14796FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension22", "RefDepGuard.Extension22\RefDepGuard.Extension22.csproj", "{B40B6D58-EE29-4E81-ADB4-FB46A14796FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Console", "RefDepGuard.Console\RefDepGuard.Console.csproj", "{40339FB3-E6AA-4368-B911-C32D99FD2B46}"
 EndProject

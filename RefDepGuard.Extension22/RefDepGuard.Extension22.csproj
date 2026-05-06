@@ -36,7 +36,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;EXTENSION_22</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -176,15 +176,15 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="StringResources\Resource.en-US.resx">
-	  <MergeWithCTO>true</MergeWithCTO>
-	</EmbeddedResource>
+      <MergeWithCTO>true</MergeWithCTO>
+    </EmbeddedResource>
     <EmbeddedResource Include="StringResources\Resource.resx">
-	  <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resource.Designer.cs</LastGenOutput>
-	</EmbeddedResource>
+    </EmbeddedResource>
     <EmbeddedResource Include="StringResources\Resource.ru-RU.resx">
-	  <MergeWithCTO>true</MergeWithCTO>
-	</EmbeddedResource>
+      <MergeWithCTO>true</MergeWithCTO>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\RefDepGuard.Applied\RefDepGuard.Applied.csproj">
