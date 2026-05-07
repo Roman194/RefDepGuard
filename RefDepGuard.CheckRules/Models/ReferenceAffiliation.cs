@@ -1,7 +1,5 @@
 ﻿using RefDepGuard.Applied.Models.Problem;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RefDepGuard.CheckRules.Models
 {
