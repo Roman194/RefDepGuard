@@ -130,7 +130,7 @@
     <value>of global level </value>
   </data>
   <data name="One_Proj_Match_Error_Description" xml:space="preserve">
-    <value>is matches with project name</value>
+    <value>is matches with its project name</value>
   </data>
   <data name="No_Required_String" xml:space="preserve">
     <value>There is no required</value>

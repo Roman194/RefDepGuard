@@ -412,7 +412,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is matches with project name.
+        ///   Looks up a localized string similar to is matches with its project name.
         /// </summary>
         internal static string One_Proj_Match_Error_Description {
             get {

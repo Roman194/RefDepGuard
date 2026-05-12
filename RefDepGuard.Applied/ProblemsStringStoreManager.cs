@@ -42,7 +42,8 @@ namespace RefDepGuard.Applied
 
             foreach (ReferenceMatchError referenceMatchError in refDepGuardErrors.RefsMatchErrorList)
             {
-                string projectName = (referenceMatchError.ProjectName != "") ? ("'" + Resource.Of_A_Project_String + referenceMatchError.ProjectName) : "";
+                string projectName = (referenceMatchError.ProjectName != "" && referenceMatchError.ProjectName != referenceMatchError.ReferenceName) ? 
+                    ("'" + Resource.Of_A_Project_String + referenceMatchError.ProjectName) : "";
                 string referenceLevelText = " ";
                 string matchErrorDescription = referenceMatchError.IsProjNameMatchError ?
                     Resource.One_Proj_Match_Error_Description : Resource.Claim_Match_Error_Description;

@@ -618,8 +618,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to In the &apos;framework_max_version&apos; parameter specifies TFM, which is not found in any of the
-        ///&apos;TargetFramework&apos; of this solution projects.
+        ///   Looks up a localized string similar to In the &apos;framework_max_version&apos; parameter specifies TFM, which is not found in any of the &apos;TargetFramework&apos;
+        ///of this solution projects.
         /// </summary>
         internal static string Illegal_Template_Usage_Warn_Message {
             get {
@@ -1225,6 +1225,15 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reference .
+        /// </summary>
+        internal static string Reference_On_Big_R_String {
+            get {
+                return ResourceManager.GetString("Reference_On_Big_R_String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Potential
         ///version conflict.
         /// </summary>
@@ -1280,8 +1289,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is a required 
-        ///one and.
+        ///   Looks up a localized string similar to is a required one and
+        ///.
         /// </summary>
         internal static string Req_Reference_Type {
             get {
@@ -1458,8 +1467,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is an 
-        ///unacceptable one and.
+        ///   Looks up a localized string similar to is an unacceptable one 
+        ///and.
         /// </summary>
         internal static string Unaccept_Reference_Type {
             get {
@@ -1519,6 +1528,15 @@ namespace RefDepGuard.Extension19.StringResources {
         internal static string Untyped_Warn_Message {
             get {
                 return ResourceManager.GetString("Untyped_Warn_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A value &apos;.
+        /// </summary>
+        internal static string Value_On_Big_V_String {
+            get {
+                return ResourceManager.GetString("Value_On_Big_V_String", resourceCulture);
             }
         }
         

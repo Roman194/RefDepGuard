@@ -59,7 +59,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
 
             foreach (ReferenceMatchError currentMatchError in refDepGuardErrors.RefsMatchErrorList)
             {
-                string errorRelevantProjectName = (currentMatchError.ProjectName != "") ? currentMatchError.ProjectName : "-";
+                string errorRelevantProjectName = (currentMatchError.ProjectName != "" && currentMatchError.ProjectName != currentMatchError.ReferenceName) ? 
+                    currentMatchError.ProjectName : "-";
                 string currentProblemText = currentMatchError.IsProjNameMatchError ?
                     Resource.One_Proj_Match_Error_Description : Resource.Claim_Match_Error_Description;
                 string currentDocName = (currentMatchError.RuleLevel == ProblemLevel.Global) ? "global_config_guard.rdg" : solutionName + "_config_guard.rdg";
@@ -200,7 +201,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 }
 
                 (projectsTable, i) = SetCurrentRowElements(projectsTable, 
-                    relevantProject, referenceMatchWarning.ReferenceName, "Reference Match", currentErrorLevels, Resource.Reference_String + "'" + 
+                    relevantProject, referenceMatchWarning.ReferenceName, "Reference Match", currentErrorLevels, Resource.Reference_On_Big_R_String + "'" + 
                     referenceMatchWarning.ReferenceName + "' " + lowReferenceLevelText + referenceTypeText + warningDescription + highReferenceLevelText, 
                     warningAction, documentName, i);
             }
@@ -282,7 +283,7 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     case ProblemLevel.Project: currentWarningLevels += "Project"; lowErrorLevelText = Resource.In_A_Cons_Project_String; break;
                 }
 
-                currentWarningText = Resource.Value_String + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion
+                currentWarningText = Resource.Value_On_Big_V_String + maxFrameworkVersionConflictValue.LowLevelMaxFrameVersion + "' "
                     + Resource.Of_The_Fr_Max_Version_String + "\r\n" + lowErrorLevelText + Resource.Exceed_String + Resource.Value_String + 
                     maxFrameworkVersionConflictValue.HighLevelMaxFrameVersion + Resource.Eponymous_Parameter_String + highErrorLevelText;
 

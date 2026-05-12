@@ -95,7 +95,8 @@ namespace RefDepGuard
             {
                 //generate the project visualization
                 var currentProjectName = currentProject.Key;
-                var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", new List<int>(), ProblemLevel.Project, "", false);
+                //var currentProjectMaxFrVersion = new RequiredMaxFrVersion("", new List<int>(), ProblemLevel.Project, "", false);
+                bool isConflictWarningRelevantForThisProject = false;
                 var currentProjectTargetFrVersion = currentProject.Value.CurrentFrameworkVersionsString;
 
                 var currentProjectMaxFrVersionString = "";
@@ -121,10 +122,15 @@ namespace RefDepGuard
 
                         if (requiredExportParameters[currentProjectName].Last() != currentProjectTFM)
                             currentProjectMaxFrVersionString += "; ";
+
+                        if (currentProjectTFM.IsConflictWarningRelevantForThisProject)
+                           isConflictWarningRelevantForThisProject = true;
                     }
 
-                    if(currentProjectMaxFrVersion.IsConflictWarningRelevantForThisProject)
+                    if(isConflictWarningRelevantForThisProject)
                         warningProjectStylesCode += SetWarningProjectStyle(nodeId);
+
+                    isConflictWarningRelevantForThisProject = false;
 
                 }
                 else
