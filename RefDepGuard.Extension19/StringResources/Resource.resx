@@ -179,8 +179,8 @@ During commit there wasn't detected any references between projects</value>
     <value>Recreate config file by the last saved cache instance? </value>
   </data>
   <data name="Config_File_Property_Null_Error_Action" xml:space="preserve">
-    <value>Check it on syntax errors 
-and for compliance with the configuration file template</value>
+    <value>Check it on syntax errors and for
+compliance with the configuration file template</value>
   </data>
   <data name="Config_File_Property_Null_Error_Message" xml:space="preserve">
     <value>Config file not contains property 
@@ -271,11 +271,11 @@ On click 'YES' the extension will be activated and check projects on config file
     <value> for a </value>
   </data>
   <data name="Framework_Version_Comparability_Error_Action" xml:space="preserve">
-    <value>Change the project version or modify the 
+    <value>Change the project version or modify the
 config file</value>
   </data>
   <data name="Framework_Version_Comparability_Error_Message" xml:space="preserve">
-    <value>', when its max acceptable version is  '</value>
+    <value>, when its max acceptable version is  '</value>
   </data>
   <data name="Global_Config_File_String" xml:space="preserve">
     <value>global config file parse</value>
@@ -303,11 +303,12 @@ Open a folder with the generated report?</value>
  to set a limit for TFM that is not found in the current project</value>
   </data>
   <data name="Incorrect_TFM_Usage_Error_Action" xml:space="preserve">
-    <value>Correct the parameter value to a valid one</value>
+    <value>Correct the parameter value to a
+valid one</value>
   </data>
   <data name="Incorrect_TFM_Usage_Error_Message" xml:space="preserve">
-    <value>contains the use of a template
- for setting multiple restrictions, which is unacceptable for this project (the project has only one type of a specified TFM)</value>
+    <value>contains the 
+use of a template for setting multiple restrictions, which is unacceptable for this project (the project has only one type of a specified TFM)</value>
   </data>
   <data name="Invalid_Project_Type_Error" xml:space="preserve">
     <value> contains 
@@ -357,8 +358,7 @@ version</value>
     <value>There is no required</value>
   </data>
   <data name="Of_A_Project_String" xml:space="preserve">
-    <value> 
-of the project '</value>
+    <value>of the project</value>
   </data>
   <data name="One_Proj_Match_Error_Description" xml:space="preserve">
     <value>The reference is matches with project name</value>
@@ -510,8 +510,8 @@ Open a folder with the generated report?</value>
     <value>There is an unacceptable</value>
   </data>
   <data name="Unaccept_Reference_Type" xml:space="preserve">
-    <value>is an unacceptable one 
-and</value>
+    <value>is an 
+unacceptable one and</value>
   </data>
   <data name="Unsuccessful_Checking_Rules_Warning" xml:space="preserve">
     <value> warning: It was not possible to verify the compliance of the references with the rules, as they were not detected at the time of state fixation. Make sure that the solution actually contains references between projects and perform a manual or automatic check along with the build</value>
@@ -556,8 +556,8 @@ spelling in the configuration file</value>
     <value>solution </value>
   </data>
   <data name="Contains_Value_String" xml:space="preserve">
-    <value>contains value 
-'</value>
+    <value> contains 
+value '</value>
   </data>
   <data name="Max_Fr_Version_Deviant_Value_Warn_Action" xml:space="preserve">
     <value>Adjust the value to the correct 
@@ -600,8 +600,7 @@ format</value>
     <value>the higher value of the 'framework_max_version' parameter </value>
   </data>
   <data name="TFM_Not_Found_Warn_Message" xml:space="preserve">
-    <value>TargetFramework with the value 
-'</value>
+    <value>TargetFramework with the value '</value>
   </data>
   <data name="TFM_Not_Found_Warn_Action" xml:space="preserve">
     <value>Check the specified 
@@ -619,8 +618,8 @@ of this solution projects</value>
     <value>in the name of the project '</value>
   </data>
   <data name="Proj_Name_Semantic_Warn_Message" xml:space="preserve">
-    <value>' the semantic error is detected
-(expected: '</value>
+    <value>' the semantic
+error is detected (expected: '</value>
   </data>
   <data name="Proj_Name_Semantic_Warn_Message_1" xml:space="preserve">
     <value>'; actual: '</value>
@@ -636,17 +635,23 @@ cause the program could not get the correct value for this property from the .cs
     <value>Make sure that the project has the correct version of its 'TargetFramework'</value>
   </data>
   <data name="Transit_Refs_Message" xml:space="preserve">
-    <value>The following transitive references
- have been found in this project:</value>
+    <value>The following transitive references have been found
+in this project: </value>
   </data>
   <data name="Transit_Refs_Duplicate_Warn_Message" xml:space="preserve">
-    <value>The considered project has 1 or more
-transitive references that duplicate the following direct references of the project: </value>
+    <value>The considered project has 1 or more transitive
+references that duplicate the following direct references of the project: </value>
   </data>
   <data name="Reference_On_Big_R_String" xml:space="preserve">
     <value>Reference </value>
   </data>
   <data name="Value_On_Big_V_String" xml:space="preserve">
     <value>A value '</value>
+  </data>
+  <data name="Solution_Name_String_On_Small_Char" xml:space="preserve">
+    <value> for solution '</value>
+  </data>
+  <data name="Is_Not_Found_String" xml:space="preserve">
+    <value> is not found </value>
   </data>
 </root>

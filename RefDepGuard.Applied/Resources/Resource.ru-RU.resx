@@ -127,10 +127,10 @@
     <value>' для проекта '</value>
   </data>
   <data name="Global_Level" xml:space="preserve">
-    <value>глобального уровня </value>
+    <value>глобального уровня</value>
   </data>
   <data name="One_Proj_Match_Error_Description" xml:space="preserve">
-    <value>совпадает с именем проекта</value>
+    <value> совпадает с именем проекта</value>
   </data>
   <data name="No_Required_String" xml:space="preserve">
     <value>Отсутствует обязательный</value>
@@ -142,13 +142,13 @@
     <value> референс </value>
   </data>
   <data name="Solution_Level" xml:space="preserve">
-    <value>уровня конкретного решения </value>
+    <value>уровня конкретного решения</value>
   </data>
   <data name="Unacceptable_String" xml:space="preserve">
     <value>Присутствует недопустимый</value>
   </data>
   <data name="Claim_Match_Error_Description" xml:space="preserve">
-    <value>одновременно заявлен как обязательный и недопустимый</value>
+    <value> одновременно заявлен как обязательный и недопустимый</value>
   </data>
   <data name="Reference_Match_Error_Action" xml:space="preserve">
     <value>Устраните противоречие в правиле</value>
@@ -160,10 +160,10 @@
     <value>Проверьте его на предмет отсутствия синтаксических ошибок и соответствия шаблону файла конфигурации</value>
   </data>
   <data name="Max_Framework_Version_Deviant_Value_Error_Message" xml:space="preserve">
-    <value>параметр 'framework_max_version' </value>
+    <value>параметр 'framework_max_version'</value>
   </data>
   <data name="Config_File_String" xml:space="preserve">
-    <value>конфигурационного файла </value>
+    <value>конфигурационного файла</value>
   </data>
   <data name="Global_String" xml:space="preserve">
     <value>глобального </value>
@@ -208,7 +208,7 @@
     <value>ограничение уровня проекта</value>
   </data>
   <data name="Framework_Version_Comparability_Error_Action" xml:space="preserve">
-    <value>Измените версию проекта или модифицируйте файл  конфигурации</value>
+    <value>Измените версию проекта или модифицируйте файл конфигурации</value>
   </data>
   <data name="Req_Reference_Type" xml:space="preserve">
     <value>является обязательным и</value>
@@ -271,7 +271,7 @@
     <value>значение '</value>
   </data>
   <data name="Of_The_Fr_Max_Version_String" xml:space="preserve">
-    <value>параметра 'framework_max_version' </value>
+    <value>параметра 'framework_max_version'</value>
   </data>
   <data name="Exceed_String" xml:space="preserve">
     <value> превосходит </value>
@@ -286,7 +286,7 @@
     <value>' приводит к потенциальному конфликту версий TargetFramework, так как имеется референс на проект, имеющий </value>
   </data>
   <data name="Max_Fr_Version_Conflict_Bigger_Value_Error_Cause" xml:space="preserve">
-    <value>большее значение значение параметра 'framework_max_version' </value>
+    <value>большее значение параметра 'framework_max_version' </value>
   </data>
   <data name="Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause" xml:space="preserve">
     <value>несовместимое значение параметра 'framework_max_version' для текущего значения проекта типа 'netstandard' </value>

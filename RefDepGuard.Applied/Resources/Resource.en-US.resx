@@ -127,10 +127,10 @@
     <value>' for a project '</value>
   </data>
   <data name="Global_Level" xml:space="preserve">
-    <value>of global level </value>
+    <value>of global level</value>
   </data>
   <data name="One_Proj_Match_Error_Description" xml:space="preserve">
-    <value>is matches with its project name</value>
+    <value> is matches with its project name</value>
   </data>
   <data name="No_Required_String" xml:space="preserve">
     <value>There is no required</value>
@@ -142,13 +142,13 @@
     <value> reference </value>
   </data>
   <data name="Solution_Level" xml:space="preserve">
-    <value>of solution level </value>
+    <value>of solution level</value>
   </data>
   <data name="Unacceptable_String" xml:space="preserve">
     <value>There is an unacceptable</value>
   </data>
   <data name="Claim_Match_Error_Description" xml:space="preserve">
-    <value>is claimed as the required and unacceptable at the same time</value>
+    <value> is claimed as the required and unacceptable at the same time</value>
   </data>
   <data name="Reference_Match_Error_Action" xml:space="preserve">
     <value>Resolve the contradiction in the rule</value>
@@ -160,10 +160,10 @@
     <value>Check it on syntax errors and for compliance with the configuration file template</value>
   </data>
   <data name="Max_Framework_Version_Deviant_Value_Error_Message" xml:space="preserve">
-    <value>'framework_max_version' property of a </value>
+    <value>'framework_max_version' property of a</value>
   </data>
   <data name="Config_File_String" xml:space="preserve">
-    <value>config file </value>
+    <value>config file</value>
   </data>
   <data name="Global_String" xml:space="preserve">
     <value>global </value>
@@ -238,7 +238,7 @@
     <value>' that is mentioned in reference rule  </value>
   </data>
   <data name="Project_Not_Found_Warning_Message_2" xml:space="preserve">
-    <value>is not detected in the solution</value>
+    <value> is not detected in the solution</value>
   </data>
   <data name="Project_Not_Found_Warning_Action" xml:space="preserve">
     <value>Check the rule on the correct spelling in the configuration file</value>
@@ -271,7 +271,7 @@
     <value>a value '</value>
   </data>
   <data name="Of_The_Fr_Max_Version_String" xml:space="preserve">
-    <value>of the 'framework_max_version' property </value>
+    <value>of the 'framework_max_version' property</value>
   </data>
   <data name="Exceed_String" xml:space="preserve">
     <value> exceed </value>
@@ -337,6 +337,6 @@
     <value>' contains the following transit references: </value>
   </data>
   <data name="Transit_Refs_Duplicate_Warn_Message" xml:space="preserve">
-    <value>' have 1 or more transit references,  that duplicates the following straight references of this project: </value>
+    <value>' have 1 or more transit references, that duplicates the following straight references of this project: </value>
   </data>
 </root>

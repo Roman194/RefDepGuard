@@ -79,7 +79,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is claimed as the required and unacceptable at the same time.
+        ///   Looks up a localized string similar to  is claimed as the required and unacceptable at the same time.
         /// </summary>
         internal static string Claim_Match_Error_Description {
             get {
@@ -106,7 +106,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to config file .
+        ///   Looks up a localized string similar to config file.
         /// </summary>
         internal static string Config_File_String {
             get {
@@ -196,7 +196,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to of global level .
+        ///   Looks up a localized string similar to of global level.
         /// </summary>
         internal static string Global_Level {
             get {
@@ -376,7 +376,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;framework_max_version&apos; property of a .
+        ///   Looks up a localized string similar to &apos;framework_max_version&apos; property of a.
         /// </summary>
         internal static string Max_Framework_Version_Deviant_Value_Error_Message {
             get {
@@ -403,7 +403,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to of the &apos;framework_max_version&apos; property .
+        ///   Looks up a localized string similar to of the &apos;framework_max_version&apos; property.
         /// </summary>
         internal static string Of_The_Fr_Max_Version_String {
             get {
@@ -412,7 +412,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is matches with its project name.
+        ///   Looks up a localized string similar to  is matches with its project name.
         /// </summary>
         internal static string One_Proj_Match_Error_Description {
             get {
@@ -484,7 +484,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is not detected in the solution.
+        ///   Looks up a localized string similar to  is not detected in the solution.
         /// </summary>
         internal static string Project_Not_Found_Warning_Message_2 {
             get {
@@ -646,7 +646,7 @@ namespace RefDepGuard.Applied.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos; have 1 or more transit references,  that duplicates the following straight references of this project: .
+        ///   Looks up a localized string similar to &apos; have 1 or more transit references, that duplicates the following straight references of this project: .
         /// </summary>
         internal static string Transit_Refs_Duplicate_Warn_Message {
             get {

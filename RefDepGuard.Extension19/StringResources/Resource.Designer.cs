@@ -236,8 +236,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Check it on syntax errors 
-        ///and for compliance with the configuration file template.
+        ///   Looks up a localized string similar to Check it on syntax errors and for
+        ///compliance with the configuration file template.
         /// </summary>
         internal static string Config_File_Property_Null_Error_Action {
             get {
@@ -292,8 +292,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to contains value 
-        ///&apos;.
+        ///   Looks up a localized string similar to  contains 
+        ///value &apos;.
         /// </summary>
         internal static string Contains_Value_String {
             get {
@@ -533,7 +533,7 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Change the project version or modify the 
+        ///   Looks up a localized string similar to Change the project version or modify the
         ///config file.
         /// </summary>
         internal static string Framework_Version_Comparability_Error_Action {
@@ -543,7 +543,7 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;, when its max acceptable version is  &apos;.
+        ///   Looks up a localized string similar to , when its max acceptable version is  &apos;.
         /// </summary>
         internal static string Framework_Version_Comparability_Error_Message {
             get {
@@ -684,7 +684,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Correct the parameter value to a valid one.
+        ///   Looks up a localized string similar to Correct the parameter value to a
+        ///valid one.
         /// </summary>
         internal static string Incorrect_TFM_Usage_Error_Action {
             get {
@@ -693,8 +694,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to contains the use of a template
-        /// for setting multiple restrictions, which is unacceptable for this project (the project has only one type of a specified TFM).
+        ///   Looks up a localized string similar to contains the 
+        ///use of a template for setting multiple restrictions, which is unacceptable for this project (the project has only one type of a specified TFM).
         /// </summary>
         internal static string Incorrect_TFM_Usage_Error_Message {
             get {
@@ -709,6 +710,15 @@ namespace RefDepGuard.Extension19.StringResources {
         internal static string Invalid_Project_Type_Error {
             get {
                 return ResourceManager.GetString("Invalid_Project_Type_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to  is not found .
+        /// </summary>
+        internal static string Is_Not_Found_String {
+            get {
+                return ResourceManager.GetString("Is_Not_Found_String", resourceCulture);
             }
         }
         
@@ -868,8 +878,7 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  
-        ///of the project &apos;.
+        ///   Looks up a localized string similar to of the project.
         /// </summary>
         internal static string Of_A_Project_String {
             get {
@@ -950,8 +959,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos; the semantic error is detected
-        ///(expected: &apos;.
+        ///   Looks up a localized string similar to &apos; the semantic
+        ///error is detected (expected: &apos;.
         /// </summary>
         internal static string Proj_Name_Semantic_Warn_Message {
             get {
@@ -1353,6 +1362,15 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to  for solution &apos;.
+        /// </summary>
+        internal static string Solution_Name_String_On_Small_Char {
+            get {
+                return ResourceManager.GetString("Solution_Name_String_On_Small_Char", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to solution .
         /// </summary>
         internal static string Solution_String {
@@ -1419,8 +1437,7 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to TargetFramework with the value 
-        ///&apos;.
+        ///   Looks up a localized string similar to TargetFramework with the value &apos;.
         /// </summary>
         internal static string TFM_Not_Found_Warn_Message {
             get {
@@ -1438,8 +1455,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The considered project has 1 or more
-        ///transitive references that duplicate the following direct references of the project: .
+        ///   Looks up a localized string similar to The considered project has 1 or more transitive
+        ///references that duplicate the following direct references of the project: .
         /// </summary>
         internal static string Transit_Refs_Duplicate_Warn_Message {
             get {
@@ -1448,8 +1465,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The following transitive references
-        /// have been found in this project:.
+        ///   Looks up a localized string similar to The following transitive references have been found
+        ///in this project: .
         /// </summary>
         internal static string Transit_Refs_Message {
             get {
@@ -1467,8 +1484,8 @@ namespace RefDepGuard.Extension19.StringResources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to is an unacceptable one 
-        ///and.
+        ///   Looks up a localized string similar to is an 
+        ///unacceptable one and.
         /// </summary>
         internal static string Unaccept_Reference_Type {
             get {

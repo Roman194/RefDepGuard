@@ -160,7 +160,7 @@
     <value>Не удалось загрузить последние сохранённые данные</value>
   </data>
   <data name="Config_File_Not_Found_Error" xml:space="preserve">
-    <value> </value>
+    <value />
   </data>
   <data name="Config_File_Not_Found_Error_1" xml:space="preserve">
     <value>айл конфигурации не найден</value>
@@ -274,7 +274,7 @@
 файл  конфигурации</value>
   </data>
   <data name="Framework_Version_Comparability_Error_Message" xml:space="preserve">
-    <value>', в то время как максимально допустимой для него версией является '</value>
+    <value>, в то время как максимально допустимой для него версией является '</value>
   </data>
   <data name="Global_Config_File_String" xml:space="preserve">
     <value>глобального файла конфигурации</value>
@@ -302,7 +302,8 @@
  задать ограничение для TFM, не обнаруженного в текущем проекте</value>
   </data>
   <data name="Incorrect_TFM_Usage_Error_Action" xml:space="preserve">
-    <value>Исправьте значение параметра на допустимое</value>
+    <value>Исправьте значение параметра на
+допустимое</value>
   </data>
   <data name="Incorrect_TFM_Usage_Error_Message" xml:space="preserve">
     <value>содержит использование
@@ -354,10 +355,6 @@
   </data>
   <data name="No_Required_String" xml:space="preserve">
     <value>Отсутствует обязательный</value>
-  </data>
-  <data name="Of_A_Project_String" xml:space="preserve">
-    <value> 
-проекта '</value>
   </data>
   <data name="One_Proj_Match_Error_Description" xml:space="preserve">
     <value>Референс совпадает с именем проекта</value>
@@ -510,8 +507,8 @@
     <value>Присутствует недопустимый</value>
   </data>
   <data name="Unaccept_Reference_Type" xml:space="preserve">
-    <value>является недопустимым 
-и</value>
+    <value>является 
+недопустимым и</value>
   </data>
   <data name="Unsuccessful_Checking_Rules_Warning" xml:space="preserve">
     <value> warning: Не получилось проверить соответствие референсов правилам, так как они не были обнаружены на момент фиксации состояния. Проверьте, что в решении действительно содержатся референсы между проектами и произведите проверку вручную или автоматически вместе со сборкой</value>
@@ -550,14 +547,15 @@
 обнаружен в самом решении</value>
   </data>
   <data name="Config_File_String_2" xml:space="preserve">
-    <value>файле конфигурации</value>
+    <value>файле 
+конфигурации</value>
   </data>
   <data name="Solution_String" xml:space="preserve">
     <value>solution</value>
   </data>
   <data name="Contains_Value_String" xml:space="preserve">
-    <value> содержит значение 
-'</value>
+    <value> содержит 
+значение '</value>
   </data>
   <data name="Max_Fr_Version_Deviant_Value_Warn_Action" xml:space="preserve">
     <value>Приведите значение к корректному 
@@ -600,12 +598,12 @@
     <value>большее значение значение параметра 'framework_max_version' </value>
   </data>
   <data name="TFM_Not_Found_Warn_Message" xml:space="preserve">
-    <value>Не найден TargetFramework, имеющий значение 
+    <value>Не найден TargetFramework, имеющий значение
 '</value>
   </data>
   <data name="TFM_Not_Found_Warn_Action" xml:space="preserve">
-    <value>Проверьте указанную 
-строку 'max_framework_version' на предмет соответствия существующим TFM</value>
+    <value>Проверьте указанную строку 
+'max_framework_version' на предмет соответствия существующим TFM</value>
   </data>
   <data name="Illegal_Template_Usage_Warn_Action" xml:space="preserve">
     <value>Проверьте указанную строку
@@ -619,8 +617,8 @@
     <value>в имени проекта '</value>
   </data>
   <data name="Proj_Name_Semantic_Warn_Message" xml:space="preserve">
-    <value>' содержится семантическая ошибка 
-(ожидалось: '</value>
+    <value>' содержится
+семантическая ошибка (ожидалось: '</value>
   </data>
   <data name="Proj_Name_Semantic_Warn_Message_1" xml:space="preserve">
     <value>'; найдено: '</value>
@@ -648,5 +646,14 @@
   </data>
   <data name="Value_On_Big_V_String" xml:space="preserve">
     <value>Значение '</value>
+  </data>
+  <data name="Solution_Name_String_On_Small_Char" xml:space="preserve">
+    <value> для решения '</value>
+  </data>
+  <data name="Of_A_Project_String" xml:space="preserve">
+    <value>проекта</value>
+  </data>
+  <data name="Is_Not_Found_String" xml:space="preserve">
+    <value> </value>
   </data>
 </root>

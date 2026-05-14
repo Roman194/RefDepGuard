@@ -109,8 +109,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
                 string errorDescr = maxFrameworkVersionIllegalTemplateUsageError.IsIllegalTFMUsageError ?
                     Resource.Illegal_TFM_Usage_Error_Message : Resource.Incorrect_TFM_Usage_Error_Message;
 
-                string currentErrorText = Resource.Max_Framework_Version_Deviant_Value_Error_Message + Resource.Of_A_Project_String + 
-                    maxFrameworkVersionIllegalTemplateUsageError.ProjName + errorDescr;
+                string currentErrorText = Resource.Max_Framework_Version_Deviant_Value_Error_Message + Resource.Of_A_Project_String + "\r\n'" +
+                    maxFrameworkVersionIllegalTemplateUsageError.ProjName + "' " + errorDescr;
 
                 string errorOrderSol = maxFrameworkVersionIllegalTemplateUsageError.IsIllegalTFMUsageError ?
                     Resource.Illegal_TFM_Usage_Error_Action : Resource.Incorrect_TFM_Usage_Error_Action;
@@ -124,10 +124,10 @@ namespace RefDepGuard.Managers.Export.SubManagers
             {
                 string currentErrorLevel = "Global";
                 string currentTFMText = (frameworkVersionComparabilityError.ErrorRelevantTFM != "") ?
-                    ("(" + Resource.For_string + "TFM '" + frameworkVersionComparabilityError.ErrorRelevantTFM + "')") : "";
-                string currentErrorText = Resource.Parameter_Value + "'TargetFrameworkVersion'" +  Resource.Have_Version_String + 
-                    frameworkVersionComparabilityError.TargetFrameworkVersion +
-                    "'"+ currentTFMText + Resource.Framework_Version_Comparability_Error_Message + frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
+                    (" (" + Resource.For_string + "TFM '" + frameworkVersionComparabilityError.ErrorRelevantTFM + "')") : "";
+                string currentErrorText = Resource.Parameter_Value + "'TargetFrameworkVersion'" + Resource.Have_Version_String + 
+                    frameworkVersionComparabilityError.TargetFrameworkVersion + currentTFMText + Resource.Framework_Version_Comparability_Error_Message + 
+                    frameworkVersionComparabilityError.MaxFrameworkVersion + "'";
                 string documentName = "";
 
                 switch (frameworkVersionComparabilityError.ErrorLevel)
@@ -300,7 +300,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
                     Resource.Max_Fr_Version_Reference_Conflict_Incomparable_Error_Cause;
 
                 string currentWarningText = Resource.Value_String + maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion + "' "
-                    + Resource.Of_The_Fr_Max_Version_String + "\r\n" + Resource.In_A_Cons_Project_String + Resource.Max_Fr_Version_Deviant_Value_Warn_Message + 
+                    + Resource.Of_The_Fr_Max_Version_String + "\r\n" + Resource.Of_A_Project_String + " '" +
+                    maxFrameworkVersionReferenceConflictWarning.ProjName + Resource.Max_Fr_Version_Reference_Conflict_Warn_Message + 
                     warningCause + "(" + Resource.Project_String + maxFrameworkVersionReferenceConflictWarning.RefName
                     + "'," + Resource.Version_String + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion + ")";
 
@@ -313,7 +314,8 @@ namespace RefDepGuard.Managers.Export.SubManagers
             {
                 string currentProjName = maxFrameworkVersionTFMNotFoundWarning.ProjName;
                 string warningLevel = "Global";
-                string currentWarningText = Resource.TFM_Not_Found_Warn_Message + maxFrameworkVersionTFMNotFoundWarning.TFMName;
+                string currentWarningText = Resource.TFM_Not_Found_Warn_Message + maxFrameworkVersionTFMNotFoundWarning.TFMName  + "'" 
+                    + Resource.Is_Not_Found_String + "(" + warningLevel + ")";
                 string currentAction = Resource.TFM_Not_Found_Warn_Action;
                 string documentName = maxFrameworkVersionTFMNotFoundWarning.WarningLevel == ProblemLevel.Global ? 
                     "global_config_guard.rdg" : solutionName + "_config_guard.rdg";

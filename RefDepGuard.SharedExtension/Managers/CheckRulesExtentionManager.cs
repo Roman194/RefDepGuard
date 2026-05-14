@@ -69,7 +69,7 @@ namespace RefDepGuard
             ConfigFilesData configFilesData, string addedProj, string removedProj, IVsUIShell uIShell)
         {
             var message = Resource.Message_On_Project_Rename_1 + addedProj + Resource.Message_On_Project_Rename_2 + removedProj + Resource.Message_on_Project_Rename_3 +
-                Resource.Action_On_Project_Rename;
+                "\r\n" + Resource.Action_On_Project_Rename;
 
             if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
             {
@@ -123,7 +123,7 @@ namespace RefDepGuard
             string offeredSolutionStr = (isAddedList) ? (Resource.Project_Offered_Action_Add_1 + projectNounStr + Resource.Project_Offered_Action_Add_2) : 
                 (Resource.Project_Offered_Action_Remove_1 + projectNounStr + Resource.Project_Offered_Action_Remove_2);
 
-            var message = Resource.In_Inside_Pretext + findedProjPlaceStr + projectDetectionStr;
+            var message = Resource.In_Inside_Pretext + findedProjPlaceStr + " " + projectDetectionStr;
 
             for (int i = 0; i < currentProjList.Count; i++)
             {

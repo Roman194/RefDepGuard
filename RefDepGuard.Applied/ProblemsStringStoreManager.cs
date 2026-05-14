@@ -30,8 +30,8 @@ namespace RefDepGuard.Applied
 
                 switch (error.CurrentRuleLevel)
                 {
-                    case ProblemLevel.Solution: referenceLevelText = Resource.Solution_Level; break;
-                    case ProblemLevel.Global: referenceLevelText = Resource.Global_Level; break;
+                    case ProblemLevel.Solution: referenceLevelText = Resource.Solution_Level + " "; break;
+                    case ProblemLevel.Global: referenceLevelText = Resource.Global_Level + " "; break;
                 }
 
                 string errorText = outputPlacePrefix + "Reference error: " + referenceTypeText + Resource.Reference_String + referenceLevelText + "'" + error.ReferenceName +
@@ -77,7 +77,7 @@ namespace RefDepGuard.Applied
 
             foreach (MaxFrameworkVersionDeviantValueError maxFrameworkVersionDeviantValue in refDepGuardErrors.MaxFrameworkVersionDeviantValueList)
             {
-                string relevantProjectName = "";
+                string relevantProjectName = " ";
                 string globalPrefix = "";
                 string errorType = maxFrameworkVersionDeviantValue.IsProjectTypeCopyError ?
                     Resource.Project_Type_Copy_Error : Resource.Invalid_Project_Type_Error;
@@ -122,7 +122,7 @@ namespace RefDepGuard.Applied
                     case ProblemLevel.Solution: ruleLevel = Resource.Solution_Rule_Level; break;
                     case ProblemLevel.Project: ruleLevel = Resource.Project_Rule_Level; break;
                 }
-                string errorText = outputPlacePrefix + "Framework version comparability error: 'TargetFrameworkVersion' " + Resource.Of_A_Project_String + 
+                string errorText = outputPlacePrefix + "Framework version comparability error: 'TargetFrameworkVersion'" + Resource.Of_A_Project_String + 
                     frameworkVersionComparabilityError.ErrorRelevantProjectName +
                     "'" + currentTFMText + Resource.Have_Version_String + frameworkVersionComparabilityError.TargetFrameworkVersion + Resource.Framework_Version_Comparability_Error_Message +
                     frameworkVersionComparabilityError.MaxFrameworkVersion + "' (" + ruleLevel + ")." + outputPlaceTransfer + 
@@ -145,7 +145,7 @@ namespace RefDepGuard.Applied
             {
                 string projectName = (referenceMatchWarning.ProjectName != "") ? ("'" + Resource.Of_A_Project_String + referenceMatchWarning.ProjectName) : "";
                 string highReferenceLevelText = "";
-                string lowReferenceLevelText = (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution) ? Resource.Solution_Level : " ";
+                string lowReferenceLevelText = (referenceMatchWarning.LowReferenceLevel == ProblemLevel.Solution) ? Resource.Solution_Level : "";
                 string referenceTypeText = referenceMatchWarning.IsReferenceStraight ?
                     (referenceMatchWarning.IsHighLevelReq ? Resource.Req_Reference_Type : Resource.Unaccept_Reference_Type) :
                     (referenceMatchWarning.IsHighLevelReq ? Resource.Unaccept_Reference_Type : Resource.Req_Reference_Type); //В противном случае рассматривается cross match errors, а значит они имеют тип рефа, противиположный более "верхнему" правилу
@@ -256,7 +256,7 @@ namespace RefDepGuard.Applied
                     maxFrameworkVersionReferenceConflictWarning.ProjFrameworkVersion + "' " + Resource.Of_The_Fr_Max_Version_String + Resource.Of_A_Project_String + 
                     maxFrameworkVersionReferenceConflictWarning.ProjName + Resource.Max_Fr_Version_Reference_Conflict_Warn_Message + warningCause + "(" + Resource.Project_String 
                     + maxFrameworkVersionReferenceConflictWarning.RefName + "'," + Resource.Version_String + maxFrameworkVersionReferenceConflictWarning.RefFrameworkVersion 
-                    + "')." + outputPlaceTransfer + Resource.Reference_Match_Error_Action;
+                    + "' )." + outputPlaceTransfer + Resource.Reference_Match_Error_Action;
                 string documentName = configFilesData.SolutionName + "_config_guard.rdg";
 
                 problemsStringList.Add(new ProblemString(warningText, documentName));
@@ -316,7 +316,7 @@ namespace RefDepGuard.Applied
                 string projName = projKeyValuePair.Key;
                 List<string> detectedTransitRefsList = projKeyValuePair.Value;
 
-                string currentText = outputPlacePrefix + "Transit references warning: " + Resource.Project_String + projName + Resource.Transit_Refs_Message;
+                string currentText = outputPlacePrefix + "Transit references warning:" + Resource.Project_String + projName + Resource.Transit_Refs_Message;
 
                 foreach (var refName in detectedTransitRefsList)
                 {

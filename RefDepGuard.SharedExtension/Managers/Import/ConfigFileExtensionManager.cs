@@ -181,7 +181,7 @@ namespace RefDepGuard
             string backupFileInfo = "";
 
             if (!isErrorGlobal)
-                solutionNameInfo = Resource.Solution_Name_String + solutionName + "'";
+                solutionNameInfo = Resource.Solution_Name_String_On_Small_Char + solutionName + "'";
 
             if (!isSecondAttempt)
                 backupFileInfo = CacheManager.GetInfoFromBackupFile(isErrorGlobal);
@@ -213,7 +213,7 @@ namespace RefDepGuard
             string backupFileInfo = "";
 
             if (!isErrorGlobal)
-                solutionNameInfo = Resource.Solution_Name_String + solutionName + "'";
+                solutionNameInfo = Resource.Solution_Name_String_On_Small_Char + solutionName + "'";
 
             if (!isSecondAttempt)
             {
