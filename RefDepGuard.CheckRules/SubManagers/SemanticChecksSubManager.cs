@@ -5,16 +5,30 @@ using System.Linq;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {
+    /// <summary>
+    /// This sub-manager is responsible for semantic checks of project names, which are based on the idea that if there are 
+    /// 2+ projects with the same "sema" in their names, then the other projects with similar "semas" may have typos in these "semas". 
+    /// The "sema" is a part of the project name, which is separated by a dot and has 3+ characters. 
+    /// </summary>
     public class SemanticChecksSubManager
     {
         private static List<ProjectNameSemanticWarning> projectNameSemanticWarningsList = new List<ProjectNameSemanticWarning>();
 
+        /// <summary>
+        /// Clears the list of project name semantic warnings. This method should be called before performing a new check.
+        /// </summary>
         public static void ClearSemanticCheckLists()
         {
             if (projectNameSemanticWarningsList != null)
                 projectNameSemanticWarningsList.Clear();
         }
 
+        /// <summary>
+        /// The main method of the SubManager. 
+        /// Checks the project names on semantic similarity. If there are 2+ projects with the same "sema" in their names, then the other projects with similar 
+        /// "semas" may have typos in these "semas".
+        /// </summary>
+        /// <param name="projectNames">List with all project names from current solution</param>
         public static void CheckProjectNamesSemantic(List<string> projectNames)
         {
             var findedSemasHashSet = new HashSet<string>();
@@ -35,7 +49,7 @@ namespace RefDepGuard.CheckRules.SubManagers
 
                             if (currentProjNameSema == currentOtherProjNameSema)
                             {
-                                //Если есть какая-то совпавшая сёма у 2-х+ проектов, то это уже правило
+                                //If there is some "sema" that matches for 2+ projects, then it is already a rule, so we add it to the hash set and continue
                                 findedSemasHashSet.Add(currentProjNameSema);
                                 continue;
                             }
@@ -43,18 +57,18 @@ namespace RefDepGuard.CheckRules.SubManagers
                             if (currentProjNameSema.Length < 3 || currentOtherProjNameSema.Length < 3)
                                 continue;
 
-                            //Если текущая конфигурация является отклонением
+                            //If current configuration is a deviation
                             if (!findedSemasHashSet.Contains(currentProjNameSema) && findedSemasHashSet.Contains(currentOtherProjNameSema))
                             {
                                 int differSymbolsCount = 0;
 
-                                //Отличающиеся неповторяющиеся символы
+                                //Check on differing nonrepeating symbols
                                 if (currentProjNameSema.Length >= currentOtherProjNameSema.Length)
                                     differSymbolsCount = currentProjNameSema.Except(currentOtherProjNameSema).ToList().Count;
                                 else
                                     differSymbolsCount = currentOtherProjNameSema.Except(currentProjNameSema).ToList().Count;
 
-                                //Составляем словари с количеством использованных символов в строках
+                                //Form a dicts with the number of used symbols in the strings
                                 var currentProjNameSemaDict = new Dictionary<char, int>();
                                 var currentOtherProjNameSemaDict = new Dictionary<char, int>();
 
@@ -74,7 +88,7 @@ namespace RefDepGuard.CheckRules.SubManagers
                                         currentOtherProjNameSemaDict.Add(item, 1);
                                 }
 
-                                //Отличающиеся символы, входящие в строки в других местах (несколько вхождений символа в строке)
+                                //Check on differing symblos that are repeating in the strings
                                 foreach(var currentChar in currentProjNameSemaDict.Keys)
                                 {
                                     if (currentOtherProjNameSemaDict.ContainsKey(currentChar))
@@ -84,17 +98,17 @@ namespace RefDepGuard.CheckRules.SubManagers
                                     }
                                 }
 
-                                //Если отличается больше 2-х символов, то считается не опечаткой, а заплан-ым отличием + не имеет смысла проверять глубже по иерархии
+                                // If there are more than 2 differing symbols, or there are 2 differing symbols but one of the "semas" has less than 5 characters,
+                                // then it is not a typo, but a planned difference, and there is no point in checking deeper in the hierarchy
                                 if (differSymbolsCount > 2 || (differSymbolsCount == 2 && (currentProjNameSema.Length < 5 || currentOtherProjNameSema.Length < 5)))
                                     break;
 
-                                //Здесь у нас случаи, когда отличаются 1-2 символа для сём с 3+ символами
-                                //Это случай для генерации предупреждения. Глубже по иерархии тоже не идём, чтобы не создавать множество предупреждений на 1-м проекте
+                                // If there are 1-2 differing symbols, and both "semas" have 5+ characters, then it is a typo, and we add a warning to the list.
+                                // We also do not check deeper in the hierarchy to avoid creating multiple warnings for the same project.
 
-                                //Если для проекта ещё не было добавлено предупреждение
+                                //If there is already a warning for this project, then we do not add it to the list again
                                 var projNameSemanticWarning = projectNameSemanticWarningsList.Find(ell => ell.ProjectName == projName);
 
-                                //Если текущая конфигурация является отклонением и существует правило, то это семантическая ошибка
                                 if (projNameSemanticWarning == null)
                                     projectNameSemanticWarningsList.Add(new ProjectNameSemanticWarning(projName, currentOtherProjNameSema, currentProjNameSema));
 
@@ -106,6 +120,11 @@ namespace RefDepGuard.CheckRules.SubManagers
             }
         }
 
+        /// <summary>
+        /// Returns the list of project name semantic warnings. 
+        /// Each warning contains a project name and its "sema" that may have a typo, and a "sema" that is similar to it and is used in other projects.
+        /// </summary>
+        /// <returns></returns>
         public static List<ProjectNameSemanticWarning> GetProjectNamesSemanticWarningList()
         {
             return projectNameSemanticWarningsList;

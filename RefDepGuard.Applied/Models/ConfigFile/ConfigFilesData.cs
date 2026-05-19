@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RefDepGuard.Applied.Models.ConfigFile.DTO;
+﻿using RefDepGuard.Applied.Models.ConfigFile.DTO;
 
 namespace RefDepGuard.Applied.Models.ConfigFile
 {

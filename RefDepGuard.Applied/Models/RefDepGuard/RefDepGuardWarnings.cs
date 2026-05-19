@@ -4,7 +4,6 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.Reference.Warnings;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RefDepGuard.Applied.Models.RefDepGuard
 {
@@ -66,7 +65,8 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
             if (RefsMatchWarningList.Count == 0 && ProjectNotFoundWarningList.Count == 0 && ProjectMatchWarningList.Count == 0 &&
                 MaxFrameworkVersionDeviantValueWarningList.Count == 0 && MaxFrameworkVersionConflictWarningsList.Count == 0 &&
                 MaxFrameworkVersionReferenceConflictWarningsList.Count == 0 && MaxFrameworkVersionTFMNotFoundWarningList.Count == 0 &&
-                MaxFrameworkIllegalTemplateUsageWarningList.Count == 0 && UntypedWarningsList.Count == 0 && DetectedNDuplicatedTransitRefsDict.Item1.Count == 0
+                MaxFrameworkIllegalTemplateUsageWarningList.Count == 0 && ProjectNameSemanticWarningList.Count == 0 && 
+                UntypedWarningsList.Count == 0 && DetectedNDuplicatedTransitRefsDict.Item1.Count == 0
                 && DetectedNDuplicatedTransitRefsDict.Item2.Count == 0)
                 return true;
             else
@@ -77,8 +77,8 @@ namespace RefDepGuard.Applied.Models.RefDepGuard
         {
             return RefsMatchWarningList.Count + ProjectNotFoundWarningList.Count + ProjectMatchWarningList.Count + MaxFrameworkVersionDeviantValueWarningList.Count +
                 MaxFrameworkVersionConflictWarningsList.Count + MaxFrameworkVersionReferenceConflictWarningsList.Count + MaxFrameworkVersionTFMNotFoundWarningList.Count +
-                MaxFrameworkIllegalTemplateUsageWarningList.Count + UntypedWarningsList.Count + DetectedNDuplicatedTransitRefsDict.Item1.Count + 
-                DetectedNDuplicatedTransitRefsDict.Item2.Count;
+                MaxFrameworkIllegalTemplateUsageWarningList.Count + ProjectNameSemanticWarningList.Count + UntypedWarningsList.Count + 
+                DetectedNDuplicatedTransitRefsDict.Item1.Count + DetectedNDuplicatedTransitRefsDict.Item2.Count;
         }
     }
 }

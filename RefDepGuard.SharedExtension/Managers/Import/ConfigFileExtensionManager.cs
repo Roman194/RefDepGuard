@@ -111,6 +111,13 @@ namespace RefDepGuard
             return configFilesData;
         }
 
+        /// <summary>
+        /// Updates the solution config file data based on the project renaming in the solution, and returns the updated data
+        /// </summary>
+        /// <param name="currentConfigFilesData">config files data instance</param>
+        /// <param name="newName">new proj name string</param>
+        /// <param name="oldName">old proj name string</param>
+        /// <returns>updated config files data instance</returns>
         public static ConfigFilesData RenameProjectInConfigFile(ConfigFilesData currentConfigFilesData, string newName, string oldName)
         {
             configFilesData.ConfigFileSolution = currentConfigFilesData.ConfigFileSolution;
@@ -123,6 +130,11 @@ namespace RefDepGuard
             return configFilesData;
         }
 
+        /// <summary>
+        /// Writes the updated solution config file data to the solution config file and its backup, so that if there are any errors during loading the config file 
+        /// in the future, it is possible to parse the last successfully saved data from the backup. 
+        /// </summary>
+        /// <param name="configFileSolution">config file solution DTO instance</param>
         private static void WriteInfoToSolutionConfigFileAndItsBackup(ConfigFileSolutionDTO configFileSolution)
         {
             string json = JsonConvert.SerializeObject(configFileSolution, Formatting.Indented);
@@ -256,15 +268,15 @@ namespace RefDepGuard
         /// <param name="backupFileInfo">backup file info string</param>
         private static void CopyInfoFromBackupToConfigFile(ConfigFileServiceInfo configFileServiceInfo, string backupFileInfo)
         {
-            FileParseError parseErrorPredict;
-            if (configFileServiceInfo.IsGlobal) //Делаем допущение, что проблема парсинга сейчас будет исправлена
+            FileParseError parseErrorPredict;  
+            if (configFileServiceInfo.IsGlobal) // We admit that parse problem will be solved now
                 parseErrorPredict = (configFilesData.ParseError == FileParseError.All) ? FileParseError.Solution : FileParseError.None;
             else
                 parseErrorPredict = (configFilesData.ParseError == FileParseError.All) ? FileParseError.Global : FileParseError.None;
 
             FileStreamManager.WriteInfoToFile(configFileServiceInfo.CurrentConfigGuardFile, backupFileInfo);
             configFilesData = ConfigFileCoreManager.GetConfigFileInfoSecondAttempt(configFileServiceInfo, parseErrorPredict); //Second attempt to read config file
-            if (configFilesData.ParseError != parseErrorPredict) //Если ошибки парсинга не изменились, значит опять обрабатываем ошибку
+            if (configFilesData.ParseError != parseErrorPredict) //If parse error doesn't change from the start value we need to handle the error case again, but with isSecondAttempt = true to not offer to restore info to rollback file again
                 HandleConfigFileErrorCase(configFileServiceInfo, true, true); 
         }
 
@@ -280,8 +292,8 @@ namespace RefDepGuard
 
             configFilesData = ConfigFileCoreManager.UpdateParseErrorStateOnDefaultFileCreation(isGlobal);
 
-            if (isGlobal)
-                json = JsonConvert.SerializeObject(configFilesData.ConfigFileGlobal, Formatting.Indented); //Предполагается, что если не получилось спарсить, то из core вернуться дефолт значения
+            if (isGlobal) //If it wouldn't possible to parse data from config file, then we will use default values from core
+                json = JsonConvert.SerializeObject(configFilesData.ConfigFileGlobal, Formatting.Indented); 
             else
                 json = JsonConvert.SerializeObject(configFilesData.ConfigFileSolution, Formatting.Indented);
 

@@ -6,9 +6,18 @@ using RefDepGuard.TargetFramework;
 
 namespace RefDepGuard.Console.Managers
 {
+    /// <summary>
+    /// This class is responsible for managing the current state of the solution. 
+    /// It provides method to get the current state of the solution, which includes the projects in the solution, their target frameworks, and their references.
+    /// </summary>
     public class CurrentStateConsoleManager
     {
-
+        /// <summary>
+        /// The main method of the class. 
+        /// It gets the current state of the solution, which includes the projects in the solution, their target frameworks, and their references.
+        /// </summary>
+        /// <param name="solutionFileFullPath">full string path to the curr solution file</param>
+        /// <returns>a tuple with dict of current solution state by projects and bool that shows if there are any refs inside solution</returns>
         public static Tuple<Dictionary<string, ProjectState>, bool> GetCurrentSolutionState(string solutionFileFullPath)
         {
             Dictionary<string, ProjectState> commitedSolState = new Dictionary<string, ProjectState>();
@@ -44,8 +53,8 @@ namespace RefDepGuard.Console.Managers
 
                             List<string> referenceNames = projectReferences.ConvertAll(projReference =>
                                     projReference.EvaluatedInclude
-                                        .Split("\\").Last()
-                                        .Split("/").Last() //Т.к. встречаются рефы, которые почему-то записаны через обратный слэш
+                                        .Split("\\").Last() 
+                                        .Split("/").Last() //As there are refs that are written through backslash for some reason
                                         .Replace(".csproj", "")
                                 );
 
@@ -56,7 +65,7 @@ namespace RefDepGuard.Console.Managers
                                 System.Console.WriteLine("   -" + referenceName)
                                 );
 
-                            commitedSolState.Add(projectName, new ProjectState(targetFrameworkNums, targetFramework, referenceNames));//А если tF и tFN идут null?
+                            commitedSolState.Add(projectName, new ProjectState(targetFrameworkNums, targetFramework, referenceNames));
                         }
                     }
                 }

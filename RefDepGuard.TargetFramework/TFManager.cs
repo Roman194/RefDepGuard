@@ -5,8 +5,19 @@ using System.Text.RegularExpressions;
 
 namespace RefDepGuard.TargetFramework
 {
+    /// <summary>
+    /// This is the Target Framework Manager. It is responsible for getting the target framework information from the project and converting it to a format 
+    /// that can be used for comparison with the target frameworks specified in the configuration files.
+    /// </summary>
     public class TFManager
     {
+        /// <summary>
+        /// The main method of the class. 
+        /// It gets the target framework information from the project and converts it to a format that can be used for comparison with the target frameworks 
+        /// specified in the configuration files.
+        /// </summary>
+        /// <param name="currentProject">current project MSBuild instance</param>
+        /// <returns>A tuple with proj targetframework string and nums</returns>
         public static Tuple<string, Dictionary<string, List<int>>> GetTargetFrameworkInStringNTransferFormats(Project currentProject)
         {
             var targetFrameworkString = GetTargetFrameworkStringForProject(currentProject);
@@ -15,6 +26,11 @@ namespace RefDepGuard.TargetFramework
             return Tuple.Create(targetFrameworkString, targetFrameworkNums);
         }
 
+        /// <summary>
+        /// This method is responsible for getting the target framework information from the project and returning it in a string format.
+        /// </summary>
+        /// <param name="currentProject">current project MSBuild instance</param>
+        /// <returns>A relevant proj target framework string</returns>
         private static string GetTargetFrameworkStringForProject(Project currentProject)
         {
             string targetFramework = currentProject.GetPropertyValue("TargetFramework");
@@ -41,7 +57,13 @@ namespace RefDepGuard.TargetFramework
             return "";
         }
 
-        public static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)//????
+        /// <summary>
+        /// This method is responsible for converting the target framework information from the string format to a format that can be used for comparison with the 
+        /// target frameworks specified in the configuration files.
+        /// </summary>
+        /// <param name="targetFrameworkString">proj relevant target framework string</param>
+        /// <returns>proj dict with target framework nums</returns>
+        public static Dictionary<string, List<int>> ConvertTargetFrameworkToTransferFormat(string targetFrameworkString)
         {
             Dictionary<string, List<int>> currentTargetFrameworksDict = new Dictionary<string, List<int>>();
 
@@ -124,6 +146,11 @@ namespace RefDepGuard.TargetFramework
             return currentTargetFrameworksDict;
         }
 
+        /// <summary>
+        /// This method is responsible for splitting the target framework version string by each number to get the same result for TF versions with and without dots.
+        /// </summary>
+        /// <param name="currentString">current string</param>
+        /// <returns>an array of strings</returns>
         private static string[] SplitStrByEachNum(string currentString)
         {
             int currentStringLength = currentString.Length;
@@ -135,6 +162,11 @@ namespace RefDepGuard.TargetFramework
             return resultString;
         }
 
+        /// <summary>
+        /// This method is responsible for converting the target framework version from string format to a list of int nums.
+        /// </summary>
+        /// <param name="targetFrameworkVersionsArray">TFM-s versions array</param>
+        /// <returns>list of int TFM nums values</returns>
         private static List<int> ConvertTargetFrameworkVersionToIntNums(string[] targetFrameworkVersionsArray)
         {
             List<int> targetFrameworkVersionsNums = new List<int>();

@@ -65,6 +65,15 @@ namespace RefDepGuard
             return exportParametersNConfigFilesDataTuple;
         }
 
+        /// <summary>
+        /// Shows a prompt to the user about the detected discrepancies between the projects in the solution and the projects listed in the configuration file, 
+        /// which indicate that there is 1 added and 1 removed project, so it can be a potential rename.
+        /// </summary>
+        /// <param name="configFilesData">config files data instance</param>
+        /// <param name="addedProj">added proj string</param>
+        /// <param name="removedProj">removed proj string</param>
+        /// <param name="uIShell">ui shell instance</param>
+        /// <returns>updated config files data instance</returns>
         private static ConfigFilesData ShowPromptAndSolveDifferProblemOnPotentialRename(
             ConfigFilesData configFilesData, string addedProj, string removedProj, IVsUIShell uIShell)
         {
@@ -73,7 +82,7 @@ namespace RefDepGuard
 
             if (MessageManager.ShowYesNoPrompt(uIShell, message, Resource.Extension_Name))//If user agrees
             {
-                //Rename project
+                //Rename the project
                 configFilesData = ConfigFileExtensionManager.RenameProjectInConfigFile(configFilesData, addedProj, removedProj);
             }
             else
@@ -94,7 +103,6 @@ namespace RefDepGuard
 
                 //If user rejects it, he will see relevant "project match waring"
             }
-
                 return configFilesData;
         }
 

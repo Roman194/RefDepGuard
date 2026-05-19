@@ -3,7 +3,6 @@ using Microsoft.VisualStudio.Shell;
 
 namespace RefDepGuard.Managers.Applied
 {
-
     /// <summary>
     /// This class manages the solution name information for the extension. 
     /// It extracts and stores the package extended name, solution name, and solution extended name from the DTE object in string formats.

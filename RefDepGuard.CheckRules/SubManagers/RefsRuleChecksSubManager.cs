@@ -362,7 +362,7 @@ namespace RefDepGuard.CheckRules.SubManagers
                 if (referenceLevel != ProblemLevel.Global && i > 1)
                     break;
 
-                //generalReferences содержит все Project и Solution рефы, которые могут конфликтовать с текущим рефом (0 и 1 - project рефы, 2 и 3 - solution рефы)
+                //generalReferences contains all Project and Solution refs, which can conflict with the curr ref (0 и 1 - project refs, 2 и 3 - solution refs)
                 if (generalReferences[i].Contains(currentReference))
                     return true;
             }

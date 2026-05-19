@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using RefDepGuard.Applied.Models.Problem;
+﻿using RefDepGuard.Applied.Models.Problem;
 
 namespace RefDepGuard.Applied.Models.Reference.Errors
 {

@@ -75,7 +75,7 @@ namespace RefDepGuard
 
                     if (vSProject != null)
                     {
-                        var refsList = new List<string>();//пЕРЕНЕСТИ ПОВЫШЕ К ИНИЦИАЛИЗАЦИИ ПРОЧИХ ЛОКАЛЬНЫХ ПЕРЕМЕННЫХ?   
+                        var refsList = new List<string>();
 
                         foreach (VSLangProj.Reference vRef in vSProject.References)
                         {

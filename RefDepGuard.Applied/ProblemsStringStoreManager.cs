@@ -12,8 +12,19 @@ using System.Collections.Generic;
 
 namespace RefDepGuard.Applied
 {
+    /// <summary>
+    /// This class is responsible for converting the current RefDepGuard problems (errors and warnings) to the string format that will be used
+    /// for output in the error list and in the console.
+    /// </summary>
     public class ProblemsStringStoreManager
     {
+        /// <summary>
+        /// Converts the current RefDepGuard errors to the string format that will be used for output in the error list and in the console.
+        /// </summary>
+        /// <param name="refDepGuardErrors">All extension error lists abstraction</param>
+        /// <param name="configFilesData">Config files current parameters</param>
+        /// <param name="isLoadToConsole">Shows if its load to console or extension</param>
+        /// <returns>List with all RefDepGuard check errors in string format</returns>
         public static List<ProblemString> ConvertCurrentErrorsToStringFormat(
             RefDepGuardErrors refDepGuardErrors, ConfigFilesData configFilesData, bool isLoadToConsole)
         {
@@ -21,6 +32,7 @@ namespace RefDepGuard.Applied
             var outputPlacePrefix = isLoadToConsole ? "    - " : "RefDepGuard ";
             var outputPlaceTransfer = isLoadToConsole ? "\r\n" : " ";
 
+            // Errors are sorted in the way they are listed in the RefDepGuardWarnings class
             foreach (ReferenceError error in refDepGuardErrors.RefsErrorList)
             {
                 string referenceTypeText = error.IsReferenceRequired ? Resource.No_Required_String : Resource.Unacceptable_String;
@@ -134,6 +146,13 @@ namespace RefDepGuard.Applied
             return problemsStringList;
         }
 
+        /// <summary>
+        /// Converts the current RefDepGuard warnings to the string format that will be used for output in the error list and in the console.
+        /// </summary>
+        /// <param name="refDepGuardWarnings">All extension warning lists abstraction</param>
+        /// <param name="configFilesData">Config files current parameters</param>
+        /// <param name="isLoadToConsole">Shows if its load to console or extension</param>
+        /// <returns>List with all RefDepGuard check warnings in string format</returns>
         public static List<ProblemString> ConvertCurrentWarningsToStringFormat(
             RefDepGuardWarnings refDepGuardWarnings, ConfigFilesData configFilesData, bool isLoadToConsole)
         {
@@ -141,6 +160,7 @@ namespace RefDepGuard.Applied
             var outputPlacePrefix = isLoadToConsole ? "    - " : "RefDepGuard ";
             var outputPlaceTransfer = isLoadToConsole ? "\r\n" : " ";
 
+            // Warnings are sorted in the way they are listed in the RefDepGuardWarnings class
             foreach (ReferenceMatchWarning referenceMatchWarning in refDepGuardWarnings.RefsMatchWarningList)
             {
                 string projectName = (referenceMatchWarning.ProjectName != "") ? ("'" + Resource.Of_A_Project_String + referenceMatchWarning.ProjectName) : "";
@@ -310,7 +330,6 @@ namespace RefDepGuard.Applied
                 problemsStringList.Add(new ProblemString(currentText, ""));
             }
 
-            //Насколько Tuple всё же норм решение? М.б создать кастмные типы данных?
             foreach (var projKeyValuePair in refDepGuardWarnings.DetectedNDuplicatedTransitRefsDict.Item1) //Detecyed transit refs
             {
                 string projName = projKeyValuePair.Key;

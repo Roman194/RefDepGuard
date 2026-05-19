@@ -1,6 +1,10 @@
 ﻿
 namespace RefDepGuard.Applied.Models.Project
 {
+    /// <summary>
+    /// Shows the warning about the project name semantic. 
+    /// It helps to highlight when the project name doesn't match the expected semantic that is floows from divided semantic rules.
+    /// </summary>
     public class ProjectNameSemanticWarning
     {
         public string ProjectName;

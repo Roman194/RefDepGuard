@@ -29,7 +29,7 @@ namespace RefDepGuard.CheckRules.SubManagers
         /// </summary>
         /// <param name="configFilesData">ConfigFilesData commited value</param>
         /// <param name="currentCommitedProjState">Solution projects commited state</param>
-        /// <returns>ConfigFilesData value and list of current ProjectMatchWarning</returns>
+        /// <returns>A list of current ProjectMatchWarning</returns>
         /// <see cref="ShowPromptAndSolveDifferProblems"/>
 
         public static List<ProjectMatchWarning> GetProjectsMatchAfterChecksWarning(
@@ -44,6 +44,12 @@ namespace RefDepGuard.CheckRules.SubManagers
             return projectMatchWarningList;
         }
 
+        /// <summary>
+        /// Checks if the projects in the solution match the projects listed in the configuration file.
+        /// </summary>
+        /// <param name="configFilesData">ConfigFilesData commited value</param>
+        /// <param name="currentCommitedProjState">Solution projects commited state</param>
+        /// <returns>A dict with all added and removed projects</returns>
         public static Tuple<List<string>, List<string>> CheckSolutionNConfigFileProjectsOnMatch(
             ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
         {

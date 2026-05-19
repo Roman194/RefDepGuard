@@ -11,7 +11,6 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.ConfigFile.DTO;
 using RefDepGuard.Applied.Models.Reference;
-using RefDepGuard.Applied.Models.FrameworkVersion;
 using RefDepGuard.Applied.Models;
 using RefDepGuard.CheckRules.Models;
 
@@ -238,11 +237,14 @@ namespace RefDepGuard.CheckRules
                 }
             }
 
+            //Check if all exsisting TFM-s on the Global/Solution levels are relevant at least for 1 project
             MaxFrameworkRuleChecksSubManager.CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(maxGlobalFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes);
 
+            //Check on transit references detection if needed
             if (isTransitReferencesDetectionNeeded)
                 TransitRefsDetectSubManager.CheckDetectedTransitReferencesOnStreightDuplicate(currentCommitedSolState);
 
+            //Check on semantic of project names if it is needed
             if (isProjNamesSemanticCheckNeeded)
                 SemanticChecksSubManager.CheckProjectNamesSemantic(currentCommitedSolState.Keys.ToList());
 
@@ -267,7 +269,6 @@ namespace RefDepGuard.CheckRules
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
             var semanticProjectNameWarnings = SemanticChecksSubManager.GetProjectNamesSemanticWarningList();
-
 
             refsRuleCheckErrors.RefsErrorList.Sort((x, y) => //Sorts only errors!
                 x.CurrentRuleLevel.CompareTo(y.CurrentRuleLevel));

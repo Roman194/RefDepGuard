@@ -172,8 +172,8 @@ namespace RefDepGuard
 
                         var currentError = refErrors.Find(value => value.ReferenceName == currentProjectRef && value.ErrorRelevantProjectName == currentProjectName);
                         var currentRefError = maxFrVersionRefConflictWarning.Find(value => value.RefName == currentProjectRef && value.ProjName == currentProjectName);
-                        if (currentError != null) //Поиск на соответствие среди ошибок
-                        {
+                        if (currentError != null)
+                        { //Search on match among errors
                             errorText = Resource.Forbidden_Reference_Title;
                         }
                         else

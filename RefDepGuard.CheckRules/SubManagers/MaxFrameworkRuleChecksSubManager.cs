@@ -293,6 +293,11 @@ namespace RefDepGuard.CheckRules.SubManagers
             }
         }
 
+        /// <summary>
+        /// Checks if the maximum framework version rules specified at the solution and global levels are applied only to existing TargetFrameworks in the solution.
+        /// </summary>
+        /// <param name="globalRuleTypes">Dict with TFMs that are relevant for one or more projects on the root level</param>
+        /// <param name="solutionRuleTypes">Dict with TFMs that are relevant for one or more projects on the current solution level</param>
         public static void CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(Dictionary<string, List<int>> globalRuleTypes, Dictionary<string, List<int>> solutionRuleTypes)
         {
             foreach (var ruleType in globalRuleTypes.Keys)
@@ -333,6 +338,16 @@ namespace RefDepGuard.CheckRules.SubManagers
             return requiredMaxFrVersionsDict;
         }
 
+        /// <summary>
+        /// Gets the dictionary of projects without max_framework_version rules for each TFM, which is used for checking potential max_fr_ver conflicts between 
+        /// projects
+        /// </summary>
+        /// <param name="currentProjectSupportedFrameworks">Dict with current proj supported TFM-s</param>
+        /// <param name="currentProjectFramework">Curr proj framework string name</param>
+        /// <param name="currentProjFrameworkVersionArray">Curr proj framework versions array</param>
+        /// <param name="projName">Project name string</param>
+        /// <param name="problemLevel">Current problem level</param>
+        /// <param name="maxFrameworkVersionString">max_fr_ver string</param>
         private static void UpdateFrameworkComparabilityErrorList(
             Dictionary<string, List<int>> currentProjectSupportedFrameworks, string currentProjectFramework, List<int> currentProjFrameworkVersionArray, string projName,
             ProblemLevel problemLevel, string maxFrameworkVersionString)
@@ -351,6 +366,12 @@ namespace RefDepGuard.CheckRules.SubManagers
                     );
         }
 
+        /// <summary>
+        /// Checks for potential conflicts in maximum framework version rules between the current project and its references for each TargetFramework of the project.
+        /// </summary>
+        /// <param name="projName">proj name string</param>
+        /// <param name="projReferences">list with project references</param>
+        /// <param name="currentProjMaxFrVersionDict">The dict of projects without max_fr_versions</param>
         private static void CheckProjectReferencesForEachTFM(string projName, List<string> projReferences,
             OneOf<Dictionary<string, List<RequiredMaxFrVersion>>, Dictionary<string, List<ProjectWithoutMaxFrVersion>>> currentProjMaxFrVersionDict)
         {
@@ -369,6 +390,12 @@ namespace RefDepGuard.CheckRules.SubManagers
 
         }
 
+        /// <summary>
+        /// Checks for potential conflicts in maximum framework version rules between the current project and its references for the current TargetFramework of the project.
+        /// </summary>
+        /// <param name="projName">proj name string</param>
+        /// <param name="projReferences">list with proj references</param>
+        /// <param name="maxFrVersionProjCurrentTFMValues">RequiredMaxFrVersion or ProjectWithoutMaxFrVersion with current proj TFM values</param>
         private static void CheckProjectReferencesForCurrentTFM(string projName, List<string> projReferences,
             OneOf<RequiredMaxFrVersion, ProjectWithoutMaxFrVersion> maxFrVersionProjCurrentTFMValues)
         {
@@ -517,6 +544,18 @@ namespace RefDepGuard.CheckRules.SubManagers
             }
         }
 
+        /// <summary>
+        /// Prepares data and adds a new warning about a conflict in maximum framework version rules between two levels or between the project and its reference 
+        /// to the list of warnings.
+        /// </summary>
+        /// <param name="maxHighLevelFrameworkVersionList">higher level fr versions list</param>
+        /// <param name="maxLowLevelFrameworkVersionList">lower level fr versions list</param>
+        /// <param name="currentRefFrameworkVersionList">current ref fr versions list</param>
+        /// <param name="lowRuleLevel">lower level rule</param>
+        /// <param name="highRuleLevel">higher level rule</param>
+        /// <param name="projName">proj name string</param>
+        /// <param name="refName">reference name string</param>
+        /// <param name="isOneProjectsTypeConflict">shows if its one project type conflict</param>
         private static void PrepareAndAddMaxFrameworkVersionConflictNReferenceWarnings(
             List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, List<int> currentRefFrameworkVersionList, ProblemLevel lowRuleLevel, 
             ProblemLevel highRuleLevel, string projName, string refName, bool isOneProjectsTypeConflict)

@@ -10,6 +10,11 @@ using RefDepGuard.Console.Resources;
 
 namespace RefDepGuard.Console
 {
+    /// <summary>
+    /// This is the main class of the console application. 
+    /// It is responsible for managing the flow of the application, calling the necessary methods to get the current state of the solution, 
+    /// get the information from the configuration files, check the rules, and show the found problems on the console.
+    /// </summary>
     class MainCommand
     {
         private static Dictionary<string, ProjectState> CurrentSolState = new Dictionary<string, ProjectState>();
@@ -20,6 +25,11 @@ namespace RefDepGuard.Console
         private static string rootDirectory = "";
         private static string solutionName = "";
 
+        /// <summary>
+        /// The main method of the console application. 
+        /// It manages the flow of the application, calling the necessary methods to get the current state of the solution,
+        /// </summary>
+        /// <param name="args">input arguments string (include localization ones: en-US)</param>
         private static void Main(string[] args)
         {
             System.Console.SetWindowSize(160, 35);
@@ -41,10 +51,14 @@ namespace RefDepGuard.Console
             ShowFindedProblemsOnCurrentCheck();
         }
 
+        /// <summary>
+        /// This method is responsible for getting the current state of the solution, which includes the projects in the solution, 
+        /// their target frameworks, and their references.
+        /// </summary>
         private static void GetCurrentSolutionState()
         {
-            #if DEBUG //Должно будет быть равно Directory.GetCurrentDirectory(), когда .exe будет лежать в руте!
-                rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg";
+            #if DEBUG //In debug mode the root directory is set to the fixed path, which is the path to the solution on the local machine of the developer.
+            rootDirectory = @"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg";
             #else 
                 rootDirectory = Directory.GetCurrentDirectory();
             #endif
@@ -65,12 +79,15 @@ namespace RefDepGuard.Console
                 else
                     ProblemsUploadToConsoleManager.UploadRefsNotFoundError();
 
-                Environment.Exit(-1); //Завершение проги с ошибкой
+                Environment.Exit(-1); //Exit with error code
             }
 
             System.Console.WriteLine("\r\n-> " + Resource.Solution_State_Parse_Title + " - Success");
         }
 
+        /// <summary>
+        /// This method is responsible for getting the information from the configuration files and returning it in a structured way.
+        /// </summary>
         private static void GetConfigFilesData()
         {
             System.Console.WriteLine("\r\n2. " + Resource.Config_Files_State_Parse_Title);
@@ -93,6 +110,9 @@ namespace RefDepGuard.Console
             System.Console.WriteLine("-> " + Resource.Config_Files_State_Parse_Title + " - Success");
         }
 
+        /// <summary>
+        /// This method is responsible for checking the rules of the configuration files against the current state of the solution.
+        /// </summary>
         private static void CheckRules()
         {
             System.Console.WriteLine("\r\n3. " + Resource.Check_Rules_Title);
@@ -102,14 +122,17 @@ namespace RefDepGuard.Console
             System.Console.WriteLine("-> " + Resource.Check_Rules_Title + " - Success");
         }
 
+        /// <summary>
+        /// This method is responsible for showing the found problems of the check rules on the console.
+        /// </summary>
         private static void ShowFindedProblemsOnCurrentCheck()
         {
             if (refDepGuardFindedProblems.IsEmpty())
             {
                 System.Console.WriteLine("\r\n" + Resource.No_Find_Problems_On_Check);
             }
-            else
-            { //Если обнаружены какие-то "проблемы"
+            else // If there are any finded "problems"
+            {
                 var errorsCount = refDepGuardFindedProblems.RefDepGuardErrors.Count();
                 var warningsCount = refDepGuardFindedProblems.RefDepGuardWarnings.Count();
 

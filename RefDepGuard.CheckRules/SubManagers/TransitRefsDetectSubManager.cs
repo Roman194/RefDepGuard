@@ -53,6 +53,11 @@ namespace RefDepGuard.CheckRules.SubManagers
             }
         }
 
+        /// <summary>
+        /// Checks the detected transit references for current project on duplicates with straight references of the project. 
+        /// If there are some duplicates, adds them to the dictionary of duplicated transit and straight refs for current project.
+        /// </summary>
+        /// <param name="currentCommitedSolState">Current commited solution state dictionary</param>
         public static void CheckDetectedTransitReferencesOnStreightDuplicate(Dictionary<string, ProjectState> currentCommitedSolState)
         {
             foreach (var currProjState in currentCommitedSolState)
@@ -103,7 +108,6 @@ namespace RefDepGuard.CheckRules.SubManagers
 
             if (checkingProjTransitReferencesList.Count != 0)
             {//If there are some refs in transitProjName, then we need to check them on transit refs
-                //Если есть рефы, то сначала пройтись по ним и добавить транзитивные связи из них
 
                 foreach (string transitReference in checkingProjTransitReferencesList)
                 {
