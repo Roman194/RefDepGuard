@@ -11,7 +11,6 @@ using RefDepGuard.Applied.Models.Project;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.ConfigFile.DTO;
 using RefDepGuard.Applied.Models.Reference;
-using RefDepGuard.Applied.Models.FrameworkVersion;
 using RefDepGuard.Applied.Models;
 using RefDepGuard.CheckRules.Models;
 
@@ -32,7 +31,7 @@ namespace RefDepGuard.CheckRules
         private static List<MaxFrameworkVersionTFMNotFoundWarning> maxFrameworkVersionTFMNotFoundWarningList = new List<MaxFrameworkVersionTFMNotFoundWarning>();
 
         private static List<RequiredReference> requiredReferencesList = new List<RequiredReference>();
-        private static List<RequiredMaxFrVersion> requiredMaxFrVersionList = new List<RequiredMaxFrVersion>();
+        //private static List<RequiredMaxFrVersion> requiredMaxFrVersionList = new List<RequiredMaxFrVersion>(); //?????
 
         //Lists with all errors and warnings, that will be exported to ELP in the end of the main method of this manager.
         private static RefDepGuardErrors refDepGuardErrors;
@@ -57,7 +56,6 @@ namespace RefDepGuard.CheckRules
         public static Tuple<RefDepGuardExportParameters, ConfigFilesData> CheckConfigFileRulesForExtension(
             ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedSolState)
         {
-
             refDepGuardFindedProblems = CheckConfigFileRulesForConsole(configFilesData, currentCommitedSolState);
 
             var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
@@ -128,6 +126,7 @@ namespace RefDepGuard.CheckRules
                 );
 
             bool isTransitReferencesDetectionNeeded = (configFileGlobal?.report_on_transit_references ?? false) && (configFileSolution?.report_on_transit_references ?? false);
+            bool isProjNamesSemanticCheckNeeded = (configFileGlobal?.project_names_semantic_check ?? false) && (configFileSolution?.project_names_semantic_check ?? false);
 
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)//foreach project
             {
@@ -143,11 +142,14 @@ namespace RefDepGuard.CheckRules
                     bool isConsiderUnacceptableReferences = currentProjectConfigFileSettings.consider_global_and_solution_references?.unacceptable ?? true;
 
                     //Transit references detection is needed on project level if it is allowed on global and solution levels and if the user didn't disable it for the project specifically
-                    bool isTransitReferencesDetectionNeededOnThisProj = (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
+                    bool isTransitReferencesDetectionNeededOnThisProj = 
+                        (currentProjectConfigFileSettings?.report_on_transit_references ?? false) && isTransitReferencesDetectionNeeded;
 
                     Dictionary<string, List<int>> projTypes = currentCommitedSolState[projName].CurrentFrameworkVersions;
                     var maxFrameworkVersionByTypes =
-                        GetMaxFrameworkVersionDictionaryByTypes(currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList());
+                        GetMaxFrameworkVersionDictionaryByTypes(
+                            currentProjectConfigFileSettings?.framework_max_version ?? "-", ProblemLevel.Project, projName, projTypes.Keys.ToList()
+                            );
 
                     List<string> requiredReferences = currentProjectConfigFileSettings?.required_references ?? new List<string>();
                     List<string> unacceptableReferences = currentProjectConfigFileSettings?.unacceptable_references ?? new List<string>();
@@ -161,7 +163,8 @@ namespace RefDepGuard.CheckRules
 
                     //A check on exsisting of the projects that are specified as the references in the config file on the project level
                     (requiredReferences, unacceptableReferences) =
-                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(requiredReferences, unacceptableReferences, currentCommitedSolState, ProblemLevel.Project, projName);
+                        RefsRuleChecksSubManager.CheckReferencesOnProjectExisting(
+                            requiredReferences, unacceptableReferences, currentCommitedSolState, ProblemLevel.Project, projName);
 
                     //A check for conflicts between referneces on the project level and solution/global levels
                     RefsRuleChecksSubManager.CheckProjectRulesOnMatchConflicts(
@@ -207,6 +210,10 @@ namespace RefDepGuard.CheckRules
                                 MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
                                     projFrameworkVersions, maxGlobalFrameworkVersionByTypes, projName, ProblemLevel.Global
                                     );
+                            else
+                                MaxFrameworkRuleChecksSubManager.CheckProjectTargetFrameworkVersion(
+                                    projFrameworkVersions, maxFrameworkVersionByTypes, projName, ProblemLevel.Undefined
+                                    );
                         }
                     }
                     else
@@ -230,6 +237,17 @@ namespace RefDepGuard.CheckRules
                 }
             }
 
+            //Check if all exsisting TFM-s on the Global/Solution levels are relevant at least for 1 project
+            MaxFrameworkRuleChecksSubManager.CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(maxGlobalFrameworkVersionByTypes, maxSolutionFrameworkVersionByTypes);
+
+            //Check on transit references detection if needed
+            if (isTransitReferencesDetectionNeeded)
+                TransitRefsDetectSubManager.CheckDetectedTransitReferencesOnStreightDuplicate(currentCommitedSolState);
+
+            //Check on semantic of project names if it is needed
+            if (isProjNamesSemanticCheckNeeded)
+                SemanticChecksSubManager.CheckProjectNamesSemantic(currentCommitedSolState.Keys.ToList());
+
             //For a correct check of potential conflicts between max framework versions on the exsisting references it is needed to collect info about projects, their max versions and conflicts between them.
             //That's why this check is performed after the main loop through projects.
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedSolState)
@@ -246,11 +264,11 @@ namespace RefDepGuard.CheckRules
             //After all checks are performed, we collect all the errors and warnings from different submanagers and sort them before exporting to ELP.
             var refsRuleChecksWarnings = RefsRuleChecksSubManager.GetReferenceWarnings();
             var refsRuleCheckErrors = RefsRuleChecksSubManager.GetReferenceErrors();
-            var detectedTransitRefs = TransitRefsDetectSubManager.GetDetectedTransitRefsDict();
+            var detectedNDuplicatedTransitRefs = TransitRefsDetectSubManager.GetDetectedAndDuplicatedTransitRefsDict();
 
             var maxFrameworkVersionWarnings = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkVersionWarnings();
             var maxFrameworkRuleProblems = MaxFrameworkRuleChecksSubManager.GetMaxFrameworkRuleProblems();
-            var requiredMaxFrVersionsDict = MaxFrameworkRuleChecksSubManager.GetRequiredMaxFrVersionsDict();
+            var semanticProjectNameWarnings = SemanticChecksSubManager.GetProjectNamesSemanticWarningList();
 
             refsRuleCheckErrors.RefsErrorList.Sort((x, y) => //Sorts only errors!
                 x.CurrentRuleLevel.CompareTo(y.CurrentRuleLevel));
@@ -271,7 +289,8 @@ namespace RefDepGuard.CheckRules
                 refsRuleChecksWarnings.ReferenceMatchWarningsList, refsRuleChecksWarnings.ProjectNotFoundWarningsList, projectMatchWarningList,
                 maxFrameworkVersionDeviantValueWarningList, maxFrameworkVersionWarnings.MaxFrameworkVersionConflictWarningsList,
                 maxFrameworkVersionWarnings.MaxFrameworkVersionReferenceConflictWarningsList, maxFrameworkVersionTFMNotFoundWarningList,
-                maxFrameworkRuleProblems.UntypedWarningsList, detectedTransitRefs);
+                maxFrameworkRuleProblems.MaxFrameworkVersionIllegalTemplateUsageWarningList, semanticProjectNameWarnings,
+                maxFrameworkRuleProblems.UntypedWarningsList, detectedNDuplicatedTransitRefs);
 
             return new RefDepGuardFindedProblems(refDepGuardWarnings, refDepGuardErrors);
         }
@@ -302,6 +321,7 @@ namespace RefDepGuard.CheckRules
             MaxFrameworkRuleChecksSubManager.ClearErrorAndWarningLists();
             CheckProjectsMatchSubManager.ClearErrorLists();
             TransitRefsDetectSubManager.ClearDetectedTransitRefsDict();
+            SemanticChecksSubManager.ClearSemanticCheckLists();
         }
 
         /// <summary>
@@ -312,7 +332,9 @@ namespace RefDepGuard.CheckRules
         /// <param name="projName">A name of the current project</param>
         /// <param name="projTypes">TFM-s of this project</param>
         /// <returns>Max framework version rules in dictionary format</returns>
-        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(string currentMaxFrameworkVersion, ProblemLevel errorLevel, string projName = "", List<string> projTypes = null)
+        private static Dictionary<string, List<int>> GetMaxFrameworkVersionDictionaryByTypes(
+            string currentMaxFrameworkVersion, ProblemLevel errorLevel, string projName = "", List<string> projTypes = null
+            )
         {
             projTypes = projTypes ?? new List<string>();
 
@@ -398,7 +420,9 @@ namespace RefDepGuard.CheckRules
                     if (!Int32.TryParse(maxFrameworkVersionNumber, out maxVersionCurrentNum))//Try to parse it to int
                     {
                         //if it is not possible, then adds deviant value error and return an empty dictionary
-                        MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
+                        MaxFrameworkVersionDeviantValueError potentialMaxFrameworkVersionDeviantValueError = 
+                            new MaxFrameworkVersionDeviantValueError(errorLevel, projName, false);
+                        
                         if (errorLevel == ProblemLevel.Project)
                         {
                             maxFrameworkVersionDeviantValueErrorList.Add(potentialMaxFrameworkVersionDeviantValueError);

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace RefDepGuard.Applied.Models.ConfigFile.DTO
 {
@@ -11,6 +9,7 @@ namespace RefDepGuard.Applied.Models.ConfigFile.DTO
     {
         public string name;
         public string framework_max_version;
+        public bool project_names_semantic_check;
         public bool report_on_transit_references;
         public List<string> solution_required_references;
         public List<string> solution_unacceptable_references;

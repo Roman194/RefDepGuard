@@ -1,13 +1,23 @@
 ﻿using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
 using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Console.Resources;
 using RefDepGuard.TargetFramework;
 
 namespace RefDepGuard.Console.Managers
 {
+    /// <summary>
+    /// This class is responsible for managing the current state of the solution. 
+    /// It provides method to get the current state of the solution, which includes the projects in the solution, their target frameworks, and their references.
+    /// </summary>
     public class CurrentStateConsoleManager
     {
-
+        /// <summary>
+        /// The main method of the class. 
+        /// It gets the current state of the solution, which includes the projects in the solution, their target frameworks, and their references.
+        /// </summary>
+        /// <param name="solutionFileFullPath">full string path to the curr solution file</param>
+        /// <returns>a tuple with dict of current solution state by projects and bool that shows if there are any refs inside solution</returns>
         public static Tuple<Dictionary<string, ProjectState>, bool> GetCurrentSolutionState(string solutionFileFullPath)
         {
             Dictionary<string, ProjectState> commitedSolState = new Dictionary<string, ProjectState>();
@@ -15,12 +25,12 @@ namespace RefDepGuard.Console.Managers
 
             if (File.Exists(solutionFileFullPath))
             {
-                var solutionFile = SolutionFile.Parse(solutionFileFullPath);//@"C:\Users\zuzinra\source\repos\Mir.Controller.Cfg\Mir.Controller.Cfg.sln"
+                var solutionFile = SolutionFile.Parse(solutionFileFullPath);
                 var projects = solutionFile.ProjectsInOrder;
 
                 if (projects.Count > 0)
                 {
-                    System.Console.WriteLine("В решении обнаружены следующие проекты и связи между ними:");
+                    System.Console.WriteLine(Resource.Solution_State_Parse_Start_Message);
 
                     foreach (var project in projects)
                     {
@@ -37,14 +47,14 @@ namespace RefDepGuard.Console.Managers
                         {
                             (targetFramework, targetFrameworkNums) = TFManager.GetTargetFrameworkInStringNTransferFormats(currentProject);
 
-                            System.Console.WriteLine("\r\nПроект: " + projectName + " (" + targetFramework + ")");
+                            System.Console.WriteLine("\r\n" + Resource.Project_String + projectName + " (" + targetFramework + ")");
 
                             projectReferences = currentProject.GetItems("ProjectReference").ToList();
 
                             List<string> referenceNames = projectReferences.ConvertAll(projReference =>
                                     projReference.EvaluatedInclude
-                                        .Split("\\").Last()
-                                        .Split("/").Last() //Т.к. встречаются рефы, которые почему-то записаны через обратный слэш
+                                        .Split("\\").Last() 
+                                        .Split("/").Last() //As there are refs that are written through backslash for some reason
                                         .Replace(".csproj", "")
                                 );
 
@@ -55,7 +65,7 @@ namespace RefDepGuard.Console.Managers
                                 System.Console.WriteLine("   -" + referenceName)
                                 );
 
-                            commitedSolState.Add(projectName, new ProjectState(targetFrameworkNums, targetFramework, referenceNames));//А если tF и tFN идут null?
+                            commitedSolState.Add(projectName, new ProjectState(targetFrameworkNums, targetFramework, referenceNames));
                         }
                     }
                 }

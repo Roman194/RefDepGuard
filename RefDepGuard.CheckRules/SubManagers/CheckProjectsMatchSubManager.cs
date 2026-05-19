@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RefDepGuard.Applied.Models.ConfigFile;
 using RefDepGuard.Applied.Models.Project;
 
@@ -28,7 +29,7 @@ namespace RefDepGuard.CheckRules.SubManagers
         /// </summary>
         /// <param name="configFilesData">ConfigFilesData commited value</param>
         /// <param name="currentCommitedProjState">Solution projects commited state</param>
-        /// <returns>ConfigFilesData value and list of current ProjectMatchWarning</returns>
+        /// <returns>A list of current ProjectMatchWarning</returns>
         /// <see cref="ShowPromptAndSolveDifferProblems"/>
 
         public static List<ProjectMatchWarning> GetProjectsMatchAfterChecksWarning(
@@ -43,7 +44,14 @@ namespace RefDepGuard.CheckRules.SubManagers
             return projectMatchWarningList;
         }
 
-        public static Tuple<List<string>, List<string>> CheckSolutionNConfigFileProjectsOnMatch(ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
+        /// <summary>
+        /// Checks if the projects in the solution match the projects listed in the configuration file.
+        /// </summary>
+        /// <param name="configFilesData">ConfigFilesData commited value</param>
+        /// <param name="currentCommitedProjState">Solution projects commited state</param>
+        /// <returns>A dict with all added and removed projects</returns>
+        public static Tuple<List<string>, List<string>> CheckSolutionNConfigFileProjectsOnMatch(
+            ConfigFilesData configFilesData, Dictionary<string, ProjectState> currentCommitedProjState)
         {
             var addedProjectsList = new List<string>();
             var removedProjectsList = new List<string>();
@@ -51,6 +59,7 @@ namespace RefDepGuard.CheckRules.SubManagers
             foreach (KeyValuePair<string, ProjectState> currentProjState in currentCommitedProjState)//Check on added to solution projects
             {
                 var projName = currentProjState.Key;
+                var projState = currentProjState.Value.CurrentFrameworkVersions.Keys.ToList();
 
                 if (!configFilesData.ConfigFileSolution?.projects?.ContainsKey(projName) ?? false)
                 {

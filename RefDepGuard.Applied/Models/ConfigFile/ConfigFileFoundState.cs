@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
+﻿
+/// <summary>
+/// Shows the state of the config file search for both files (Global / current solution).
+/// </summary>
 namespace RefDepGuard.Applied.Models.ConfigFile
 {
     public class ConfigFileFoundState

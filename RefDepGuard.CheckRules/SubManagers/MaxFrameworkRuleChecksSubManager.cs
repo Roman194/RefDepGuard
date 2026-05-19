@@ -7,6 +7,8 @@ using System.Linq;
 using RefDepGuard.Applied.Models.Problem;
 using RefDepGuard.Applied.Models.FrameworkVersion;
 using RefDepGuard.CheckRules.Models;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
+using OneOf;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {
@@ -17,11 +19,14 @@ namespace RefDepGuard.CheckRules.SubManagers
     {
         private static List<MaxFrameworkVersionConflictWarning> maxFrameworkVersionConflictWarningsList = new List<MaxFrameworkVersionConflictWarning>();
         private static List<MaxFrameworkVersionReferenceConflictWarning> maxFrameworkVersionReferenceConflictWarningsList = new List<MaxFrameworkVersionReferenceConflictWarning>();
+        private static List<MaxFrameworkIllegalTemplateUsageWarning> maxFrameworkIllegalSolutionnGlobalTemplateUsagesList = new List<MaxFrameworkIllegalTemplateUsageWarning>();
 
         private static List<string> untypedWarningsList = new List<string>();
         private static List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList = new List<FrameworkVersionComparabilityError>();
 
-        private static Dictionary<string, RequiredMaxFrVersion> requiredMaxFrVersionsDict = new Dictionary<string, RequiredMaxFrVersion>();
+        private static Dictionary<string, List<RequiredMaxFrVersion>> requiredMaxFrVersionsDict = new Dictionary<string, List<RequiredMaxFrVersion>>();
+        private static Dictionary<string, List<ProjectWithoutMaxFrVersion>> projectsWithoutMaxFrVersionTFM = new Dictionary<string, List<ProjectWithoutMaxFrVersion>>();
+        private static HashSet<string> existingInSolutionTFMs = new HashSet<string>();
 
         /// <summary>
         /// Clears the lists of warnings and errors related to maximum framework version rules. 
@@ -38,11 +43,20 @@ namespace RefDepGuard.CheckRules.SubManagers
             if (maxFrameworkVersionReferenceConflictWarningsList != null)
                 maxFrameworkVersionReferenceConflictWarningsList.Clear();
 
+            if(maxFrameworkIllegalSolutionnGlobalTemplateUsagesList != null)
+                maxFrameworkIllegalSolutionnGlobalTemplateUsagesList.Clear();
+
             if (frameworkVersionComparabilityErrorList != null)
                 frameworkVersionComparabilityErrorList.Clear();
 
             if (requiredMaxFrVersionsDict != null)
                 requiredMaxFrVersionsDict.Clear();
+
+            if (projectsWithoutMaxFrVersionTFM != null) 
+                projectsWithoutMaxFrVersionTFM.Clear();
+
+            if (existingInSolutionTFMs != null) 
+                existingInSolutionTFMs.Clear();
         }
 
         /// <summary>
@@ -105,7 +119,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                             foreach (var currentMaxHighLevelFrameworkVersion in maxHighLevelFrameworkVersion)
                             {
                                 maxHighLevelFrameworkVersionArray = currentMaxHighLevelFrameworkVersion.Value;
-                                CheckMaxFrameworkVersionCurrentConflict(maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
+                                CheckMaxFrameworkVersionCurrentConflict(
+                                    maxHighLevelFrameworkVersionArray, maxLowLevelFrameworkVersionArray, projName, lowRuleLevel, highRuleLevel);
                             }
                         }
                     }
@@ -132,6 +147,9 @@ namespace RefDepGuard.CheckRules.SubManagers
                 return;
             }
 
+            List<ProjectWithoutMaxFrVersion> currentProjectFrameworks = new List<ProjectWithoutMaxFrVersion>();
+            List<RequiredMaxFrVersion> currentRequiredProjectFrameworks = new List<RequiredMaxFrVersion>();
+
             foreach (string currentProjectFramework in currentProjectSupportedFrameworks.Keys) //Foreach TragetFrameowrk(-s)
             {
                 string currentMaxFrVersionType = currentProjectFramework;
@@ -144,7 +162,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                 if (maxFrameworkVersion.ContainsKey(currentProjectFramework))//If there is a rule for the same type as in TargetFramework, then we compare with it
                 {
                     if (currentProjectFramework == "netstandard") //In case of "netstandard", we compare with nearest existing netstandard version, as the user can specify any version
-                        (maxFrameworkVersionString, currentMaxFrameworkVersionNums) = TFMSample.GetNearestExistingNetstandartVersion(maxFrameworkVersion[currentProjectFramework]);
+                        (maxFrameworkVersionString, currentMaxFrameworkVersionNums) = 
+                            TFMSample.GetNearestExistingNetstandartVersion(maxFrameworkVersion[currentProjectFramework]);
                     else
                         currentMaxFrameworkVersionNums = maxFrameworkVersion[currentProjectFramework];
                 }
@@ -163,86 +182,94 @@ namespace RefDepGuard.CheckRules.SubManagers
                             CheckProjectTargetFrameworkVersion(currentProjectSupportedFrameworks, reserveMaxFrameworkVersion, projName, ProblemLevel.Global);
 
                         //if at this moment there is nothing to compare with, its equal to '-'
+                        currentProjectFrameworks.Add(new ProjectWithoutMaxFrVersion(currentProjectFramework, currentProjectSupportedFrameworks[currentProjectFramework]));
 
                         continue;//continue as we neeeds to consider all TargetFrameworks of the project
                     }
                 }
 
-                //Loading data about max_framework_version restrictions for the current project
-                var maxFrameworkVersionArrayLength = currentMaxFrameworkVersionNums.Count;
-                maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
+                existingInSolutionTFMs.Add(currentProjectFramework);
 
-                var isConflictWarningRelevantForProject = maxFrameworkVersionConflictWarningsList.Find(value =>
-                    value.LowWarnLevel == problemLevel && (value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-")
-                    ) != null ? true : false;
-
-                if (!requiredMaxFrVersionsDict.ContainsKey(projName))//Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
-                    requiredMaxFrVersionsDict.Add(projName,
-                        new RequiredMaxFrVersion(maxFrameworkVersionString, currentMaxFrameworkVersionNums, problemLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject));
-                else
-                    requiredMaxFrVersionsDict[projName] =
-                        new RequiredMaxFrVersion(maxFrameworkVersionString, currentMaxFrameworkVersionNums, problemLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject);
-
-                var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
-
-                int i = 0;
-                for (i = 0; i < minLengthValue; i++)//Foreach number in the version arrays
+                if (problemLevel == ProblemLevel.Undefined) //If there are no any rules
                 {
-                    int currentProjCurrentNum = currentProjFrameworkVersionArray[i];
-                    int maxVersionCurrentNum = Convert.ToInt32(currentMaxFrameworkVersionNums[i]);
+                    currentProjectFrameworks.Add(new ProjectWithoutMaxFrVersion(currentProjectFramework, currentProjectSupportedFrameworks[currentProjectFramework]));
+                }
+                else //If there are any rules
+                {
+                    //Loading data about max_framework_version restrictions for the current TFM (project)
+                    var maxFrameworkVersionArrayLength = currentMaxFrameworkVersionNums.Count;
+                    maxFrameworkVersionString = GetFrameworkVersionString(currentMaxFrameworkVersionNums.ConvertAll(num => num.ToString()));
 
+                    var isConflictWarningRelevantForProject = maxFrameworkVersionConflictWarningsList.Find(value =>
+                        value.LowWarnLevel == problemLevel && (value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-")
+                        ) != null ? true : false;
 
-                    if (currentProjCurrentNum > maxVersionCurrentNum)//If current project version is higher than max version,
+                    currentRequiredProjectFrameworks.Add( //Имеет ли смысл делать это каждый раз при проверке правил? - Да, т.к. TargetFramework мог измениться между коммитами
+                        new RequiredMaxFrVersion(
+                            maxFrameworkVersionString, currentMaxFrameworkVersionNums, problemLevel, currentMaxFrVersionType, isConflictWarningRelevantForProject)
+                        );
+
+                    var minLengthValue = Math.Min(maxFrameworkVersionArrayLength, currentProjFrameworkVersionArrayLength);
+
+                    int i = 0;
+                    for (i = 0; i < minLengthValue; i++)//Foreach number in the version arrays
                     {
-                        //then add error to the list ("TargetFramework" is higher than accepted by max_framework_version rule)
-                        var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
+                        int currentProjCurrentNum = currentProjFrameworkVersionArray[i];
+                        int maxVersionCurrentNum = Convert.ToInt32(currentMaxFrameworkVersionNums[i]);
 
-                        if (frameworkVersionComparabilityErrorList.Find(error =>
-                                error.ErrorLevel == problemLevel && error.TargetFrameworkVersion == currentProjFrameworkVersionString &&
-                                error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantProjectName == projName) == null
-                            )
-                            frameworkVersionComparabilityErrorList.Add(
-                                new FrameworkVersionComparabilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
-                                );
-
-                        i = 0;
-                        break;
-                    }
-                    else
-                    {
-                        if (currentProjCurrentNum < maxVersionCurrentNum)//If current project version is lower than max version,
+                        if (currentProjCurrentNum > maxVersionCurrentNum)//If current project version is higher than max version,
                         {
-                            //then we don't have a conflict and can stop comparing other numbers in the version arrays
+                            //then add error to the list ("TargetFramework" is higher than accepted by max_framework_version rule)
+                            UpdateFrameworkComparabilityErrorList(currentProjectSupportedFrameworks, currentProjectFramework, currentProjFrameworkVersionArray, 
+                                projName, problemLevel, maxFrameworkVersionString);
+
                             i = 0;
                             break;
                         }
-
-                    }
-                }
-
-                if (currentProjFrameworkVersionArrayLength > maxFrameworkVersionArrayLength && i != 0) //if there are still some nums in the current project version,
-                {
-                    //then we compare these nums with 0
-                    for (int j = minLengthValue; j < currentProjFrameworkVersionArrayLength; j++)
-                    {
-                        int currentProjVersionCurrentNum = currentProjFrameworkVersionArray[j];
-
-                        if (currentProjVersionCurrentNum > 0)//if the current one higher, then we have a conflict
+                        else
                         {
-                            var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
+                            if (currentProjCurrentNum < maxVersionCurrentNum)//If current project version is lower than max version,
+                            {
+                                //then we don't have a conflict and can stop comparing other numbers in the version arrays
+                                i = 0;
+                                break;
+                            }
 
-                            if (frameworkVersionComparabilityErrorList.Find(error =>
-                                error.ErrorLevel == problemLevel && error.TargetFrameworkVersion == currentProjFrameworkVersionString &&
-                                error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantProjectName == projName) == null
-                            )
-                                frameworkVersionComparabilityErrorList.Add(
-                                    new FrameworkVersionComparabilityError(problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, projName)
-                                    );
+                        }
+                    }
 
-                            break;
+                    if (currentProjFrameworkVersionArrayLength > maxFrameworkVersionArrayLength && i != 0) //if there are still some nums in the current project version,
+                    {
+                        //then we compare these nums with 0
+                        for (int j = minLengthValue; j < currentProjFrameworkVersionArrayLength; j++)
+                        {
+                            int currentProjVersionCurrentNum = currentProjFrameworkVersionArray[j];
+                            if (currentProjVersionCurrentNum > 0)//if the current one higher, then we have a conflict
+                            {
+                                UpdateFrameworkComparabilityErrorList(currentProjectSupportedFrameworks, currentProjectFramework, currentProjFrameworkVersionArray,
+                                    projName, problemLevel, maxFrameworkVersionString);
+
+                                break;
+                            }
                         }
                     }
                 }
+            }
+
+            //After all project TFMs we need to update its dictionary with all its currProjFrameworks
+            if (currentProjectFrameworks.Count > 0)
+            {
+                if (!projectsWithoutMaxFrVersionTFM.ContainsKey(projName))
+                    projectsWithoutMaxFrVersionTFM.Add(projName, currentProjectFrameworks);
+                else
+                    projectsWithoutMaxFrVersionTFM[projName] = currentProjectFrameworks;
+            }
+            else
+            {
+                if (!requiredMaxFrVersionsDict.ContainsKey(projName))
+                    requiredMaxFrVersionsDict.Add(projName, currentRequiredProjectFrameworks);
+                else
+                    requiredMaxFrVersionsDict[projName] = currentRequiredProjectFrameworks;
             }
         }
 
@@ -257,22 +284,149 @@ namespace RefDepGuard.CheckRules.SubManagers
             //framework version rules with higher level rules or there is no conflicts between global and solution rules
             var projectError = maxFrameworkVersionConflictWarningsList.Find(value => value.WarningRelevantProjectName == projName || value.WarningRelevantProjectName == "-");
 
-            if (requiredMaxFrVersionsDict.ContainsKey(projName) && projectError == null)
+            if (projectError == null)
             {
-                List<int> currentProjMaxFrVersionNums = requiredMaxFrVersionsDict[projName].VersionNums;
+                if (requiredMaxFrVersionsDict.ContainsKey(projName)) //Если для проекта не указан "-" на всех уровнях
+                    CheckProjectReferencesForEachTFM(projName, projReferences, requiredMaxFrVersionsDict);
+                else
+                    CheckProjectReferencesForEachTFM(projName, projReferences, projectsWithoutMaxFrVersionTFM);
+            }
+        }
 
-                foreach (var projReference in projReferences)//For each reference of the project
+        /// <summary>
+        /// Checks if the maximum framework version rules specified at the solution and global levels are applied only to existing TargetFrameworks in the solution.
+        /// </summary>
+        /// <param name="globalRuleTypes">Dict with TFMs that are relevant for one or more projects on the root level</param>
+        /// <param name="solutionRuleTypes">Dict with TFMs that are relevant for one or more projects on the current solution level</param>
+        public static void CheckSolutionNGlobalTFMsOnExistingInTargetFrameworks(Dictionary<string, List<int>> globalRuleTypes, Dictionary<string, List<int>> solutionRuleTypes)
+        {
+            foreach (var ruleType in globalRuleTypes.Keys)
+                if (!existingInSolutionTFMs.Contains(ruleType) && ruleType != "all")
+                    maxFrameworkIllegalSolutionnGlobalTemplateUsagesList.Add(new MaxFrameworkIllegalTemplateUsageWarning(ProblemLevel.Global));
+
+            foreach (var ruleType in solutionRuleTypes.Keys)
+                if (!existingInSolutionTFMs.Contains(ruleType) && ruleType != "all")
+                    maxFrameworkIllegalSolutionnGlobalTemplateUsagesList.Add(new MaxFrameworkIllegalTemplateUsageWarning(ProblemLevel.Solution));
+        }
+
+        /// <summary>
+        /// Gets the list of warnings related to conflicts in maximum framework version rules. 
+        /// These warnings indicate that there are conflicting maximum framework version rules for the same project or for all projects.
+        /// </summary>
+        /// <returns>MaxFrameworkVersionWarnings with 2 lists of conflict warnings</returns>
+        public static MaxFrameworkVersionConflictWarnings GetMaxFrameworkVersionWarnings()
+        {
+            return new MaxFrameworkVersionConflictWarnings(maxFrameworkVersionConflictWarningsList, maxFrameworkVersionReferenceConflictWarningsList);
+        }
+
+        /// <summary>
+        /// Gets the list of errors related to incompatibility of the project's TargetFramework version with the max_fr_ver.
+        /// </summary>
+        /// <returns>MaxFrameworkRuleProblems with 2 lists of comparability errors and uptyped warnings</returns>
+        public static MaxFrameworkRuleProblems GetMaxFrameworkRuleProblems()
+        {
+            return new MaxFrameworkRuleProblems(frameworkVersionComparabilityErrorList, maxFrameworkIllegalSolutionnGlobalTemplateUsagesList, untypedWarningsList);
+        }
+
+        /// <summary>
+        /// Gets the dictionary of required maximum framework versions for each project, which is used for checking potential max_fr_ver conflicts between projects 
+        /// and their references.
+        /// </summary>
+        /// <returns>Dictionary with RequiredMaxFrVersion for each project</returns>
+        public static Dictionary<string, List<RequiredMaxFrVersion>> GetRequiredMaxFrVersionsDict()
+        {
+            return requiredMaxFrVersionsDict;
+        }
+
+        /// <summary>
+        /// Gets the dictionary of projects without max_framework_version rules for each TFM, which is used for checking potential max_fr_ver conflicts between 
+        /// projects
+        /// </summary>
+        /// <param name="currentProjectSupportedFrameworks">Dict with current proj supported TFM-s</param>
+        /// <param name="currentProjectFramework">Curr proj framework string name</param>
+        /// <param name="currentProjFrameworkVersionArray">Curr proj framework versions array</param>
+        /// <param name="projName">Project name string</param>
+        /// <param name="problemLevel">Current problem level</param>
+        /// <param name="maxFrameworkVersionString">max_fr_ver string</param>
+        private static void UpdateFrameworkComparabilityErrorList(
+            Dictionary<string, List<int>> currentProjectSupportedFrameworks, string currentProjectFramework, List<int> currentProjFrameworkVersionArray, string projName,
+            ProblemLevel problemLevel, string maxFrameworkVersionString)
+        {
+            var currentProjFrameworkVersionString = GetFrameworkVersionString(currentProjFrameworkVersionArray.Select(x => x.ToString()).ToList());
+            var errorRelevantTFM = (currentProjectSupportedFrameworks.Keys.Count > 1) ? currentProjectFramework : ""; //if there are more than 1 TFM in this project
+
+            if (frameworkVersionComparabilityErrorList.Find(error =>
+                error.ErrorLevel == problemLevel && error.TargetFrameworkVersion == currentProjFrameworkVersionString &&
+                error.MaxFrameworkVersion == maxFrameworkVersionString && error.ErrorRelevantTFM == errorRelevantTFM
+                && error.ErrorRelevantProjectName == projName) == null
+            )
+                frameworkVersionComparabilityErrorList.Add(
+                    new FrameworkVersionComparabilityError(
+                        problemLevel, currentProjFrameworkVersionString, maxFrameworkVersionString, errorRelevantTFM, projName)
+                    );
+        }
+
+        /// <summary>
+        /// Checks for potential conflicts in maximum framework version rules between the current project and its references for each TargetFramework of the project.
+        /// </summary>
+        /// <param name="projName">proj name string</param>
+        /// <param name="projReferences">list with project references</param>
+        /// <param name="currentProjMaxFrVersionDict">The dict of projects without max_fr_versions</param>
+        private static void CheckProjectReferencesForEachTFM(string projName, List<string> projReferences,
+            OneOf<Dictionary<string, List<RequiredMaxFrVersion>>, Dictionary<string, List<ProjectWithoutMaxFrVersion>>> currentProjMaxFrVersionDict)
+        {
+            currentProjMaxFrVersionDict.Match<object>( //For each project TFM
+                requiredMaxFrVersionsDiction => {
+                    requiredMaxFrVersionsDiction[projName].ForEach(requiredMaxFrVersionsProjCurrentTFM =>
+                        CheckProjectReferencesForCurrentTFM(projName, projReferences, requiredMaxFrVersionsProjCurrentTFM));
+                    return null;
+                },
+                projectsWithoutMaxFrVersionTFMDiction => {
+                    projectsWithoutMaxFrVersionTFMDiction[projName].ForEach(projectWithoutMaxFr =>
+                        CheckProjectReferencesForCurrentTFM(projName, projReferences, projectWithoutMaxFr));
+                    return null;
+                }
+            );
+
+        }
+
+        /// <summary>
+        /// Checks for potential conflicts in maximum framework version rules between the current project and its references for the current TargetFramework of the project.
+        /// </summary>
+        /// <param name="projName">proj name string</param>
+        /// <param name="projReferences">list with proj references</param>
+        /// <param name="maxFrVersionProjCurrentTFMValues">RequiredMaxFrVersion or ProjectWithoutMaxFrVersion with current proj TFM values</param>
+        private static void CheckProjectReferencesForCurrentTFM(string projName, List<string> projReferences,
+            OneOf<RequiredMaxFrVersion, ProjectWithoutMaxFrVersion> maxFrVersionProjCurrentTFMValues)
+        {
+            List<int> currentProjMaxFrVersionNums = maxFrVersionProjCurrentTFMValues.Match(
+                 requiredMaxFrVersion => requiredMaxFrVersion.VersionNums,
+                 projectWithoutMaxFrVersionTFM => projectWithoutMaxFrVersionTFM.TargetFrameworkNums
+                );
+
+            foreach (var projReference in projReferences)//For each reference of the project
+            {
+                var referenceError = maxFrameworkVersionConflictWarningsList.Find(value => value.WarningRelevantProjectName == projReference);
+
+                if (requiredMaxFrVersionsDict.ContainsKey(projReference) && referenceError == null)
                 {
-                    var referenceError = maxFrameworkVersionConflictWarningsList.Find(value => value.WarningRelevantProjectName == projReference);
+                    //In case when project types aren't compatible with each other there is IDE warnings. So it makes sense to check on potential max_fr_ver
+                    //reference conflicts only on one type projects and different compatible projects that have it not for all versions (netstandard)
+                    //(if differ compar projects have it on all versions, check have no sense as there are can't be problem cases)
 
-                    if (requiredMaxFrVersionsDict.ContainsKey(projReference) && referenceError == null)
+                    foreach (var requiredMaxFrVersionsRefCurrentTFM in requiredMaxFrVersionsDict[projReference]) //For each reference TFM
                     {
-                        //In case when project types aren't compatible with each other there is IDE warnings. So it makes sense to check on potential max_fr_ver
-                        //reference conflicts only on one type projects and different compatible projects that have it not for all versions (netstandard)
-                        //(if differ compar projects have it on all versions, check have no sense as there are can't be problem cases)
+                        RequiredMaxFrVersion projVersion = maxFrVersionProjCurrentTFMValues.Match(
+                            requiredMaxFrVersion => requiredMaxFrVersion,
+                            projectWithoutMaxFrVersionTFM =>
+                                new RequiredMaxFrVersion(
+                                    GetFrameworkVersionString(
+                                        projectWithoutMaxFrVersionTFM.TargetFrameworkNums.ConvertAll(ell => ell.ToString())
+                                    ),
+                                    new List<int>(), ProblemLevel.Undefined, projectWithoutMaxFrVersionTFM.TFM, false) //In this case there is no projVersion
+                            );
 
-                        RequiredMaxFrVersion projVersion = requiredMaxFrVersionsDict[projName];
-                        RequiredMaxFrVersion refVersion = requiredMaxFrVersionsDict[projReference];
+                        RequiredMaxFrVersion refVersion = requiredMaxFrVersionsRefCurrentTFM;
 
                         //if there is a rule for the same type as in TargetFramework, then we compare with it
                         if (refVersion.ProjectTypeRule == projVersion.ProjectTypeRule || refVersion.ProjectTypeRule == "all" || projVersion.ProjectTypeRule == "all")
@@ -289,7 +443,7 @@ namespace RefDepGuard.CheckRules.SubManagers
                             {
                                 if (projVersion.ProjectTypeRule == "net") continue;
 
-                                //Imporatnt: as the user can specify any version, we need to find the nearest existing netstandard version to the current project's
+                                //Important: as the user can specify any version, we need to find the nearest existing netstandard version to the current project's
                                 //max_framework_version and compare with it!
                                 string nearestExistingNetStdVersion;
                                 List<int> nearestExistingNetStdVersionNums;
@@ -331,35 +485,6 @@ namespace RefDepGuard.CheckRules.SubManagers
         }
 
         /// <summary>
-        /// Gets the list of warnings related to conflicts in maximum framework version rules. 
-        /// These warnings indicate that there are conflicting maximum framework version rules for the same project or for all projects.
-        /// </summary>
-        /// <returns>MaxFrameworkVersionWarnings with 2 lists of conflict warnings</returns>
-        public static MaxFrameworkVersionConflictWarnings GetMaxFrameworkVersionWarnings()
-        {
-            return new MaxFrameworkVersionConflictWarnings(maxFrameworkVersionConflictWarningsList, maxFrameworkVersionReferenceConflictWarningsList);
-        }
-
-        /// <summary>
-        /// Gets the list of errors related to incompatibility of the project's TargetFramework version with the max_fr_ver.
-        /// </summary>
-        /// <returns>MaxFrameworkRuleProblems with 2 lists of comparability errors and uptyped warnings</returns>
-        public static MaxFrameworkRuleProblems GetMaxFrameworkRuleProblems()
-        {
-            return new MaxFrameworkRuleProblems(frameworkVersionComparabilityErrorList, untypedWarningsList);
-        }
-
-        /// <summary>
-        /// Gets the dictionary of required maximum framework versions for each project, which is used for checking potential max_fr_ver conflicts between projects 
-        /// and their references.
-        /// </summary>
-        /// <returns>Dictionary with RequiredMaxFrVersion for each project</returns>
-        public static Dictionary<string, RequiredMaxFrVersion> GetRequiredMaxFrVersionsDict()
-        {
-            return requiredMaxFrVersionsDict;
-        }
-
-        /// <summary>
         /// Checks for conflicts in max_fr_ver rules between two projects. Just consider two max_fr_version in abstraction of place from where these rules come.
         /// It considers that conditionally more higher level should be not bigger than lower level, but if it is, then we have a conflict and add warning about it.
         /// </summary>
@@ -389,16 +514,8 @@ namespace RefDepGuard.CheckRules.SubManagers
                 if (currentHighLevelFrameworkVersionNum < currentLowLevelFrameworkVersionNum)//If the current "higher" number is lower than the current "lower",
                 {
                     //then we have a conflict and add warning about it
-                    var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-                    var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-                    var currentRefFrameworkVersionString = (!isOneProjectsTypeConflict) ?
-                        GetFrameworkVersionString(currentRefFrameworkVersionList.ConvertAll(num => num.ToString())) : null;
-
-                    if (lowRuleLevel != ProblemLevel.Undefined)//By ProblemLevel.Undefined we understand which type of conflict we have and which warning should be determined
-                        AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
-                    else
-                        AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName,
-                            isOneProjectsTypeConflict);
+                    PrepareAndAddMaxFrameworkVersionConflictNReferenceWarnings(maxHighLevelFrameworkVersionList, maxLowLevelFrameworkVersionList, 
+                        currentRefFrameworkVersionList, lowRuleLevel, highRuleLevel, projName, refName, isOneProjectsTypeConflict);
 
                     return;
                 }
@@ -418,22 +535,42 @@ namespace RefDepGuard.CheckRules.SubManagers
 
                     if (currentLowLevelFrameworkVersionNum > 0)//If the current "lower" number is higher than 0, then we have a conflict and add warning about it
                     {
-                        var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-                        var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
-                        var currentRefFrameworkVersionString = (!isOneProjectsTypeConflict) ?
-                            GetFrameworkVersionString(currentRefFrameworkVersionList.ConvertAll(num => num.ToString())) : null;
-
-                        if (lowRuleLevel != ProblemLevel.Undefined)
-                            AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel,
-                                highRuleLevel);
-                        else
-                            AddNewMaxFrameworkVersionOnReferenceConflictWarning(maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName,
-                                isOneProjectsTypeConflict);
+                        PrepareAndAddMaxFrameworkVersionConflictNReferenceWarnings(maxHighLevelFrameworkVersionList, maxLowLevelFrameworkVersionList, 
+                            currentRefFrameworkVersionList, lowRuleLevel, highRuleLevel, projName, refName, isOneProjectsTypeConflict);
 
                         break;
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Prepares data and adds a new warning about a conflict in maximum framework version rules between two levels or between the project and its reference 
+        /// to the list of warnings.
+        /// </summary>
+        /// <param name="maxHighLevelFrameworkVersionList">higher level fr versions list</param>
+        /// <param name="maxLowLevelFrameworkVersionList">lower level fr versions list</param>
+        /// <param name="currentRefFrameworkVersionList">current ref fr versions list</param>
+        /// <param name="lowRuleLevel">lower level rule</param>
+        /// <param name="highRuleLevel">higher level rule</param>
+        /// <param name="projName">proj name string</param>
+        /// <param name="refName">reference name string</param>
+        /// <param name="isOneProjectsTypeConflict">shows if its one project type conflict</param>
+        private static void PrepareAndAddMaxFrameworkVersionConflictNReferenceWarnings(
+            List<int> maxHighLevelFrameworkVersionList, List<int> maxLowLevelFrameworkVersionList, List<int> currentRefFrameworkVersionList, ProblemLevel lowRuleLevel, 
+            ProblemLevel highRuleLevel, string projName, string refName, bool isOneProjectsTypeConflict)
+        {
+            var maxHighLevelFrameworkVersionString = GetFrameworkVersionString(maxHighLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
+            var maxLowLevelFrameworkVersionString = GetFrameworkVersionString(maxLowLevelFrameworkVersionList.ConvertAll(num => num.ToString()));
+            var currentRefFrameworkVersionString = (!isOneProjectsTypeConflict) ?
+                GetFrameworkVersionString(currentRefFrameworkVersionList.ConvertAll(num => num.ToString())) : null;
+
+            if (lowRuleLevel != ProblemLevel.Undefined)//By ProblemLevel.Undefined we understand which type of conflict we have and which warning should be determined
+                AddNewMaxFrameworkVersionConflictWarning(maxHighLevelFrameworkVersionString, maxLowLevelFrameworkVersionString, projName, lowRuleLevel, highRuleLevel);
+            else
+                AddNewMaxFrameworkVersionOnReferenceConflictWarning(
+                    maxHighLevelFrameworkVersionString, currentRefFrameworkVersionString ?? maxLowLevelFrameworkVersionString, projName, refName,
+                    isOneProjectsTypeConflict);
         }
 
         /// <summary>

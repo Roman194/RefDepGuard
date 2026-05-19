@@ -1,7 +1,6 @@
 ﻿using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using System;
+using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
 using System.Collections.Generic;
-using System.Text;
 
 namespace RefDepGuard.CheckRules.Models
 {
@@ -11,13 +10,19 @@ namespace RefDepGuard.CheckRules.Models
     public class MaxFrameworkRuleProblems
     {
         public List<FrameworkVersionComparabilityError> FrameworkVersionComparabilityErrorList;
+        public List<MaxFrameworkIllegalTemplateUsageWarning> MaxFrameworkVersionIllegalTemplateUsageWarningList;
         public List<string> UntypedWarningsList;
 
         /// <param name="frameworkVersionComparabilityErrorList">list of FrameworkVersionComparatibilityError values</param>
         /// <param name="untypedWarningsList">list of string values</param>
-        public MaxFrameworkRuleProblems(List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, List<string> untypedWarningsList)
+        public MaxFrameworkRuleProblems(
+            List<FrameworkVersionComparabilityError> frameworkVersionComparabilityErrorList, 
+            List<MaxFrameworkIllegalTemplateUsageWarning> maxFrameworkVersionIllegalTemplateUsageWarningList, 
+            List<string> untypedWarningsList
+            )
         {
             FrameworkVersionComparabilityErrorList = frameworkVersionComparabilityErrorList;
+            MaxFrameworkVersionIllegalTemplateUsageWarningList = maxFrameworkVersionIllegalTemplateUsageWarningList;
             UntypedWarningsList = untypedWarningsList;
         }
     }

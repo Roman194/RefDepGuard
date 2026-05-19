@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36310.24
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension", "RefDepGuard.Extension\RefDepGuard.Extension.csproj", "{B40B6D58-EE29-4E81-ADB4-FB46A14796FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension22", "RefDepGuard.Extension22\RefDepGuard.Extension22.csproj", "{B40B6D58-EE29-4E81-ADB4-FB46A14796FC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Console", "RefDepGuard.Console\RefDepGuard.Console.csproj", "{40339FB3-E6AA-4368-B911-C32D99FD2B46}"
 EndProject
@@ -14,6 +14,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.ConfigFile", "RefDepGuard.ConfigFile\RefDepGuard.ConfigFile.csproj", "{42E28F69-EBFD-467A-A42A-66378BC5BB4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Applied", "RefDepGuard.Applied\RefDepGuard.Applied.csproj", "{2B3C4D87-0DAD-49D8-9DC4-8F9831233523}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RefDepGuard.SharedExtension", "RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.shproj", "{4159260A-73DF-4B75-B09D-A743040C2EE7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension19", "RefDepGuard.Extension19\RefDepGuard.Extension19.csproj", "{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -97,11 +101,28 @@ Global
 		{2B3C4D87-0DAD-49D8-9DC4-8F9831233523}.Release|arm64.Build.0 = Release|Any CPU
 		{2B3C4D87-0DAD-49D8-9DC4-8F9831233523}.Release|x86.ActiveCfg = Release|Any CPU
 		{2B3C4D87-0DAD-49D8-9DC4-8F9831233523}.Release|x86.Build.0 = Release|Any CPU
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Debug|arm64.ActiveCfg = Debug|arm64
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Debug|arm64.Build.0 = Debug|arm64
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Debug|x86.ActiveCfg = Debug|x86
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Debug|x86.Build.0 = Debug|x86
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|arm64.ActiveCfg = Release|arm64
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|arm64.Build.0 = Release|arm64
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|x86.ActiveCfg = Release|x86
+		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EE8A29A3-3EB5-4615-9035-14DD02A0DB11}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{1f8b5dc2-98a5-47c1-abb6-c09466d9112e}*SharedItemsImports = 4
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{4159260a-73df-4b75-b09d-a743040c2ee7}*SharedItemsImports = 13
+		RefDepGuard.SharedExtension\RefDepGuard.SharedExtension.projitems*{b40b6d58-ee29-4e81-adb4-fb46a14796fc}*SharedItemsImports = 4
 	EndGlobalSection
 EndGlobal

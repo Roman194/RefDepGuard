@@ -9,6 +9,12 @@ using RefDepGuard.Applied.Models.ConfigFile.DTO;
 
 namespace RefDepGuard.ConfigFile
 {
+    /// <summary>
+    /// This class is responsible for managing the configuration files of the solution and global settings. 
+    /// It provides methods to read and parse the configuration files, handle errors during parsing, and generate default configuration data when necessary. 
+    /// The class also maintains the state of the configuration files, including whether they were found and if there were any parsing errors. 
+    /// It serves as a central point for accessing and managing the configuration data used by the application.
+    /// </summary>
     public class ConfigFileCoreManager
     {
         private static ConfigFileSolutionDTO configFileSolution;
@@ -19,11 +25,21 @@ namespace RefDepGuard.ConfigFile
         private static string RootDir;
 
         private static Dictionary<string, ProjectState> CommitedSolState;
-
-        
         private static ConfigFilesData ConfigFilesData;
 
-        public static Tuple<ConfigFilesData, ConfigFileFoundState> GetInfoFromConfigFilesForExtension(ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
+        /// <summary>
+        /// The main method of the ConfigFileCoreManager. 
+        /// It reads and parses the configuration files for both the solution and global settings, handles any errors that may occur during parsing, 
+        /// and generates default configuration data if necessary for the extension callings.
+        /// </summary>
+        /// <param name="currentSolutionConfigFileServiceInfo">solution config file service info</param>
+        /// <param name="globalSolutionConfigFileServiceInfo">global config file service info</param>
+        /// <param name="solutionName">solution name string</param>
+        /// <param name="rootDir">root directory string</param>
+        /// <param name="currentCommitedSolState">commited solution state dictionary</param>
+        /// <returns>a truple of parsed config files data and their state</returns>
+        public static Tuple<ConfigFilesData, ConfigFileFoundState> GetInfoFromConfigFilesForExtension(
+            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
             Dictionary<string, ProjectState> currentCommitedSolState)
         {
             GetInfoFromConfigFiles(currentSolutionConfigFileServiceInfo, globalSolutionConfigFileServiceInfo, solutionName, rootDir, currentCommitedSolState, true);
@@ -31,7 +47,20 @@ namespace RefDepGuard.ConfigFile
             return new Tuple<ConfigFilesData, ConfigFileFoundState>(ConfigFilesData, IsFilesFound);
         }
 
-        public static ConfigFilesData GetInfoFromConfigFiles(ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
+        /// <summary>
+        /// The main method of the ConfigFileCoreManager.
+        /// It reads and parses the configuration files for both the solution and global settings, handles any errors that may occur during parsing, 
+        /// and generates default configuration data if necessary for the console callings.
+        /// </summary>
+        /// <param name="currentSolutionConfigFileServiceInfo">solution config file service info</param>
+        /// <param name="globalSolutionConfigFileServiceInfo">global config file service info</param>
+        /// <param name="solutionName">solution name string</param>
+        /// <param name="rootDir">root directory string</param>
+        /// <param name="currentCommitedSolState">commited solution state dictionary</param>
+        /// <param name="isExtentionCall">shows if its extension or console call</param>
+        /// <returns>a parsed config files data state</returns>
+        public static ConfigFilesData GetInfoFromConfigFiles(
+            ConfigFileServiceInfo currentSolutionConfigFileServiceInfo, ConfigFileServiceInfo globalSolutionConfigFileServiceInfo, string solutionName, string rootDir,
             Dictionary<string, ProjectState> currentCommitedSolState, bool isExtentionCall = false
             )
         {
@@ -49,17 +78,28 @@ namespace RefDepGuard.ConfigFile
             return ConfigFilesData;
         }
 
+        /// <summary>
+        /// This method is used for the second attempt of reading the config files, when there were some errors during the first attempt. Is calling only for
+        /// extension calls
+        /// </summary>
+        /// <param name="configFileServiceInfo">current config file service info</param>
+        /// <param name="parseErrorPredict">file parse error value</param>
+        /// <returns>a parsed config files data state</returns>
         public static ConfigFilesData GetConfigFileInfoSecondAttempt(ConfigFileServiceInfo configFileServiceInfo, FileParseError parseErrorPredict)
         {
             ParseError = parseErrorPredict;
-
-            GetCurrentConfigFileInfo(configFileServiceInfo, true); //Этот метод всегда вызывается только из расширения
+            GetCurrentConfigFileInfo(configFileServiceInfo, true);
 
             ConfigFilesData = new ConfigFilesData(configFileSolution, configFileGlobal, ParseError, SolutionName, RootDir);
-
             return ConfigFilesData;
         }
 
+        /// <summary>
+        /// This method is used for updating the parsing error state when the default config file is created. 
+        /// It is called from the extension after creating the default config file
+        /// </summary>
+        /// <param name="isGlobal">shows if its global or solution config file</param>
+        /// <returns>a parsed config files data state</returns>
         public static ConfigFilesData UpdateParseErrorStateOnDefaultFileCreation(bool isGlobal)
         {
             if(isGlobal)
@@ -71,6 +111,12 @@ namespace RefDepGuard.ConfigFile
             return ConfigFilesData;
         }
 
+        /// <summary>
+        /// This method reads and parses the configuration file based on the provided service info. 
+        /// If the file exists, it attempts to read its content and deserialize it into the appropriate DTO object.
+        /// </summary>
+        /// <param name="configFileServiceInfo">config file service info instance</param>
+        /// <param name="isExtentionCall">shows if its extension or console call</param>
         private static void GetCurrentConfigFileInfo(ConfigFileServiceInfo configFileServiceInfo, bool isExtentionCall)
         {
             if (File.Exists(configFileServiceInfo.CurrentConfigGuardFile))
@@ -104,6 +150,12 @@ namespace RefDepGuard.ConfigFile
             }
         }
 
+        /// <summary>
+        /// This method handles the error cases during reading and parsing the configuration files. 
+        /// It is called when there are exceptions during file reading or deserialization, as well as when the file is not found.
+        /// </summary>
+        /// <param name="configFileServiceInfo">config file service info instance</param>
+        /// <param name="isFileNotFound">shows if file not found or has invalid sintax</param>
         private static void ErrorCasesHandle(ConfigFileServiceInfo configFileServiceInfo, bool isFileNotFound)
         {
             if (configFileServiceInfo.IsGlobal)
@@ -132,7 +184,8 @@ namespace RefDepGuard.ConfigFile
             configFileSolution = new ConfigFileSolutionDTO();
             configFileSolution.name = SolutionName;
             configFileSolution.framework_max_version = "-";
-            configFileSolution.report_on_transit_references = false;
+            configFileSolution.project_names_semantic_check = true;
+            configFileSolution.report_on_transit_references = true;
             configFileSolution.solution_required_references = new List<string>();
             configFileSolution.solution_unacceptable_references = new List<string>();
             configFileSolution.projects = new Dictionary<string, ConfigFileProjectDTO>();
@@ -150,7 +203,8 @@ namespace RefDepGuard.ConfigFile
             configFileGlobal = new ConfigFileGlobalDTO();
             configFileGlobal.name = "Global";
             configFileGlobal.framework_max_version = "-";
-            configFileGlobal.report_on_transit_references = false;
+            configFileGlobal.project_names_semantic_check = true;
+            configFileGlobal.report_on_transit_references = true;
             configFileGlobal.global_required_references = new List<string>();
             configFileGlobal.global_unacceptable_references = new List<string>();
         }
@@ -159,7 +213,7 @@ namespace RefDepGuard.ConfigFile
         /// Generates the default config file data for the project in the solution config file.
         /// </summary>
         /// <returns>default ConfigFileProjectDTO value</returns>
-        public static ConfigFileProjectDTO GenerateDefaultProjectConfigFile() //?????
+        public static ConfigFileProjectDTO GenerateDefaultProjectConfigFile()
         {
             ConfigFileProjectRefsConsideringDTO configFileProjectRefsConsidering = new ConfigFileProjectRefsConsideringDTO();
             configFileProjectRefsConsidering.required = true;
@@ -167,7 +221,7 @@ namespace RefDepGuard.ConfigFile
 
             ConfigFileProjectDTO fileProject = new ConfigFileProjectDTO();
             fileProject.framework_max_version = "-";
-            fileProject.report_on_transit_references = false;
+            fileProject.report_on_transit_references = true;
             fileProject.consider_global_and_solution_references = configFileProjectRefsConsidering;
             fileProject.required_references = new List<string>();
             fileProject.unacceptable_references = new List<string>();

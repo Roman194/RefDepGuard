@@ -1,7 +1,4 @@
 ﻿using RefDepGuard.Applied.Models.Problem;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RefDepGuard.Applied.Models.FrameworkVersion.Errors
 {
