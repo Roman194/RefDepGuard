@@ -148,6 +148,7 @@
     <Content Include="..\SharedResources\RefDepGuard_icon.ico">
       <Link>RefDepGuard_icon.ico</Link>
       <IncludeInVSIX>true</IncludeInVSIX>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="..\SharedResources\RefDepGuard_icon.png">
       <Link>RefDepGuard_icon.png</Link>
