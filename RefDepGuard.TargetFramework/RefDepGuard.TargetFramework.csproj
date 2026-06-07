@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.Build.Locator" Version="1.5.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RefDepGuard.Models\RefDepGuard.Models.csproj" />
+  </ItemGroup>
+
 </Project>

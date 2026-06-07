@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Models.Project;
 #if EXTENSION_22
 using RefDepGuard.StringResources;
 #elif EXTENSION_19

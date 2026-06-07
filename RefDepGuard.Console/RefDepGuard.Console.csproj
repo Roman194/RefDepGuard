@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RefDepGuard.CheckRules\RefDepGuard.CheckRules.csproj" />
     <ProjectReference Include="..\RefDepGuard.ConfigFile\RefDepGuard.ConfigFile.csproj" />
+    <ProjectReference Include="..\RefDepGuard.Models\RefDepGuard.Models.csproj" />
     <ProjectReference Include="..\RefDepGuard.TargetFramework\RefDepGuard.TargetFramework.csproj" />
   </ItemGroup>
 

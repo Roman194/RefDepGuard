@@ -1,18 +1,17 @@
 ﻿using RefDepGuard.CheckRules.Data;
-using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
-using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Models.FrameworkVersion.Errors;
+using RefDepGuard.Models.FrameworkVersion.Warnings;
+using RefDepGuard.Models.RefDepGuard;
 using RefDepGuard.CheckRules.SubManagers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.ConfigFile.DTO;
-using RefDepGuard.Applied.Models.Reference;
-using RefDepGuard.Applied.Models;
-using RefDepGuard.CheckRules.Models;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.Problem;
+using RefDepGuard.Models.ConfigFile.DTO;
+using RefDepGuard.Models.Reference;
+using RefDepGuard.Models;
 
 
 namespace RefDepGuard.CheckRules

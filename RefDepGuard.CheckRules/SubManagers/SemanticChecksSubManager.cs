@@ -1,4 +1,4 @@
-﻿using RefDepGuard.Applied.Models.Project;
+﻿using RefDepGuard.Models.Project;
 using System;
 using System.Collections.Generic;
 using System.Linq;

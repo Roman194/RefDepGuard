@@ -204,6 +204,10 @@
       <Project>{42e28f69-ebfd-467a-a42a-66378bc5bb4f}</Project>
       <Name>RefDepGuard.ConfigFile</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RefDepGuard.Models\RefDepGuard.Models.csproj">
+      <Project>{2c902b32-c9ce-4e5e-b3c1-2587b9a600e7}</Project>
+      <Name>RefDepGuard.Models</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RefDepGuard.TargetFramework\RefDepGuard.TargetFramework.csproj">
       <Project>{5b0f018e-846d-49a8-9bac-8de1615c24e9}</Project>
       <Name>RefDepGuard.TargetFramework</Name>

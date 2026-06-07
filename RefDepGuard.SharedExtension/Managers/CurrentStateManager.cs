@@ -1,7 +1,7 @@
 ﻿using EnvDTE;
 using Microsoft.Build.Evaluation;
 using Microsoft.VisualStudio.Shell;
-using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Models.Project;
 using RefDepGuard.TargetFramework;
 using System;
 using System.Collections.Generic;

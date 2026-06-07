@@ -4,10 +4,10 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using RefDepGuard.Managers.Applied;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.ConfigFile.DTO;
-using RefDepGuard.CheckRules.Models;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.ConfigFile.DTO;
+using RefDepGuard.Models;
 using RefDepGuard.Applied;
 using RefDepGuard.ConfigFile;
 #if EXTENSION_22

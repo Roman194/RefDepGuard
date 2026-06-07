@@ -1,13 +1,12 @@
 ﻿using RefDepGuard.CheckRules.Data;
-using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Models.FrameworkVersion.Errors;
+using RefDepGuard.Models.FrameworkVersion.Warnings.Conflicts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.FrameworkVersion;
-using RefDepGuard.CheckRules.Models;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
+using RefDepGuard.Models.Problem;
+using RefDepGuard.Models.FrameworkVersion;
+using RefDepGuard.Models.FrameworkVersion.Warnings;
 using OneOf;
 
 namespace RefDepGuard.CheckRules.SubManagers

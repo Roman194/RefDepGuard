@@ -1,7 +1,7 @@
 ﻿using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using RefDepGuard.Applied.Models.ConfigFile;
+using RefDepGuard.Models.ConfigFile;
 using RefDepGuard.Managers.Applied;
 using RefDepGuard.Managers.CheckRules;
 using RefDepGuard.Managers.Import;
@@ -10,8 +10,8 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Excel = Microsoft.Office.Interop.Excel;
 using Task = System.Threading.Tasks.Task;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.RefDepGuard;
 using RefDepGuard.Applied;
 #if EXTENSION_22
 using RefDepGuard.StringResources;

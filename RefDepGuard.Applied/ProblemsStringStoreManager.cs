@@ -1,12 +1,12 @@
-﻿using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.RefDepGuard;
-using RefDepGuard.Applied.Models.Reference.Errors;
-using RefDepGuard.Applied.Models.Reference.Warnings;
+﻿using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.FrameworkVersion.Errors;
+using RefDepGuard.Models.FrameworkVersion.Warnings;
+using RefDepGuard.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Models.Problem;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.RefDepGuard;
+using RefDepGuard.Models.Reference.Errors;
+using RefDepGuard.Models.Reference.Warnings;
 using RefDepGuard.Applied.Resources;
 using System.Collections.Generic;
 

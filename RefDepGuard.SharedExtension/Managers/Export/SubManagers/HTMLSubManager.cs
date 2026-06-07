@@ -1,16 +1,17 @@
 ﻿using HtmlAgilityPack;
 using RefDepGuard.Applied;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.FrameworkVersion;
-using RefDepGuard.Applied.Models.FrameworkVersion.Errors;
-using RefDepGuard.Applied.Models.FrameworkVersion.Warnings.Conflicts;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.RefDepGuard;
-using RefDepGuard.Applied.Models.Reference;
-using RefDepGuard.Applied.Models.Reference.Errors;
+using RefDepGuard.Models.FrameworkVersion;
+using RefDepGuard.Models.FrameworkVersion.Errors;
+using RefDepGuard.Models.FrameworkVersion.Warnings.Conflicts;
+using RefDepGuard.Models.Problem;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.RefDepGuard;
+using RefDepGuard.Models.Reference;
+using RefDepGuard.Models.Reference.Errors;
 using System.Collections.Generic;
 using System.Linq;
+using RefDepGuard.Models.ConfigFile;
+
 #if EXTENSION_22
 using RefDepGuard.StringResources;
 #elif EXTENSION_19

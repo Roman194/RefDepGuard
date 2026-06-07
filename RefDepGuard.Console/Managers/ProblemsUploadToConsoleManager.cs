@@ -1,7 +1,7 @@
 ﻿using RefDepGuard.Applied;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.Problem;
-using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.Problem;
+using RefDepGuard.Models.RefDepGuard;
 using RefDepGuard.Console.Resources;
 
 namespace RefDepGuard.Console.Managers

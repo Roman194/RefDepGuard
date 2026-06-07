@@ -1,6 +1,6 @@
 ﻿using Microsoft.Build.Construction;
 using Microsoft.Build.Evaluation;
-using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Models.Project;
 using RefDepGuard.Console.Resources;
 using RefDepGuard.TargetFramework;
 
