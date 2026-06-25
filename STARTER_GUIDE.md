@@ -21,6 +21,7 @@ After opening the solution after some time, the extension will offer to use its 
 
 # 6. Wait for the solution and the extension itself to load
 If one or both configuration files are not found in the project, it notifies the user about this and creates a file template: </br>
+</br>
 <img width="413" height="199" alt="image" src="https://github.com/user-attachments/assets/c5c4bfb4-60ef-4677-9703-ee2b2abd575e" />
 </br>
 <img width="411" height="198" alt="image" src="https://github.com/user-attachments/assets/3d98d904-ca95-416d-bd9c-db544402716b" />
@@ -34,7 +35,7 @@ When the extension is eventually loaded, it will display a list of issues (error
 <img width="730" height="151" alt="image" src="https://github.com/user-attachments/assets/1a624998-7216-4bb6-9235-197f6f3c7268" />
 
 # 7. Call one of the extension's functions to check if it's working properly
-To do this, go to the extensions menu and find what you need (RefDepGuard) and call one of its functions < /br>
+To do this, go to the extensions menu and find what you need (RefDepGuard) and call one of its functions </br>
 </br>
 <img width="650" height="190" alt="image" src="https://github.com/user-attachments/assets/b6c5f90d-dfc0-48ba-a97a-0bbabdfa2a10" />
 </br>
