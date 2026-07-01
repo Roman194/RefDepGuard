@@ -17,32 +17,34 @@ To install the extension, you must have the Visual Studio 2022 IDE installed, as
 # 5. Go through the dating stage with the extension
 After opening the solution after some time, the extension will offer to use its features. If you click "Yes", the extension download process will start and it will start working:
 
-<img width="431" height="204" alt="image" src="https://github.com/user-attachments/assets/dc8d2041-d8fe-4663-8d15-4f474a185163" />
+<img width="380" height="202" alt="image" src="https://github.com/user-attachments/assets/a319fbce-8de9-4f4d-a959-228d5015081d" />
 
 # 6. Wait for the solution and the extension itself to load
 If one or both configuration files are not found in the project, it notifies the user about this and creates a file template: </br>
 </br>
-<img width="413" height="199" alt="image" src="https://github.com/user-attachments/assets/c5c4bfb4-60ef-4677-9703-ee2b2abd575e" />
+<img width="373" height="174" alt="image" src="https://github.com/user-attachments/assets/cf50b697-bb8e-42ff-944f-1653504e2e24" />
+
 </br>
-<img width="411" height="198" alt="image" src="https://github.com/user-attachments/assets/3d98d904-ca95-416d-bd9c-db544402716b" />
+<img width="410" height="172" alt="image" src="https://github.com/user-attachments/assets/67447694-7a13-4d9d-9961-7f834212b8a1" />
 
 When the extension is eventually loaded, it will display a list of issues (errors and warnings) if a rule discrepancy is detected, one warning if references between projects are not detected, or a message stating that no problems were detected </br>
 </br>
-<img width="1280" height="411" alt="image" src="https://github.com/user-attachments/assets/dff3765e-2681-4d59-bc8b-0b238c3f9de4" />
+<img width="1867" height="370" alt="image" src="https://github.com/user-attachments/assets/681f8302-f85a-456b-b505-12f18445107f" />
 </br>
-<img width="1280" height="227" alt="image" src="https://github.com/user-attachments/assets/7e4bd53c-848d-4c11-b278-71c7adb1df47" />
+<img width="464" height="108" alt="image" src="https://github.com/user-attachments/assets/c827a11e-a158-4815-8532-17400b16164a" />
 </br>
-<img width="730" height="151" alt="image" src="https://github.com/user-attachments/assets/1a624998-7216-4bb6-9235-197f6f3c7268" />
+<img width="961" height="199" alt="image" src="https://github.com/user-attachments/assets/fb92df6a-c119-430f-a31c-e563749acd7b" />
 
 # 7. Call one of the extension's functions to check if it's working properly
-To do this, go to the extensions menu and find what you need (RefDepGuard) and call one of its functions </br>
+To do this, go to the extensions menu, find what you need (RefDepGuard) and call one of its functions </br>
 </br>
-<img width="650" height="190" alt="image" src="https://github.com/user-attachments/assets/b6c5f90d-dfc0-48ba-a97a-0bbabdfa2a10" />
+<img width="530" height="171" alt="image" src="https://github.com/user-attachments/assets/cc9814fa-bee9-4a3d-8421-957c9da1b072" />
 </br>
-<img width="398" height="907" alt="image" src="https://github.com/user-attachments/assets/a831671a-f712-45eb-abf5-19f7770bfc3d" />
+<img width="324" height="616" alt="image" src="https://github.com/user-attachments/assets/d09572d9-e98c-44ee-9bc6-b093f615693a" />
 
 For ease of use, all functions in the menu are duplicated by the "hot keys" shown in the figure above
 
 You can also verify that the extension is installed by viewing information about it in the extensions menu (Manage Extensions - > Installed).
 
-<img width="420" height="500" alt="image" src="https://github.com/user-attachments/assets/85b16cf5-6a34-4b1f-993f-5bf6071b5273" />
+<img width="413" height="546" alt="image" src="https://github.com/user-attachments/assets/7eaca820-7b20-4948-86b5-0bf1bdc5ae7a" />
+
