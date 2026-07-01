@@ -70,11 +70,11 @@ After installation, the extension supports 2 ways of interaction:
 
 To do this, select the "Extensions" section on the top toolbar </br>
 
-<img width="1074" height="122" alt="Items" src="https://github.com/user-attachments/assets/72cdd957-2403-4d2b-ad31-665e6eb29143" />
+<img width="706" height="115" alt="image" src="https://github.com/user-attachments/assets/0eda3b5b-1917-4a43-a4c1-31dd4dfc2233" />
     
 Among the extensions, select the "RefDepGuard" extension.
-The full functionality of the extension is described in the main points of this document and is shown in the figure below:< /br>
-<img width="732" height="214" alt="image" src="https://github.com/user-attachments/assets/fa78db42-4080-4a2c-bec0-f485e900d50d" />
+The full functionality of the extension is described in the main points of this document and is shown in the figure below:</br>
+<img width="530" height="171" alt="image" src="https://github.com/user-attachments/assets/cc9814fa-bee9-4a3d-8421-957c9da1b072" />
 
 To perform the required functionality, click on the corresponding button
 
@@ -91,19 +91,19 @@ Currently, the extension implements the following hotkeys:</br>
 **ALT + H** - Export the current state of the solution in a graphical report format (see point 8)</br>
 </br>
 _!Important: After downloading / opening the solution, the extension takes some time (about 10 seconds) to perform a preliminary check in the background (see point 2). Before performing this action, the extension is considered not loaded yet and cannot be interacted with directly: when you try to interact with it, the following message will be displayed:!_ </br>
-
-<img width="475" height="185" alt="image" src="https://github.com/user-attachments/assets/28d5f7e4-10e7-4e40-97e5-6269d0229c75" />
+</br>
+<img width="317" height="174" alt="image" src="https://github.com/user-attachments/assets/cf7efc95-78df-4f03-8af0-a15408d0c5ae" />
 
 _Extension **will be considered loaded** when either a list of detected "problems" is displayed, or a warning about the lack of references in the solution, or a message that the extension did not detect "problems" (see point 2)!_
 
 ## 1. Activating the extension
 When the solution is loaded for the first time, the extension displays a message where you can choose whether to use the extension in this solution or not. If you agree to use it, the extension starts working in the background (see point 2), and all its functionality becomes available via hotkeys and the main menu of the extension (see point 0).</br>
 
-<img width="472" height="223" alt="image" src="https://github.com/user-attachments/assets/f44bdbb9-49c5-4016-aecb-dff75e38ff62" /></br>
+<img width="380" height="202" alt="image" src="https://github.com/user-attachments/assets/a319fbce-8de9-4f4d-a959-228d5015081d" /></br>
 
-Otherwise, the extension remains inactive, but the user can activate the extension using a special button that appears instead of the main extension menu.:</br>
+Otherwise, the extension remains inactive, but the user can activate the extension using a special button that appears instead of the main extension menu:</br>
 
-<img width="647" height="140" alt="image" src="https://github.com/user-attachments/assets/bc290738-e2f2-44da-ac10-7258baabdf93" />
+<img width="428" height="100" alt="image" src="https://github.com/user-attachments/assets/e3d42e67-959c-438e-a8a4-d710e70618c4" />
 
 _!Important: at the moment, the **extension cannot be deactivated**, so the decision to activate it on a specific solution should be considered!_
 
@@ -115,7 +115,7 @@ If errors are detected during the build, the **extension cancels the build** and
 
 When running in the background the extension also loads rules from configuration files. </br>
 
-<img width="1280" height="285" alt="image" src="https://github.com/user-attachments/assets/94efbe55-8a9c-49cc-ba82-638bac91d6bd" />
+<img width="1867" height="370" alt="image" src="https://github.com/user-attachments/assets/681f8302-f85a-456b-b505-12f18445107f" />
 
 The list of Errors and Warnings that the extension can issue is given below.
 The extension's errors and warnings are described using the following template:
@@ -124,16 +124,16 @@ The extension's errors and warnings are described using the following template:
 ````
 If no problems were detected, the corresponding message will be displayed when the compliance check is completed:</br>
 
-<img width="730" height="151" alt="image" src="https://github.com/user-attachments/assets/61147c52-d160-42cd-bb98-83c088c7aac3" />
+<img width="464" height="108" alt="image" src="https://github.com/user-attachments/assets/c827a11e-a158-4815-8532-17400b16164a" />
 
 
 A separate case is highlighted when the extension failed to detect any references between projects in the solution. It is considered a potentially erroneous action (considering that the extension is supposed to be used in solutions where there are many references between projects), so it is marked as an error. If no references are found, the configuration file rules **are not checked** and this warning is displayed in the error panel as the only notification from the extension.:</br>
 
-<img width="1163" height="128" alt="image" src="https://github.com/user-attachments/assets/6bd53807-42a6-43a1-a2ca-f6e5a7a93b25" />
+<img width="961" height="199" alt="image" src="https://github.com/user-attachments/assets/fb92df6a-c119-430f-a31c-e563749acd7b" />
 
 Also, if there is such a valid warning, any export is prohibited:</br>
 
-<img width="539" height="201" alt="image" src="https://github.com/user-attachments/assets/2e7c9f3f-dc20-4367-9508-fc404d620aa1" />
+<img width="404" height="176" alt="image" src="https://github.com/user-attachments/assets/a2594fa5-0d03-47c3-b6a1-84d9b6a969bc" />
 
 _!Important: The reason that the extension doesn't detect references after loading solution may be because the solution still wasn't fully loaded at the time of checking them. If such a warning occurs after loading the solution, try to force fixing the solution state (point 6)!_
 
@@ -392,9 +392,11 @@ _!In the current version of the extension, a restriction is considered when a re
 ### e) Behavior of the extension when one or two configuration files are not detected
 If the extension couldn't find the global configuration file and/or the solution-specific configuration file, it displays a warning about it and generates the missing file in the root folder itself.</br>
 
-<img width="572" height="202" alt="image" src="https://github.com/user-attachments/assets/8ffea3d2-7db5-4acb-ab9b-2a71b20e2495" />
+<img width="373" height="174" alt="image" src="https://github.com/user-attachments/assets/cf50b697-bb8e-42ff-944f-1653504e2e24" />
+
 </br>
-<img width="573" height="213" alt="image" src="https://github.com/user-attachments/assets/b6807eea-4eb3-41fa-8ee5-f040736d5d24" />
+<img width="410" height="172" alt="image" src="https://github.com/user-attachments/assets/67447694-7a13-4d9d-9961-7f834212b8a1" />
+
 
 The file after generation will look something like this:</br>
 <img width="502" height="492" alt="image" src="https://github.com/user-attachments/assets/fbb405dd-e3b9-4cff-a302-a1f501f1e5be" />
@@ -408,15 +410,16 @@ Occurs when a syntax error occurs that causes the JSON parser to be unable to re
 We are talking about an extra or missing comma, colon, etc.
 In this case, the extension notifies the user that the file cannot be read and suggests that the entire content will be transferred to the {value_file_name_rollback.rdg} file (if necessary, creates it in the root folder) and write to the existing file the correct configuration file stored in the cache, or a standard empty template relevant to this file, if the cache is not detected or its parsing failed with an error:
 
-<img width="506" height="235" alt="image" src="https://github.com/user-attachments/assets/0ff23f37-c670-4cd1-9383-fa43c1cee612" />
+<img width="383" height="186" alt="image" src="https://github.com/user-attachments/assets/1a412cb2-90aa-4581-a4bb-84869a3ff767" /></br>
 
-<img width="510" height="186" alt="image" src="https://github.com/user-attachments/assets/0809db7b-4284-4561-918d-ee9690a2bc35" />
+<img width="380" height="189" alt="image" src="https://github.com/user-attachments/assets/8da94569-15b9-49f7-afa5-9217de03eba7" />
 
 If the user agrees, the actions described above will be performed, and if they don't, a corresponding warning will be displayed about problems with the configuration file:
 
-<img width="945" height="92" alt="image" src="https://github.com/user-attachments/assets/efd004e4-ade8-4f8e-a9d9-3c5c88d911de" />
+<img width="1459" height="122" alt="image" src="https://github.com/user-attachments/assets/c859e511-f424-4ae9-8f51-e4f6e0f8e65a" />
+</br>
 
-Root folder after generating rollback-files:
+Root folder after generating rollback-files:</br>
 
 <img width="906" height="452" alt="image" src="https://github.com/user-attachments/assets/9d401ec5-6c63-4ef8-8503-b95f33fbd51c" />
 
@@ -426,39 +429,43 @@ Root folder after generating rollback-files:
 Occurs when an error is made in the parameter value itself, or when one of the parameters is not found at all.
 These are errors such as **Null property error** and **framework_max_version deviant value error**. These errors are displayed in the VS 22 "error panel" along with the rest:</br>
 
-<img width="1280" height="208" alt="image" src="https://github.com/user-attachments/assets/c5d2517e-0406-4cd3-98c3-cfff31fe1d12" />
+<img width="956" height="120" alt="image" src="https://github.com/user-attachments/assets/033591a6-25ef-4556-9677-8dc3ac380a56" />
+
 
 ### g) Behavior of the extension when a mismatch is detected in projects between the configuration file and the actual state of the solution
 If the configuration file contains one or more projects that are not actually present in the solution, or if the file does not contain one or more projects that are present in the solution, the user will be prompted to add / remove these project (s) from the configuration file of a particular solution when fixing the state (forced or background):</br>
 
-<img width="508" height="181" alt="image" src="https://github.com/user-attachments/assets/4b57af7c-a165-43fb-aa9d-b227dc9d2c21" /></br>
+<img width="405" height="200" alt="image" src="https://github.com/user-attachments/assets/07147e4f-9724-4f85-85d0-de87907c9cdd" />
+</br>
 
-<img width="505" height="188" alt="image" src="https://github.com/user-attachments/assets/047b072d-4324-4ce3-acfa-385b39e481fc" />
+<img width="391" height="202" alt="image" src="https://github.com/user-attachments/assets/90c5eaa0-2b34-4138-bea7-79ecfbce3e47" />
 
 If the user agrees, these actions will be performed. In case of disagreement, a corresponding warning will be displayed:</br>
 
-<img width="1023" height="107" alt="image" src="https://github.com/user-attachments/assets/dd56290d-cfad-4e06-8bff-7c6d9faa112d" />
+<img width="1189" height="155" alt="image" src="https://github.com/user-attachments/assets/8955a071-4756-433c-a544-fc8ad23e9510" />
 
 If exactly 1 project has been added or deleted, the user will be prompted to rename the project while maintaining all existing rules.</br>
 
-<img width="438" height="173" alt="image" src="https://github.com/user-attachments/assets/03b2480f-bd25-437c-8d19-47fb673967f7" />
+<img width="395" height="188" alt="image" src="https://github.com/user-attachments/assets/5b7eb157-2b24-409f-8f10-e0fae25a538a" />
+</br>
 
 In case of refusal, you will be prompted to add / remove these projects from the configuration file of a particular solution, and in case of repeated disagreement, a corresponding warning will be displayed (see above).</br>
 
-<img width="440" height="165" alt="image" src="https://github.com/user-attachments/assets/8584596f-e362-4457-ab50-e74a2410c8ce" /> </br>
+<img width="400" height="174" alt="image" src="https://github.com/user-attachments/assets/c01aadbe-4e6f-40fb-bdc0-1d7c11c669c3" />
+</br>
 
-<img width="436" height="147" alt="image" src="https://github.com/user-attachments/assets/7598fad2-da03-452a-90e6-8e02f97995db" />
-
+<img width="367" height="164" alt="image" src="https://github.com/user-attachments/assets/59058cff-ff91-4d55-bf6e-68ddb9dfaa3b" />
 
 ### h) Behavior of the extension when undetected project name in the solution declared inside its reference
 If a value specified in required_references and / or unacceptable_reference at any level is found in the solution and does not correspond to any of the existing projects in the solution, the corresponding warning will be displayed:</br>
 
-<img width="968" height="122" alt="image" src="https://github.com/user-attachments/assets/b823d915-60c2-42f9-9b4d-789841b4888e" />
+<img width="1212" height="174" alt="image" src="https://github.com/user-attachments/assets/cc14e5f4-1ae2-49ce-8a0b-0d51dd27564e" />
 
 ### i) Behavior of the extension when a non-existent TFM is detected in "framework_max_version" TFM 
 If a framework_max_version TFM is found in the "framework_max_version" parameter when using a template of various constraints TFM that does not match any of the existing ones according to [official documentation](https://learn.microsoft.com/en-us/dotnet/standard/frameworks://learn.microsoft.com/en-us/dotnet/standard/frameworks), then the following warning will be displayed:</br>
 
-<img width="1014" height="155" alt="image" src="https://github.com/user-attachments/assets/e9fb54d1-01ad-4e23-a9a4-ec229dd627d9" />
+<img width="1214" height="159" alt="image" src="https://github.com/user-attachments/assets/262bc946-85c0-4970-b3f6-ff2a3dadcb9d" />
+
 
 ### l) Ways to create configuration files
 You can create configuration files in one of the following ways:
@@ -469,46 +476,48 @@ You can create configuration files in one of the following ways:
 ### a) Output of straight references
 When you click on the "Show all straight references" button in the menu or press the Alt + R key combination, a message is displayed containing information about all direct references between projects. That is, references that the project refers to without the mediation of any third-party projects. If one of the projects does not have references to other projects, then puts a dash ("-"). </br>
 
-<img width="355" height="809" alt="image" src="https://github.com/user-attachments/assets/6bc9c2bd-b64c-4ffc-b25f-f9d42741eac7" />
+<img width="324" height="616" alt="image" src="https://github.com/user-attachments/assets/d09572d9-e98c-44ee-9bc6-b093f615693a" />
 
 If no references are found in Solution for any project, a message about this is displayed. In this case, the corresponding warning shown in step 2 will also be observed.</br>
 
-<img width="414" height="149" alt="image" src="https://github.com/user-attachments/assets/04026563-0df1-411c-895a-76083afd6bbf" />
+<img width="397" height="175" alt="image" src="https://github.com/user-attachments/assets/1a0b876e-5a1b-4e0d-9f91-e234ccae2231" />
 
 ### b) Output of transitive references
 
 When you click on the "Show all transitive references" button in the menu or press the Alt + T key combination, a message is displayed containing information about all transitive references between projects. That is references that the current project refers to indirectly (through other projects). If any of the projects do not have such references, then puts a dash ("-"). </br>
-
-<img width="305" height="646" alt="image" src="https://github.com/user-attachments/assets/1e633fc7-182f-46fa-848a-3395a56c9ee5" />
-
+</br>
+<img width="326" height="554" alt="image" src="https://github.com/user-attachments/assets/37b2828f-8319-4e8a-8bc8-8dbd3d362bbf" />
+</br>
 If no references are found in Solution for any project, a message is displayed (see point 3A).
 
 ## 5. Displaying changes to references since they were last committed
 When you click on the "Show changes in refs" button in the menu or press the Alt + E key combination, a message is displayed containing information about all changes in references since the last commit (loading a solution, building a project, or forcing a commit):</br>
 
-<img width="436" height="286" alt="image" src="https://github.com/user-attachments/assets/e45382d0-6e25-493d-a1fb-f2de818debe8" />
+<img width="389" height="225" alt="image" src="https://github.com/user-attachments/assets/2068ea78-69fa-4422-82b5-a7acc51a7156" />
 
 If there are no changes, a message is displayed with the corresponding content:</br>
 
-<img width="310" height="166" alt="image" src="https://github.com/user-attachments/assets/2ba0c1cf-ef85-4442-9dd9-b8861eb94403" />
+<img width="414" height="161" alt="image" src="https://github.com/user-attachments/assets/3d05fd5b-ad29-43a2-8dea-22b0a0da5ce5" />
+
 
 ## 6. Forced commit of references
 When you click on the "Fix current version of the solution" button in the menu or press the Alt + C key combination, the current references between projects, the current targetFramework versions of the project are committed and these parameters are checked for compliance with the rules loaded from the configuration files (at the time of this commit).
 When the check is completed, it displays either a list of problems found by the extension, a warning that there are no references between projects, or a message that no problems were found in the solution (see point 2).
 A message (MessageBox) with the result of successful commit execution is also displayed:</br>
 
-<img width="321" height="172" alt="image" src="https://github.com/user-attachments/assets/74144246-02f3-42b4-88c9-15cd5399dae5" /></br>
+<img width="312" height="166" alt="image" src="https://github.com/user-attachments/assets/54f1a9f0-c98b-491e-bbae-25c6440effa2" />
+</br>
 
-<img width="327" height="175" alt="image" src="https://github.com/user-attachments/assets/240dd505-fc10-4a73-9d43-7a2de51efcc1" /></br>
-
-<img width="450" height="173" alt="image" src="https://github.com/user-attachments/assets/6ea56a9e-ded4-4c5f-b2f3-d018eca2fc38" />
+<img width="413" height="192" alt="image" src="https://github.com/user-attachments/assets/0ca10859-9f5c-49a2-87dc-590529dbeb3a" />
+</br>
 
 ## 7. Tabular export of project state
 When you click on the "Export to XLSX" button in the menu or press the Alt + X key combination, a tabular report is generated in the format of .xlsx file.
 
 Based on the export results, the user will be prompted to open the folder with the saved export. When you click on the "Yes" button, the action described earlier will be performed. This message is also an export success message.</br>
 
-<img width="434" height="160" alt="image" src="https://github.com/user-attachments/assets/2904ac6b-c00d-40c6-9407-22b1761d3562" />
+<img width="308" height="174" alt="image" src="https://github.com/user-attachments/assets/e9ac7924-31fd-4374-82be-a4ce0dbe012c" />
+
 
 The file will be saved at the following path and will have the following name:
 ````JSON
@@ -533,7 +542,7 @@ Next to each project are displayed:
 - Current fixed invalid references between projects (Number and their names)
 The name of the Solution and the date and time of report generation are displayed as the table header.</br>
 
-<img width="975" height="263" alt="image" src="https://github.com/user-attachments/assets/60cfba88-3f83-4c15-a6b9-1cbb6bcac6b2" />
+<img width="1456" height="392" alt="image" src="https://github.com/user-attachments/assets/415c5d49-f3de-41a5-b5d3-28ce1e5cfac0" />
 
 The maximum allowed version of targetFramework column uses the following conventions:
 - S-Solution (Solution level restriction)
@@ -554,13 +563,9 @@ Next to each reference are displayed:
 - Max allowed version of targetFramework
 - Reference type (required, invalid, with a potential version conflict, simultaneously declared as required and invalid / "?" or without the special feature / "-")
 
-The name of the Solution and the date and time of report generation are displayed as the table header.</br>
+The name of the Solution and the date and time of report generation are displayed as the table header. Undetected mandatory references can be displayed in a separate field at the end of the table, if they are found:</br>
 
-<img width="528" height="491" alt="image" src="https://github.com/user-attachments/assets/1c61168e-2c78-44ab-92e7-80429da551ec" />
-
-Undetected mandatory references can be displayed in a separate field at the end of the table, if they are found: </br>
-
-<img width="528" height="491" alt="image" src="https://github.com/user-attachments/assets/7fb9d7d2-eb0e-467d-8aa6-b4c071d84262" />
+<img width="654" height="672" alt="image" src="https://github.com/user-attachments/assets/5f03e08e-5cdd-4ee4-ace5-698d46f1187c" />
 
 
 ### c) Current RefDepGuard errors page
@@ -576,11 +581,11 @@ Next to each error, the following is displayed:
 - The file in which you need to perform the action (if it refers to .csproj, then you need to perform an action with the project located inside VS22; if it refers to.rdg, then you need to change the configuration file settings)
 The name of the Solution and the date and time of report generation are displayed as the table header.</br>
 
-<img width="999" height="214" alt="image" src="https://github.com/user-attachments/assets/dbe000c8-c15c-4ab3-a3a3-63848353fb1f" />
+<img width="1810" height="479" alt="image" src="https://github.com/user-attachments/assets/f29c106b-e783-4fad-9067-53e95d4a237a" />
 
 If no errors are detected at the time of export, the corresponding message will be displayed on the sheet:</br>
 
-<img width="1028" height="94" alt="image" src="https://github.com/user-attachments/assets/4c7f7bae-e254-49fa-a370-16b5d05bfa40" />
+<img width="990" height="97" alt="image" src="https://github.com/user-attachments/assets/78716b39-3421-4940-b89a-6644a918b298" />
 
 ### d) Current RefDepGuard Warnings page
 It is a representation of all warnings detected by the extension at the time of generating the report.
@@ -595,18 +600,18 @@ The following messages are displayed next to each warning:
 - The file in which you need to perform the action (if it refers to .csproj, then you need to perform an action with the project located inside VS22; if it refers to.rdg, then you need to change the configuration file settings)
 The name of the Solution and the date and time of report generation are displayed as the table header.</br>
 
-<img width="1004" height="263" alt="image" src="https://github.com/user-attachments/assets/490c4976-b34a-4c96-8588-1b887846399a" />
+<img width="1793" height="713" alt="image" src="https://github.com/user-attachments/assets/7026c2ca-8b6b-4e3b-8074-89b973db88bc" />
 
 If no warnings are detected at the time of export, the corresponding message will be displayed on the sheet:</br>
 
-<img width="1011" height="81" alt="image" src="https://github.com/user-attachments/assets/77e08d58-6dbd-41d9-8ef6-02320be51322" />
+<img width="1044" height="98" alt="image" src="https://github.com/user-attachments/assets/d3dd6639-ad6d-472a-bd6b-5489c5585fc6" />
 
 ## 8. Graphical export of project state
 When you click on the "Export to HTML" button in the menu or press the Alt + H key combination, a graphical report is generated in the format .html file with [mermaid](https://docs.mermaidchart.com/mermaid-oss/intro/getting-started.html#native-mermaid-support://docs.mermaidchart.com/mermaid-oss/intro/getting-started.html#native-mermaid-support). 
 
 Based on the export results, the user will be prompted to open the folder with the saved export. When you click on the "Yes" button, the action described earlier will be performed. This message is also an export success message.</br>
 
-<img width="435" height="154" alt="image" src="https://github.com/user-attachments/assets/30b08718-beef-4186-95a5-b0ffb104e4fd" />
+<img width="312" height="179" alt="image" src="https://github.com/user-attachments/assets/bd60fb1b-f6c2-4270-9352-4b391edbeb01" />
 
 The file will be saved at the following path and will have the following name:
 ````JSON
@@ -615,9 +620,10 @@ The file will be saved at the following path and will have the following name:
 , where D is the day digit, M is the month digit in the first case, minutes in the second, Y is the year digit, H is the hour digit, and S is the second digit. Together, these numbers form the exact date and time of report generation, which is the unique report ID.
 
 The appearance of the graphical report is shown below:< /br>
-<img width="1003" height="672" alt="image" src="https://github.com/user-attachments/assets/3c29aaf2-ede6-4c32-88ae-8835e54e9cd0" />
+<img width="1531" height="956" alt="image" src="https://github.com/user-attachments/assets/aaee6dcb-d544-4ce1-a930-0f30a3641e43" />
 </br>
-<img width="942" height="573" alt="image" src="https://github.com/user-attachments/assets/956a0bdb-cd19-47e2-8151-8c3cf2cee5ce" />
+<img width="710" height="943" alt="image" src="https://github.com/user-attachments/assets/46682050-9716-4e40-8c9e-3b01ae5ca13d" />
+
 
 The report uses the following symbols:
 - Bold link highlighting - mandatory reference between projects
