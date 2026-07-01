@@ -3,9 +3,9 @@ This extension for Visual Studio 2022 allows you to track changes in dependencie
 
 The purpose of this tool is to control the relationships in solutions and ensure that they comply with the standard view adopted in your company. Implemented as part of the build administration.
 
-Information about installing the extension (Starter guide) can be found at [link](https://github.com/Roman://github.com/Roman194/RefDepGuard/blob/master/STARTER_GUIDE_EN_GUIDE.md)
+Information about installing the extension (Starter guide) can be found at [link](https://github.com/Roman194/RefDepGuard/blob/master/STARTER_GUIDE.md)
 
-The extension also has a "lightweight" console version designed for integration into the CI/CD pipeline as an automated test. See the corresponding [console app USER_GUIDE](https://github.com/Roman://github.com/Roman194/RefDepGuard/blob/master/CONSOLE_USER_GUIDE_EN_USER_GUIDE.md) for a description of the features of the console program, as well as the actions required for its correct operation
+The extension also has a "lightweight" console version designed for integration into the CI/CD pipeline as an automated test. See the corresponding [console app USER_GUIDE](https://github.com/Roman194/RefDepGuard/blob/master/CONSOLE_USER_GUIDE.md) for a description of the features of the console program, as well as the actions required for its correct operation
 
 # User guide-relevant version of the tool
 2.1.0
