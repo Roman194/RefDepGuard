@@ -47,30 +47,31 @@ Finally, click LMB on .bat file and the console application starts correctly
 
 RefDepGuard.Console checks whether the current state of the solution meets the specified rules in several stages:
 ## 0. Greeting
-A welcome message is displayed along with the name of the solution to be checked< /br>
+A welcome message is displayed along with the name of the solution to be checked </br>
 
-<img width="628" height="43" alt="image" src="https://github.com/user-attachments/assets/29f4eace-5f5a-4cf7-9252-711da2dde037" />
+<img width="601" height="63" alt="image" src="https://github.com/user-attachments/assets/439458f9-08fd-4383-8d87-4150d0dfb50c" />
 
 ## 1. Solution state parsing
 During this stage, the application receives information about all projects included in the solution, as well as their TargetFramework versions and relationships. This data is also duplicated in the console:</br>
 
-<img width="474" height="562" alt="Items (3)" src="https://github.com/user-attachments/assets/27d764a6-b985-4bd2-a6cf-a502407431bf" />
+<img width="512" height="945" alt="image" src="https://github.com/user-attachments/assets/18cc8cb3-02e8-4ae9-8eba-734a3f4cd044" />
+
 
 ## 2. Parsing rules from configuration files
 During this stage, the application receives data about the rules specified in the configuration files.</br>
 </br>
-<img width="354" height="50" alt="image" src="https://github.com/user-attachments/assets/8c92b1f2-16a0-4737-ac3a-4ab111fcc6f8" /></br>
+<img width="354" height="44" alt="image" src="https://github.com/user-attachments/assets/a0774a75-639f-4f1f-ae3e-6967aa475679" />
 </br>
 _!Important: unlike the extension, the console application does not know how to generate configuration file templates, so any syntax errors will lead to unsuccessful parsing of the rules and require finding problems and editing them manually!_
 </br>
-</br>
-<img width="626" height="112" alt="image" src="https://github.com/user-attachments/assets/ce3e520f-b1aa-464c-ab9c-a4caba955e2f" />
+<img width="601" height="159" alt="image" src="https://github.com/user-attachments/assets/c376e025-f815-42ef-92a7-e2740f8de18e" />
+
 
 ## 3. Checking whether the status complies with the declared rules and displaying detected problems
 During this stage, the application checks whether the current state complies with the declared rules, which results in problems detected or a message about their absence </br>
 </br>
-<img width="1280" height="599" alt="Items (2)" src="https://github.com/user-attachments/assets/217d72e1-00ee-4510-894c-544180334a3a" />
+<img width="1370" height="890" alt="image" src="https://github.com/user-attachments/assets/64a60049-8944-454a-bc6c-882ced3ed853" />
 </br>
-<img width="524" height="80" alt="image" src="https://github.com/user-attachments/assets/c8a844b0-56f7-44ee-b533-8be3c98bc289" />
+<img width="484" height="126" alt="image" src="https://github.com/user-attachments/assets/7a76818a-5e8f-4a13-b1fb-3cd18f103328" />
 </br>
 _!Important: if errors are detected as a result of the check, or the check fails for some reason (fail at stage 1-3), the program ends execution with the code "-1", which corresponds to completion with an error.  Otherwise - with the code "0"(successful execution)!_
