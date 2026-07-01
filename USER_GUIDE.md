@@ -50,7 +50,7 @@ The extension also has a "lightweight" console version designed for integration 
 [4. Show all current references between projects](https://github.com/Roman194/RefDepGuard/blob/master/USER_GUIDE.md#4-output-of-all-current-project-references)</br>
 - [a. Show all straight references](https://github.com/Roman194/RefDepGuard/blob/master/USER_GUIDE.md#a-output-of-straight-references)</br>
 - [b. Show all transitive references](https://github.com/Roman194/RefDepGuard/blob/master/USER_GUIDE.md#b-output-of-transitive-references)</br>
-</br>
+
 [5. Show changes between project references since last state commit](https://github.com/Roman194/RefDepGuard/blob/master/USER_GUIDE.md#5-displaying-changes-to-references-since-they-were-last-committed)</br>
 
 [6. Force solution state commit](https://github.com/Roman194/RefDepGuard/blob/master/USER_GUIDE.md#6-forced-commit-of-references)</br>
