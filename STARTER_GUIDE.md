@@ -1,38 +1,50 @@
-В рамках альфа-тестирования планируется, что расширение будет поставляться в папке "RefDepGuard", содержащей одноимённый .vsix файл. 
-Для установки расширения требуется иметь установленную IDE Visual Studio 2022, а также:
-# 1. Открыть .vsix файл
-![image.png](/.attachments/image-af02dd2f-4d33-4d3b-9886-370817ee8d0a.png)
+To install the extension, you must have the Visual Studio 2022 IDE installed, as wellas:
+# 1. Open it .vsix file
+<img width="320" height="236" alt="image" src="https://github.com/user-attachments/assets/9b19c533-ce89-4f74-93dc-20f1888ecb94" />
 
-# 2. Согласиться на установку нажатием на кнопку "Install"
-![image.png](/.attachments/image-af02dd2f-4d33-4d3b-9886-370817ee8d0a.png)
+# 2. Agree to install by clicking on the "Install" button
+<img width="429" height="323" alt="image" src="https://github.com/user-attachments/assets/d18995a9-27da-4a2a-99fc-fc794f2e6984" />
 
-# 3. Дождаться завершения установки
-![image.png](/.attachments/image-af02dd2f-4d33-4d3b-9886-370817ee8d0a.png)
+# 3. Wait for the installation to complete
+<img width="431" height="330" alt="image" src="https://github.com/user-attachments/assets/301622e8-a82c-4b31-898a-6c7b97c611c6" />
+</br>
+<img width="436" height="330" alt="image" src="https://github.com/user-attachments/assets/886b4b19-969d-4857-a587-7829ee8d8716" />
 
-![image.png](/.attachments/image-de3a285a-2657-446d-84d8-c3e8fb99049d.png)
+# 4. Open one of your solutions in Visual studio 2022
 
-# 4. Открыть одно из ваших решений (Solution) в Visual studio 2022
+<img width="946" height="537" alt="image" src="https://github.com/user-attachments/assets/6cf44af8-7543-4f43-aa1b-65f2dff913ed" />
 
-![image.png](/.attachments/image-586943b8-e32e-4b54-9d70-2a2717d14d67.png)
+# 5. Go through the dating stage with the extension
+After opening the solution after some time, the extension will offer to use its features. If you click "Yes", the extension download process will start and it will start working:
 
-# 5. Дождаться загрузки решения и самого расширения
-В случае, если в проекте не обнаружен один или оба конфигурационных файлов, оно уведомит пользователя об этом и создаст шаблон файла:
+<img width="380" height="202" alt="image" src="https://github.com/user-attachments/assets/a319fbce-8de9-4f4d-a959-228d5015081d" />
 
-![image.png](/.attachments/image-55299c69-3a34-4c7e-94d6-6e04391922ac.png)
-![image.png](/.attachments/image-fe415238-a422-494e-bea5-b06017792fdb.png)
-Когда, в конечном итоге, расширение загрузится, оно выдаст список проблем (ошибок и предупреждений), если будет обнаружено несоответствие правилам, одно предупреждение, если не будут обнаружены референсы между проектами, или сообщение о том, что проблемы не обнаружены
+# 6. Wait for the solution and the extension itself to load
+If one or both configuration files are not found in the project, it notifies the user about this and creates a file template: </br>
+</br>
+<img width="373" height="174" alt="image" src="https://github.com/user-attachments/assets/cf50b697-bb8e-42ff-944f-1653504e2e24" />
 
-![image.png](/.attachments/image-a7d61836-cd7a-469a-9348-8def43807681.png)
-![image.png](/.attachments/image-49104e03-958b-49aa-b753-e0909dff9b7e.png)
-![image.png](/.attachments/image-264811af-07ce-40d3-ba13-5de480518279.png)
+</br>
+<img width="410" height="172" alt="image" src="https://github.com/user-attachments/assets/67447694-7a13-4d9d-9961-7f834212b8a1" />
 
-# 6. Вызвать одну из функций расширения для проверки его работоспособности
-Для этого нужно найти в меню расширений требуемое (RefDepGuard) и вызвать одну из его функций (рекомендуется для целей проверки вызвать одну из верхних трёх)
-![image.png](/.attachments/image-d34f9770-a5ef-4cf7-bcd6-4d680ec361ec.png)
-![image.png](/.attachments/image-ced867cf-294e-4e67-9138-d01c42265b05.png)
+When the extension is eventually loaded, it will display a list of issues (errors and warnings) if a rule discrepancy is detected, one warning if references between projects are not detected, or a message stating that no problems were detected </br>
+</br>
+<img width="1867" height="370" alt="image" src="https://github.com/user-attachments/assets/681f8302-f85a-456b-b505-12f18445107f" />
+</br>
+<img width="464" height="108" alt="image" src="https://github.com/user-attachments/assets/c827a11e-a158-4815-8532-17400b16164a" />
+</br>
+<img width="961" height="199" alt="image" src="https://github.com/user-attachments/assets/fb92df6a-c119-430f-a31c-e563749acd7b" />
 
-Для удобства пользования все функции в меню продублированы "горячими клавишами", показанными на рисунке выше
+# 7. Call one of the extension's functions to check if it's working properly
+To do this, go to the extensions menu, find what you need (RefDepGuard) and call one of its functions </br>
+</br>
+<img width="530" height="171" alt="image" src="https://github.com/user-attachments/assets/cc9814fa-bee9-4a3d-8421-957c9da1b072" />
+</br>
+<img width="324" height="616" alt="image" src="https://github.com/user-attachments/assets/d09572d9-e98c-44ee-9bc6-b093f615693a" />
 
-Также можно убедится в том, что расширение установлено, просмотрев информацию о нём в меню расширений ("Управление расширениями" -> "Установлено")
+For ease of use, all functions in the menu are duplicated by the "hot keys" shown in the figure above
 
-![image.png](/.attachments/image-889df263-8ea0-46a9-ad39-3cee9e57ff21.png)
+You can also verify that the extension is installed by viewing information about it in the extensions menu (Manage Extensions - > Installed).
+
+<img width="413" height="546" alt="image" src="https://github.com/user-attachments/assets/7eaca820-7b20-4948-86b5-0bf1bdc5ae7a" />
+

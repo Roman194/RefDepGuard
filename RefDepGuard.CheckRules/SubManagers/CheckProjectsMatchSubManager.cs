@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.Project;
 
 namespace RefDepGuard.CheckRules.SubManagers
 {

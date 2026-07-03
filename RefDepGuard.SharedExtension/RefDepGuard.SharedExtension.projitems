@@ -22,7 +22,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Managers\Export\SubManagers\XLSXSubManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Managers\Import\ConfigFileExtensionManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Managers\Import\SettingsManager.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Models\UsingSolutionsDTO.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RefDepGuardPackage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\MainCommand.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UI\MessageManager.cs" />

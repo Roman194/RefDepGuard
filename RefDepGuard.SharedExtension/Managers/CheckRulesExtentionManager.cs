@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using RefDepGuard.Managers.CheckRules;
 using RefDepGuard.CheckRules;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.RefDepGuard;
 using RefDepGuard.CheckRules.SubManagers;
 using System.Linq;
 #if EXTENSION_22

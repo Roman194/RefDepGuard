@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using RefDepGuard.CheckRules.Models;
+using RefDepGuard.Models;
 
 namespace RefDepGuard.CheckRules.Data
 {

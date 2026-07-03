@@ -19,6 +19,8 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "RefDepGuard.SharedExtension
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Extension19", "RefDepGuard.Extension19\RefDepGuard.Extension19.csproj", "{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RefDepGuard.Models", "RefDepGuard.Models\RefDepGuard.Models.csproj", "{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,18 @@ Global
 		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|arm64.Build.0 = Release|arm64
 		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|x86.ActiveCfg = Release|x86
 		{1F8B5DC2-98A5-47C1-ABB6-C09466D9112E}.Release|x86.Build.0 = Release|x86
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Debug|arm64.Build.0 = Debug|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Debug|x86.Build.0 = Debug|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Release|arm64.ActiveCfg = Release|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Release|arm64.Build.0 = Release|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Release|x86.ActiveCfg = Release|Any CPU
+		{2C902B32-C9CE-4E5E-B3C1-2587B9A600E7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

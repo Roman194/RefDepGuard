@@ -2,9 +2,9 @@
 using Microsoft.Build.Locator;
 using RefDepGuard.Console.Managers;
 using RefDepGuard.CheckRules;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.Project;
-using RefDepGuard.Applied.Models.RefDepGuard;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.Project;
+using RefDepGuard.Models.RefDepGuard;
 using System.Globalization;
 using RefDepGuard.Console.Resources;
 

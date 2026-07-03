@@ -1,76 +1,77 @@
-# Общая информация
-**RefDepGuard.Console** представляет собой "облегчённую" версию расширения RefDepGuard, предназначенную для работы в условиях без установленной IDE. Позволяет произвести проверку соответствия текущего состояния решения заявленным в конфигурационных файлах правилам в рамках автоматизированного теста (CI / CD пайплайн)
+# General Information
+**RefDepGuard.Console** is a "lightweight" version of the RefDepGuard extension and it designed to work in environments without an installed IDE. This app allows you to verify that the current state of the solution complies with the rules specified in the configuration files as part of an automated test (CI / CD pipeline)
 
-# Релевантная к User_Guide версия ПП
+# User_Guide-relevant version of the app
 2.1.0
 
-# Условия для корректной работы
+# Conditions for correct operation
 
-Для того, чтобы консольное приложение корректно работало на требуемом устройстве, нужно выполнить ряд условий:
-## 0. Устройство должно иметь ОС Windows 10+
-Программа предполагает использование на ОС Windows x64
+In order for the console app to work correctly on the required device, you need to meet a number of conditions:
+## 0. The device must have Windows 10+ OS
+The program assumes use on Windows x64 OS
 
-## 1. Установить dotnet 8 или ниже
+## 1. Install dotnet 8 or lower
 
-В первую очередь рекомендуем проверить установленные версии dotnet с помощью cmd. Если отображается хотя бы 1 sdk версии 8 или ниже, то программа будет работать корректно:</br>
+First of all, we recommend checking the installed versions of dotnet using cmd. If at least 1 sdk version 8 or lower is displayed, the program will work correctly:< /br>
 </br>
 <img width="342" height="97" alt="image" src="https://github.com/user-attachments/assets/9e221c8c-4e60-4dc0-873a-42c3fbbf50e9" /></br>
 </br>
-Если sdk отсутствует, то его можно скачать по следующей [ссылке](https://dotnet.microsoft.com/ru-ru/download/dotnet/8.0)
+If the sdk is missing, you can download it from the following [link](https://dotnet.microsoft.com/ru-ru/download/dotnet/8.0://dotnet.microsoft.com/ru-ru/download/dotnet)
 
-## 2. Написать скрипт запуска
+## 2. Write a startup script
 
-При запуске на обычном устройстве (не CI/CD пайплайн) рекомендуем написать простой .bat скрипт для того, чтобы .exe файл не закрылся сразу же после выполнения:</br>
+When running on a regular device (not a CI/CD pipeline), we recommend writing a simple one .bat script in order to the .exe file did not close immediately after execution:</br>
 
 ```
 RefDepGuard.Console.exe en-US
 pause
 ```
 </br>
-Полученный файл можно назвать любым именем, но мы будем в дальнейшем его называть **"RefDepGuardStart.bat"**.</br>
+The resulting file can be named by any name, but we will continue to call it * *RefDepGuardStart.bat**.</br>
 
-Также заместо аргумента "en-US" можно подставить "ru-RU" или убрать его вовсе. Это позволит программе поменять язык её сообщений с английского на русский
+You can also replace the "en-US" argument with "ru-RU" or remove it altogether. This will allow the program to change the language of its messages from English to Russian
 
-## 3. Поместить .exe и .bat файлы в root
+## 3. Place .exe and .bat files in root
 
-Нужно поместить созданный .bat файл и файл консольного приложения в коревую папку решению: папку, в которой расположен .sln файл:</br>
+You need to place the created one .bat file and console application file in the solution root folder: the folder where the .sln file is located:</br>
 
 <img width="725" height="551" alt="Items (4)" src="https://github.com/user-attachments/assets/543fd078-7234-4c82-9d0f-14be14716752" /></br>
 </br>
-_!Важно: имя .sln файла должно совпадать с именем корневой папки. В противном случае либо будет произведена проверка не для того решения, либо она вообще не будет произведена!_
+_!Important: The name of the .sln file must match the name of the root folder. Otherwise, the wrong solution will be checked, or it will not be checked at all!_
 
-## 4. Запуск .bat файла
+## 4. Launch .bat file
 
-Наконец, нажмите ЛКМ на .bat файл и консольное приложение корректно запустится
+Finally, click LMB on .bat file and the console application starts correctly
 
-# Возможности консольного приложения
+# Features of the console app
 
-RefDepGuard.Console осуществляет проверку соответствия текущего состояния решения заявленным правилам в несколько этапов:
-## 0. Приветствие
-Выводится приветственное сообщение а также имя решения, для которого будет производится проверка</br>
+RefDepGuard.Console checks whether the current state of the solution meets the specified rules in several stages:
+## 0. Greeting
+A welcome message is displayed along with the name of the solution to be checked </br>
 
-<img width="628" height="43" alt="image" src="https://github.com/user-attachments/assets/29f4eace-5f5a-4cf7-9252-711da2dde037" />
+<img width="601" height="63" alt="image" src="https://github.com/user-attachments/assets/439458f9-08fd-4383-8d87-4150d0dfb50c" />
 
-## 1. Парсинг состояния решения
-В рамках этого этапа приложение получает информацию обо всех проектах, входящих в решение, а также их TargetFramework версиях и связях. Эти данные также дублируются в консоль:</br>
+## 1. Solution state parsing
+During this stage, the application receives information about all projects included in the solution, as well as their TargetFramework versions and relationships. This data is also duplicated in the console:</br>
 
-<img width="474" height="562" alt="Items (3)" src="https://github.com/user-attachments/assets/27d764a6-b985-4bd2-a6cf-a502407431bf" />
+<img width="512" height="945" alt="image" src="https://github.com/user-attachments/assets/18cc8cb3-02e8-4ae9-8eba-734a3f4cd044" />
 
-## 2. Парсинг правил из файлов конфигурации
-В рамках данного этапа приложение получает данные о правилах, указанных в конфигурационных файлах.</br>
+
+## 2. Parsing rules from configuration files
+During this stage, the application receives data about the rules specified in the configuration files.</br>
 </br>
-<img width="354" height="50" alt="image" src="https://github.com/user-attachments/assets/8c92b1f2-16a0-4737-ac3a-4ab111fcc6f8" /></br>
+<img width="354" height="44" alt="image" src="https://github.com/user-attachments/assets/a0774a75-639f-4f1f-ae3e-6967aa475679" />
 </br>
-_!Важно: в отличие от расширения, консольное приложение не умеет генерировать шаблоны файлов конфигурации, поэтому любые синтаксический ошибки приведут к неудачному парсингу правил и потребуют поиска проблем и их редактирования вручную!_
+_!Important: unlike the extension, the console application does not know how to generate configuration file templates, so any syntax errors will lead to unsuccessful parsing of the rules and require finding problems and editing them manually!_
 </br>
-</br>
-<img width="626" height="112" alt="image" src="https://github.com/user-attachments/assets/ce3e520f-b1aa-464c-ab9c-a4caba955e2f" />
+<img width="601" height="159" alt="image" src="https://github.com/user-attachments/assets/c376e025-f815-42ef-92a7-e2740f8de18e" />
 
-## 3. Проверка соответствия состояния заявленным правилам и вывод обнаруженных проблем
-В рамках данного этапа приложение производит проверку соответствия текущего состояния заявленным правилам, по результатам которой выводятся обнаруженные проблемы или сообщение об их отсутствии</br>
+
+## 3. Checking whether the status complies with the declared rules and displaying detected problems
+During this stage, the application checks whether the current state complies with the declared rules, which results in problems detected or a message about their absence </br>
 </br>
-<img width="1280" height="599" alt="Items (2)" src="https://github.com/user-attachments/assets/217d72e1-00ee-4510-894c-544180334a3a" />
+<img width="1370" height="890" alt="image" src="https://github.com/user-attachments/assets/64a60049-8944-454a-bc6c-882ced3ed853" />
 </br>
-<img width="524" height="80" alt="image" src="https://github.com/user-attachments/assets/c8a844b0-56f7-44ee-b533-8be3c98bc289" />
+<img width="484" height="126" alt="image" src="https://github.com/user-attachments/assets/7a76818a-5e8f-4a13-b1fb-3cd18f103328" />
 </br>
-_!Важно: в случае, если в результате проверки будут обнаружены ошибки или проверка по каким-то причинам не сможет произойти (fail на 1-3 этапе), то программа заканчивает выполнение с кодом "-1", что соответствует завершению с ошибкой. В противном случае - с кодом "0" (успешное выполнение)!_
+_!Important: if errors are detected as a result of the check, or the check fails for some reason (fail at stage 1-3), the program ends execution with the code "-1", which corresponds to completion with an error.  Otherwise - with the code "0"(successful execution)!_

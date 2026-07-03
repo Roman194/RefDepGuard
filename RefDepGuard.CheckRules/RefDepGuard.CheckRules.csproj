@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RefDepGuard.Applied\RefDepGuard.Applied.csproj" />
+    <ProjectReference Include="..\RefDepGuard.Models\RefDepGuard.Models.csproj" />
   </ItemGroup>
 
 </Project>

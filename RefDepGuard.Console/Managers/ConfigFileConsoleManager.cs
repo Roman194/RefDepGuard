@@ -1,6 +1,6 @@
 ﻿using RefDepGuard.ConfigFile;
-using RefDepGuard.Applied.Models.ConfigFile;
-using RefDepGuard.Applied.Models.Project;
+using RefDepGuard.Models.ConfigFile;
+using RefDepGuard.Models.Project;
 
 namespace RefDepGuard.Console.Managers
 {
